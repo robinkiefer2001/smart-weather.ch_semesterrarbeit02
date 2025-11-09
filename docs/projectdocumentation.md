@@ -39,7 +39,7 @@
 
 ---
 
-## 3. Installation
+## 3. Konfiguration von Ubuntu Server
 
 ### 3.1 Systemaktualisierung
 
@@ -83,7 +83,7 @@ GRANT ALL PRIVILEGES ON DATABASE smartweatherdb TO dbadm_robin;
 
 ---
 
-## 5. Konfiguration
+## 5. Konfiguration Postgres
 
 ### 5.1 postgresql.conf
 
@@ -129,6 +129,8 @@ sudo ufw status verbose
 ---
 
 ## 7. DNS-Konfiguration
+
+Die Domäne ist gekauft, von Swizzonic dort habe ich die DNS-Einträge hinterlegt für die Zukünftige Website.
 
 Domain: `smart-ch.ch`
 
