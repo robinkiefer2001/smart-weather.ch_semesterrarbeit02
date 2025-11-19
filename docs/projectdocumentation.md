@@ -178,3 +178,7 @@ Test-NetConnection -ComputerName 49.13.117.52 -Port 5432
 | SSL Mode       | Prefer oder Disable |
 
 ---
+
+streamlist in /opt
+adm_rki@RKI-UBUSRV001:/opt/streamlit$ source ./venv/bin/activate
+(venv) adm_rki@RKI-UBUSRV001:/opt/streamlit$
