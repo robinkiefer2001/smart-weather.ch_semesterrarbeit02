@@ -195,3 +195,206 @@ Alle für die Serverbasis erforderlichen Systeme wurden aufgesetzt. Die Applikat
 | IP-Adresse        | 49.13.117.52                                        |
 | Firewall          | UFW mit eingeschränkten Regeln                      
 
+Hier ist die logisch gegliederte und verständlich erklärte Worklog-Sektion in Markdown mit deinen konkreten Installations- und Konfigurationsschritten. So kannst du jeden Schritt strukturiert dokumentieren und abarbeiten.
+
+***
+
+# Worklog – Sprint 1 (Server & Infrastruktur)
+
+## 1. Systemvorbereitung
+
+- System aktualisiert:
+  ```
+  sudo apt update && sudo apt full-upgrade -y
+  ```
+- Basis-Tools installiert:
+  ```
+  sudo apt install -y vim htop curl wget git ufw fail2ban net-tools
+  ```
+- PostgreSQL-Repository hinzugefügt und Datenbank installiert:
+  ```
+  sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+  wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+  sudo apt update
+  sudo apt install -y postgresql postgresql-contrib
+  ```
+
+## 2. Datenbank-Dienst aktivieren
+
+- Dienst aktiviert und gestartet:
+  ```
+  sudo systemctl enable postgresql
+  sudo systemctl start postgresql
+  ```
+
+## 3. Benutzer- und Datenbankeinrichtung
+
+- Benutzer & Datenbank angelegt:
+  ```
+  sudo -u postgres psql
+  CREATE USER dbadm_robin WITH PASSWORD 'Qwer123*!';
+  CREATE DATABASE smartweatherdb OWNER dbadm_robin;
+  GRANT ALL PRIVILEGES ON DATABASE smartweatherdb TO dbadm_robin;
+  \q
+  ```
+
+## 4. Konfiguration von PostgreSQL
+
+- Einstellungen in `postgresql.conf` angepasst:
+  - listen_addresses = '*'
+  - port = 5432
+  - logging_collector = on
+  - log_connections = on
+  - log_disconnections = on
+
+- Zugriffsteuerung in `pg_hba.conf` gesetzt:
+  ```
+  local   all             all                                 scram-sha-256
+  host    all             all             0.0.0.0/0           scram-sha-256
+  host    all             all             ::1/128              scram-sha-256
+  local   replication     all                                 scram-sha-256
+  host    replication     all             127.0.0.1/32         scram-sha-256
+  host    replication     all             ::1/128              scram-sha-256
+  ```
+- Dienst neu gestartet:
+  ```
+  sudo systemctl restart postgresql
+  ```
+
+## 5. Firewall-Konfiguration
+
+- Ports freigegeben:
+  ```
+  sudo ufw allow OpenSSH
+  sudo ufw allow 5432/tcp
+  sudo ufw enable
+  sudo ufw status verbose
+  ```
+- Nach Testphase Zugriff eingeschränkt:
+  ```
+  sudo ufw delete allow 5432/tcp
+  sudo ufw allow from 192.168.1.0/24 to any port 5432 proto tcp
+  ```
+
+## 6. DNS-Konfiguration
+
+- Domain konfiguriert:
+  - A-Record: host.smart-ch.ch -> 49.13.117.52
+  - CNAME: db.smart-ch.ch -> host.smart-ch.ch
+
+## 7. Verbindungstests
+
+- Lokal getestet:
+  ```
+  psql -U dbadm_robin -d smartweatherdb -W
+  ```
+- Remote getestet:
+  ```
+  psql -h 49.13.117.52 -U dbadm_robin -d smartweatherdb -W
+  ```
+- Windows Firewalltest:
+  ```
+  Test-NetConnection -ComputerName 49.13.117.52 -Port 5432
+  ```
+
+## 8. pgAdmin Anbindung
+
+| Feld           | Wert              |
+| -------------- | ----------------- |
+| Name           | SmartWeatherDB    |
+| Host           | db.smart-ch.ch    |
+| Port           | 5432              |
+| Maintenance DB | smartweatherdb    |
+| Username       | dbadm_robin       |
+| Password       | Passwort          |
+| SSL Mode       | Prefer/Disable    |
+
+***
+
+# Streamlit Installation und Konfiguration auf Ubuntu Server
+
+## 1. Systemvorbereitung
+
+- System aktualisiert:
+  ```
+  sudo apt update && sudo apt upgrade -y
+  ```
+- Python, Pip und venv installiert:
+  ```
+  sudo apt install -y python3 python3-pip python3-venv
+  ```
+- Projektverzeichnis angelegt:
+  ```
+  sudo mkdir -p /opt/streamlit
+  sudo chown $USER:$USER /opt/streamlit
+  cd /opt/streamlit
+  ```
+
+## 2. Virtuelle Umgebung und Streamlit
+
+- Virtuelle Umgebung erstellt und aktiviert:
+  ```
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
+- Streamlit installiert:
+  ```
+  pip install --upgrade pip
+  pip install streamlit
+  ```
+- Installation geprüft:
+  ```
+  streamlit --version
+  ```
+
+## 3. Beispiel-App und Start
+
+- app.py geschrieben:
+  ```python
+  import streamlit as st
+
+  st.title("Streamlit Server Test")
+  st.write("Der Streamlit Server läuft erfolgreich auf Ubuntu.")
+  ```
+- Anwendung gestartet:
+  ```
+  streamlit run app.py --server.address=0.0.0.0 --server.port=8501
+  ```
+
+## 4. Firewall für Streamlit
+
+- Port 8501 freigegeben und Regeln geprüft:
+  ```
+  sudo ufw allow 8501/tcp
+  sudo ufw status verbose
+  ```
+
+## 5. Automatischer Start per systemd
+
+- Service-Datei angelegt:
+  ```
+  sudo nano /etc/systemd/system/streamlit.service
+  ```
+- Inhalt:
+  ```
+  [Unit]
+  Description=Streamlit App
+  After=network.target
+
+  [Service]
+  User=ubuntu
+  WorkingDirectory=/opt/streamlit
+  ExecStart=/opt/streamlit/venv/bin/streamlit run /opt/streamlit/app.py --server.address=0.0.0.0 --server.port=8501
+  Restart=always
+
+  [Install]
+  WantedBy=multi-user.target
+  ```
+- Service aktiviert und gestartet:
+  ```
+  sudo systemctl daemon-reload
+  sudo systemctl enable streamlit
+  sudo systemctl start streamlit
+  sudo systemctl status streamlit
+  ```
+
