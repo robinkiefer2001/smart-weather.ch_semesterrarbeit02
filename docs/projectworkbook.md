@@ -23,21 +23,6 @@ Die Sprints bestehen aus Stories welche gleichzeitig die Auszuführenden Tasks s
 
 ---
 
-## 2. Systemübersicht
-
-| Komponente        | Beschreibung                                        |
-| ----------------- | --------------------------------------------------- |
-| Hostsystem        | Ubuntu Server 22.04 LTS                             |
-| Datenbankdienst   | PostgreSQL Version 16                               |
-| Verwaltungstools  | pgAdmin 4, PowerShell mit psql                      |
-| Zugriff           | Lokal und Remote über Port 5432                     |
-| Authentifizierung | SCRAM-SHA-256                                       |
-| Benutzer          | dbadm_robin                                         |
-| Datenbank         | smartweatherdb                                      |
-| DNS               | host.smart-ch.ch (A-Record), db.smart-ch.ch (CNAME) |
-| IP-Adresse        | 49.13.117.52                                        |
-| Firewall          | UFW mit eingeschränkten Regeln                      
-
 # Sprint 0 – Projektinitialisierung & Setup
 
 ## Ziel des Sprints
@@ -82,23 +67,9 @@ Eine lauffähige Entwicklungsumgebung und Basis-Projektstruktur bereitstellen, u
 
 ---
 
-## 5. Fortschritt
-
-| Kennzahl     | Geplant | Erreicht |
-| ------------ | ------- | -------- |
-| Story Points | [x]     | [y]      |
-| Aufgaben     | [x]     | [y]      |
-
----
-
 ## 6. Review
 
-Kurze Zusammenfassung, was in diesem Sprint umgesetzt wurde.
-Beispiel:
-
-* Streamlit-Setup abgeschlossen
-* App läuft lokal
-* Git-Repository initialisiert
+Das Aufsetzen der Projektumgebung ist abgeschlossen. Somit kann ich im nächsten Sprint mit der Umsetzung beginnen.
 
 ---
 
@@ -106,68 +77,121 @@ Beispiel:
 
 | Frage                                      | Antwort |
 | ------------------------------------------ | ------- |
-| Was lief gut?                              | ...     |
-| Was war schwierig?                         | ...     |
-| Was kann verbessert werden?                | ...     |
-| Was nehmen wir mit in den nächsten Sprint? | ...     |
-
----
-
-## 8. Planung Nächster Sprint
-
-| Bereich        | Ziel |
-| -------------- | ---- |
-| Funktionalität | ...  |
-| Technik        | ...  |
-| Organisation   | ...  |
+| Was lief gut?                              | Es war alles sehr einfach in diesem Schritt daher alles.     |
+| Was war schwierig?                         | Die einzige herausforderung war für mich die saubere zusammenstellung von den Sprints in Jiira.     |
+| Was kann verbessert werden?                | Die Projektdokumentation sollte flüssiger laufen im nächsten Sprint.     |
+| Was nehmen wir mit in den nächsten Sprint? | es gibt keine Pendenzen vom Sprint 0     |
 
 ---
 
 ## 9. Worklog
 
-Hier dokumentierst du **konkrete Arbeitsschritte, Code und Tests** – ideal, um technische Nachweise zu liefern.
 
-### Datum: [TT.MM.YYYY]
+# Sprint 1 – Server & Infrastruktur
 
-**Aktivität:** Umgebung erstellt
-**Befehle:**
+## Ziel des Sprints
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install streamlit
-```
-
-**Ergebnis:**
-
-```bash
-streamlit --version
-# Streamlit, version 1.39.0
-```
+Die gesamte Server- und Infrastruktur-Basis aufsetzen, inklusive Domain, HTTPS, Datenbank, Firewall, sodass die Applikation sicher und erreichbar ist.
 
 ---
 
-### Datum: [TT.MM.YYYY]
+## 1. Epics und User Stories
 
-**Aktivität:** App gestartet
-**Code:**
-
-```python
-import streamlit as st
-
-st.title("Wetter App")
-st.write("Dies ist ein Testlauf der Basis-App.")
-```
-
-**Befehl zum Starten:**
-
-```bash
-streamlit run app.py
-```
-
-**Ergebnis:**
-App läuft lokal auf [http://localhost:8501](http://localhost:8501)
+| Epic (Key)   | Story-ID   | Rolle           | Ziel                                                                                | Nutzen                                                      | Akzeptanzkriterien                                                                      |
+|--------------|------------|-----------------|-------------------------------------------------------------------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| SCRUM-4      | SCRUM-48   | Administrator   | DNS konfigurieren, damit die Website erreichbar ist                                 | Applikation ist unter eigener Domain erreichbar              | DNS zeigt auf richtigen Server, Website erreichbar                                     |
+| SCRUM-4      | SCRUM-50   | Administrator   | SSL Zertifikat mit TXT Record bestätigen                                            | Sichere HTTPS-Kommunikation                                 | SSL-Zertifikat gültig und aktiv, HTTPS funktioniert                                    |
+| SCRUM-4      | SCRUM-49   | Administrator   | DNS Konfiguration vornehmen                                                         | Domain-to-IP funktioniert                                   | DNS-Einträge sind korrekt gesetzt                                                      |
+| SCRUM-4      | SCRUM-5    | Administrator   | Domain und HTTPS-Zertifikate einrichten                                             | Sichere, eigene Zugriffs-URL                                | Domain ist erreichbar, Zertifikate sind aktiv                                          |
+| SCRUM-4      | SCRUM-36   | Administrator   | SSL-Zertifikat kaufen                                                               | HTTPS verfügbar                                             | Zertifikat wurde richtig erworben                                                      |
+| SCRUM-4      | SCRUM-35   | Administrator   | Domain kaufen                                                                      | Eigene Projekt-Domain                                       | Domain transferiert und im Besitz                                                      |
+| SCRUM-4      | SCRUM-3    | Administrator   | Streamlit auf Ubuntu Server installieren                                            | App-Grundlage steht auf Server                              | Streamlit läuft auf Produktiv-Server                                                   |
+| SCRUM-4      | SCRUM-40   | Entwickler      | app.py erstellen und testen                                                        | Funktionierende Start-App                                   | Datei vorhanden, lauffähig, Basisfunktion gegeben                                      |
+| SCRUM-4      | SCRUM-39   | Entwickler      | virtual Env für Streamlit Projekt erstellen                                        | Saubere Umgebung für Python                                 | venv eingerichtet, requirements installierbar                                          |
+| SCRUM-4      | SCRUM-38   | Entwickler      | Python auf Ubuntu Server installieren                                               | Basis für App-Laufzeitumgebung                              | Python lauffähig, Version geprüft                                                      |
+| SCRUM-4      | SCRUM-37   | Entwickler      | Streamlit auf Ubuntu Server installieren                                            | Web-Framework bereitgestellt                                | Streamlit läuft und ist über Port erreichbar                                           |
+| SCRUM-4      | SCRUM-1    | Administrator   | Ubuntu Server auf Hetzner aufsetzen, Umgebung für App bereitstellen                 | Server für Deployment verfügbar                             | Server läuft, von außen erreichbar                                                     |
+| SCRUM-4      | SCRUM-51   | Administrator   | Auto Update konfigurieren                                                           | Updates laufen automatisch                                  | Automatische Updates beim Server aktiviert                                             |
+| SCRUM-4      | SCRUM-43   | Administrator   | Firewall Rules auf Hetzner erstellen                                                | Schutz vor unerwünschten Zugriffen                          | SSH, HTTP/HTTPS explizit erlaubt, Rest blockiert                                       |
+| SCRUM-4      | SCRUM-42   | Administrator   | Loadbalancer auf Hetzner erstellen                                                  | Skalierbarkeit / Ausfallsicherheit                          | Loadbalancer läuft und verteilt Traffic                                                |
+| SCRUM-4      | SCRUM-41   | Administrator   | Zugriff testen                                                                     | Funktionsprüfung                                            | Alle Services überzugänglich, Tests erfolgreich                                        |
+| SCRUM-4      | SCRUM-2    | Administrator   | Datenbank-Instanz (PostgreSQL) installieren, um Wetterdaten zu speichern            | Persistente Datenspeicherung                                | PostgreSQL läuft, Tabellen erzeugt, Login getestet                                     |
+| SCRUM-4      | SCRUM-47   | Administrator   | Zugriff von außen sicherstellen                                                     | Nur autorisierter Zugriff                                   | Zugriffsschutz konfiguriert                                                            |
+| SCRUM-4      | SCRUM-45   | Administrator   | SQL-Instanz und DB konfigurieren                                                    | Vorbereitete Datenbankstruktur                              | Parameter und Struktur sind projektspezifisch gesetzt                                  |
+| SCRUM-4      | SCRUM-44   | Administrator   | Postgres auf Ubuntu Server installieren                                             | Datenbank laufend auf Server                                | Zugriff und Konnektivität sind gegeben                                                 |
 
 ---
 
-Möchtest du, dass ich dir diese Struktur gleich als **Markdown-Datei (`SPRINT_TEMPLATE.md`)** exportiere, damit du sie direkt in dein Repository legen kannst und pro Sprint kopierst (z. B. `SPRINT0.md`, `SPRINT1.md` usw.)?
+## 2. Aufgaben (Tasks)
+
+| ID        | Beschreibung                                               | Zugeordnet zu Story  | Verantwortlich | Status  |
+|-----------|-----------------------------------------------------------|----------------------|---------------|---------|
+| SCRUM-48  | DNS konfigurieren, damit die Website erreichbar ist        | SCRUM-4              | —             | To Do   |
+| SCRUM-50  | SSL Zertifikat mit TXT Record bestätigen                   | SCRUM-4              | —             | To Do   |
+| SCRUM-49  | DNS Konfiguration vornehmen                               | SCRUM-4              | —             | To Do   |
+| SCRUM-5   | Domain und HTTPS-Zertifikate einrichten                   | SCRUM-4              | —             | To Do   |
+| SCRUM-36  | SSL Zertifikat kaufen                                     | SCRUM-4              | —             | To Do   |
+| SCRUM-35  | Domain kaufen                                             | SCRUM-4              | —             | To Do   |
+| SCRUM-3   | Streamlit auf Ubuntu Server installieren                  | SCRUM-4              | —             | To Do   |
+| SCRUM-40  | app.py erstellen und testen                              | SCRUM-4              | —             | To Do   |
+| SCRUM-39  | virtual Env für Streamlit erstellen                      | SCRUM-4              | —             | To Do   |
+| SCRUM-38  | Python auf Ubuntu Server installieren                    | SCRUM-4              | —             | To Do   |
+| SCRUM-37  | Streamlit auf Ubuntu Server installieren                 | SCRUM-4              | —             | To Do   |
+| SCRUM-1   | Ubuntu-Server auf Hetzner aufsetzen                      | SCRUM-4              | —             | To Do   |
+| SCRUM-51  | Auto Update konfigurieren                                | SCRUM-4              | —             | To Do   |
+| SCRUM-43  | Firewall Rules auf Hetzner erstellen                     | SCRUM-4              | —             | To Do   |
+| SCRUM-42  | Loadbalancer auf Hetzner erstellen                       | SCRUM-4              | —             | To Do   |
+| SCRUM-41  | Zugriff testen                                           | SCRUM-4              | —             | To Do   |
+| SCRUM-2   | Datenbank-Instanz (PostgreSQL) installieren              | SCRUM-4              | —             | To Do   |
+| SCRUM-47  | Zugriff von außen sicherstellen                          | SCRUM-4              | —             | To Do   |
+| SCRUM-45  | SQL-Instanz und DB konfigurieren                         | SCRUM-4              | —             | To Do   |
+| SCRUM-44  | Postgres auf Ubuntu Server installieren                  | SCRUM-4              | —             | To Do   |
+
+---
+
+## 3. Deliverables (Ergebnisse)
+
+| Nr. | Deliverable                              | Bezug Story | Beschreibung                                                              | Nachweis / Artefakt                                                 |
+|-----|------------------------------------------|-------------|--------------------------------------------------------------------------|---------------------------------------------------------------------|
+| 1   | Server ist auf Hetzner aufgesetzt        | SCRUM-1     | Ubuntu Server läuft und ist von außen erreichbar                          | Screenshot der Serververwaltung, Testzugriff                        |
+| 2   | Domain & SSL eingerichtet                | SCRUM-5     | Domain gekauft, DNS gesetzt, HTTPS aktiv                                  | Website erreichbar über https, Zertifikatprüfung                    |
+| 3   | Streamlit-App deployt                    | SCRUM-3     | app.py und virtualenv eingerichtet, App läuft im Browser                  | Screenshot, Funktionsprüfung                                        |
+| 4   | Firewall- und Sicherheitsregeln aktiv    | SCRUM-43    | Alle nötigen Firewallrules und Zugriffsbeschränkungen gesetzt             | Firewall-Übersicht, Testprotokoll                                   |
+| 5   | PostgreSQL-Datenbank läuft               | SCRUM-2     | Datenbank installiert, eingerichtet und getestet                          | SQL Zugriff, Screenshot PGAdmin/psql                                |
+| 6   | Automatische Updates aktiv               | SCRUM-51    | Auto-Update für Betriebssystem und Dienste eingerichtet                   | Nachweis Konfigurationsdatei                                        |
+| 7   | Loadbalancer installiert                 | SCRUM-42    | Lastverteilung eingerichtet                                               | Screenshot des Loadbalancers, Test mit mehreren Clients             |
+
+---
+
+## 4. Review
+
+Alle für die Serverbasis erforderlichen Systeme wurden aufgesetzt. Die Applikation ist in einer gesicherten, erreichbaren Infrastruktur lauffähig und bereit für die Weiterentwicklung im nächsten Sprint. Mögliche Verbesserungen in Setup und Dokumentation wurden identifiziert.
+
+---
+
+## 5. Retrospektive
+
+| Frage                            | Antwort                                                                    |
+|----------------------------------|---------------------------------------------------------------------------|
+| Was lief gut?                    | Aufsetzen und Konfiguration von Server, Domain und Sicherheit liefen reibungslos. |
+| Was war schwierig?               | Abstimmung der DNS- und Zertifikatsprozesse benötigte mehrere Anläufe.           |
+| Was kann verbessert werden?      | Dokumentation der Einrichtungsschritte weiter präzisieren.                       |
+| Was nehmen wir mit?              | Prozesse für zukünftiges Setup können jetzt als Vorlage dienen.                   |
+
+---
+
+## 6. Worklog
+
+| Komponente        | Beschreibung                                        |
+| ----------------- | --------------------------------------------------- |
+| Hostsystem        | Ubuntu Server 22.04 LTS                             |
+| Datenbankdienst   | PostgreSQL Version 16                               |
+| Verwaltungstools  | pgAdmin 4, PowerShell mit psql                      |
+| Zugriff           | Lokal und Remote über Port 5432                     |
+| Authentifizierung | SCRAM-SHA-256                                       |
+| Benutzer          | dbadm_robin                                         |
+| Datenbank         | smartweatherdb                                      |
+| DNS               | host.smart-ch.ch (A-Record), db.smart-ch.ch (CNAME) |
+| IP-Adresse        | 49.13.117.52                                        |
+| Firewall          | UFW mit eingeschränkten Regeln                      
+
