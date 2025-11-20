@@ -153,13 +153,13 @@ Die gesamte Server- und Infrastruktur-Basis aufsetzen, inklusive Domain, HTTPS, 
 
 | Nr. | Deliverable                              | Bezug Story | Beschreibung                                                              | Nachweis / Artefakt                                                 |
 |-----|------------------------------------------|-------------|--------------------------------------------------------------------------|---------------------------------------------------------------------|
-| 1   | Server ist auf Hetzner aufgesetzt        | SCRUM-1     | Ubuntu Server läuft und ist von außen erreichbar                          | Screenshot der Serververwaltung, Testzugriff                        |
-| 2   | Domain & SSL eingerichtet                | SCRUM-5     | Domain gekauft, DNS gesetzt, HTTPS aktiv                                  | Website erreichbar über https, Zertifikatprüfung                    |
-| 3   | Streamlit-App deployt                    | SCRUM-3     | app.py und virtualenv eingerichtet, App läuft im Browser                  | Screenshot, Funktionsprüfung                                        |
+| 1   | Server ist auf Hetzner aufgesetzt        | SCRUM-1     | Ubuntu Server läuft und ist von außen erreichbar                          | ![alt text](image-4.png)                        |
+| 2   | Domain & SSL eingerichtet                | SCRUM-5     | Domain gekauft, DNS gesetzt, HTTPS aktiv                                  | ![alt text](image-6.png)                   |
+| 3   | Streamlit-App deployt                    | SCRUM-3     | app.py und virtualenv eingerichtet, App läuft im Browser                  | ![alt text](image-5.png)                                        |
 | 4   | Firewall- und Sicherheitsregeln aktiv    | SCRUM-43    | Alle nötigen Firewallrules und Zugriffsbeschränkungen gesetzt             | Firewall-Übersicht, Testprotokoll                                   |
-| 5   | PostgreSQL-Datenbank läuft               | SCRUM-2     | Datenbank installiert, eingerichtet und getestet                          | SQL Zugriff, Screenshot PGAdmin/psql                                |
+| 5   | PostgreSQL-Datenbank läuft               | SCRUM-2     | Datenbank installiert, eingerichtet und getestet                          | ![alt text](image-8.png)                                |
 | 6   | Automatische Updates aktiv               | SCRUM-51    | Auto-Update für Betriebssystem und Dienste eingerichtet                   | Nachweis Konfigurationsdatei                                        |
-| 7   | Loadbalancer installiert                 | SCRUM-42    | Lastverteilung eingerichtet                                               | Screenshot des Loadbalancers, Test mit mehreren Clients             |
+| 7   | Loadbalancer installiert                 | SCRUM-42    | Zugang über https auf streamlit                                               | ![alt text](image-7.png)         |
 
 ---
 
