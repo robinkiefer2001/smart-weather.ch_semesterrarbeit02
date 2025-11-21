@@ -391,3 +391,85 @@ Alle für die Serverbasis erforderlichen Systeme wurden aufgesetzt. Die Applikat
   sudo systemctl status streamlit
   ```
 
+# Sprint 2 – Automatisierung & Integration
+
+## Ziel des Sprints
+
+Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als dauerhaften Dienst betreiben, Wetterdaten per CI/CD-Pipeline bereitstellen, Git-Integration und regelmäßige Datenaktualisierung sowie Visualisierung produktiv umsetzen.
+
+---
+
+## 1. Epic und User Stories
+
+| Epic (Key)                                 | Story-ID | Rolle         | Ziel                                                                                                                     | Nutzen                                              | Akzeptanzkriterien                                                            |
+|--------------------------------------------|----------|---------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-52   | Administrator | Streamlit als Dienst automatisch und dauerhaft betreiben                           | Der Service ist jederzeit verfügbar                  | Streamlit läuft als Systemdienst, Neustart & Logging getestet                  |
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-53   | Administrator | Git auf dem Ubuntu-Server installieren, app.py aus Repo bereitstellen               | Änderungen am Code sind direkt deploybar             | Git installiert; Repo geklont; app.py lauffähig aus Repo bereitgestellt        |
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-54   | Administrator | Wetterdaten via API durch eine CI/CD-Pipeline in die Datenbank automatisiert laden | Wetterdaten sind immer aktuell                      | API funktioniert; CI/CD-Pipeline überträgt Daten korrekt; DB-Test durchgeführt |
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-55   | Entwickler    | Wetterdaten testweise als einfache Tabelle in Streamlit anzeigen                    | Daten sind visualisiert                             | Tabelle ist sichtbar; Testdaten werden angezeigt                               |
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-56   | Administrator | Streamlit-App aktualisiert Daten alle 5 Minuten                                    | Visualisierung bleibt aktuell                       | Automatisches Update erfolgt zuverlässig alle 5 Minuten                        |
+
+---
+
+## 3. Aufgaben (Tasks)
+
+| Task-ID   | Beschreibung                                            | Zugeordnet zu Story | Verantwortlich | Status  |
+|-----------|--------------------------------------------------------|---------------------|---------------|---------|
+| SCRUM-60  | Logging & Restart testen                               | SCRUM-52            | Robin         | To Do   |
+| SCRUM-59  | Deployment testen                                      | SCRUM-52            | Robin         | To Do   |
+| SCRUM-58  | Systemd-Service für Streamlit schreiben                | SCRUM-52            | Robin         | To Do   |
+| SCRUM-61  | Git auf Server installieren                            | SCRUM-53            | Robin         | To Do   |
+| SCRUM-62  | Repo klonen                                            | SCRUM-53            | Robin         | To Do   |
+| SCRUM-63  | app.py aus Repo bereitstellen und testen               | SCRUM-53            | Robin         | To Do   |
+| SCRUM-64  | API-Endpunkt implementieren                            | SCRUM-54            | Robin         | To Do   |
+| SCRUM-65  | CI/CD-Pipeline anlegen (z.B. GitLab/GitHub Actions)    | SCRUM-54            | Robin         | To Do   |
+| SCRUM-66  | Datenbankanbindung und Test                            | SCRUM-54            | Robin         | To Do   |
+| SCRUM-67  | Testdaten-API bereitstellen/abrufen                    | SCRUM-55            | Robin         | To Do   |
+| SCRUM-68  | Datenmodell zur Anzeige definieren                     | SCRUM-55            | Robin         | To Do   |
+| SCRUM-69  | Anzeige in Streamlit umsetzen                          | SCRUM-55            | Robin         | To Do   |
+| SCRUM-70  | Zeitgesteuerten Job/Thread für 5-Minuten-Update anlegen| SCRUM-56            | Robin         | To Do   |
+| SCRUM-71  | Update-Logik implementieren                            | SCRUM-56            | Robin         | To Do   |
+| SCRUM-72  | Funktionalität testen                                  | SCRUM-56            | Robin         | To Do   |
+
+---
+
+## 4. Deliverables (Ergebnisse)
+
+| Nr. | Deliverable                        | Bezug Story | Beschreibung                                                          | Nachweis / Artefakt                                   |
+|-----|------------------------------------|-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
+| 1   | Streamlit-Dienst produktiv         | SCRUM-52    | Streamlit läuft als Systemdienst und ist dauerhaft erreichbar         | Screenshot Service-Status, Log-Datei                  |
+| 2   | Git-Integration                    | SCRUM-53    | Repo geklont, app.py läuft aus dem Repository                        | Screenshot Terminal, Verzeichnis, Log                 |
+| 3   | API & CI/CD                       | SCRUM-54    | Automatisierter Datenimport in Datenbank über Pipeline                | Screenshot Pipeline, Datenbankabfrage                 |
+| 4   | Visualisierung Daten               | SCRUM-55    | Testdaten werden als Tabelle in Streamlit angezeigt                   | Screenshot Streamlit-App, Beispiel-Tabelle            |
+| 5   | Automatische Datenaktualisierung   | SCRUM-56    | Streamlit zeigt alle 5 Minuten aktuelle Daten                         | Screenshot Update-Timer, Log der Aktualisierungen     |
+
+---
+
+## 6. Review
+
+
+---
+
+## 7. Retrospektive
+
+| Frage                                    | Antwort                                                                           |
+|-------------------------------------------|-----------------------------------------------------------------------------------|
+| Was lief gut?                             |            |
+| Was war schwierig?                        |  |
+| Was kann verbessert werden?               |           |
+| Was nehmen wir mit in den nächsten Sprint?|       |
+
+---
+
+## 9. Worklog
+
+### Git installieren
+
+```bash
+Sudo apt update
+sudo apt install git
+```
+
+
+---
+
