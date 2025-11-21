@@ -1,25 +1,35 @@
 # Projektdokumentation
 
-**Projektleiter:** Robin Kiefer
+**Projektleiter:** Robin Kiefer  
 **Projekt:** SmartWeather.ch
 
-## Legende
+---
 
-Die Sprints bestehen aus Stories welche gleichzeitig die Auszuführenden Tasks sind und diese zusammengesetzt in einer Epic welche als Meilenstein dient.
+## Legende zur agilen Struktur
 
-## Introduction
+- **Epic/Sprint:** Meilenstein im Entwicklungsprozess, der thematisch und zeitlich abgegrenzt ist.
+- **User Story:** Fachliche Anforderung aus Sicht einer bestimmten Rolle (mit Story Points zur Aufwandsschätzung).
+- **Task:** Konkrete operative Aufgabe, die zur Umsetzung einer User Story nötig ist.  
+- **Rolle:** Die beteiligten Akteure und Systeme; klassisch z. B. Projektleiter, Entwickler, Administrator – dazu gehört explizit auch das System selbst als Akteur (etwa bei automatisierten Tätigkeiten).
 
+---
 
--	Entwicklung eines Python-Skripts, das Wetterdaten (z.B. OpenWeatherMap) abruft und verarbeitet.
+## Rollen im Projekt
 
--	Aufbau einer Supabase-Datenbank inkl. API-Integration zur Speicherung der Wetterdaten.
+| Rolle            | Beschreibung                                                                      |
+|------------------|-----------------------------------------------------------------------------------|
+| Projektleiter    | Verantwortlich für Planung, Koordination, Dokumentation und Review                |
+| Entwickler       | Implementiert die fachlichen und technischen Anforderungen (Backend, Frontend)    |
+| Administrator    | Zuständig für Server, Infrastruktur, Hosting, Sicherheit und Deployments          |
+| System           | Führt automatisierte Prozesse aus (z. B. durch CI/CD, Daten-Synchronisation etc.) |
 
--	Einrichtung einer GitLab CI/CD Pipeline, die das Python-Skript automatisiert ausführt und die Daten aktualisiert.
+---
 
--	Implementierung einer Streamlit-Webanwendung zur Visualisierung der gesammelten Wetterdaten.
+## Einführung
 
--	Optional: Erweiterung um Funktionen wie Vergleich mehrerer Orte oder Benachrichtigungen bei Extremwetter.
-
+Das Projekt SmartWeather.ch wird nach agilen Prinzipien umgesetzt.  
+Jeder Sprint bildet einen klar definierten Meilenstein (Epic) mit festgelegtem Ziel. Die Anforderungen werden als User Stories mit priorisierten Story Points erfasst und in einzelne Tasks heruntergebrochen, um die Bearbeitung und Dokumentation zu strukturieren und zu kontrollieren. Die beteiligten Rollen – Mensch wie System – sind in jeder Story bzw. jedem Task klar abgebildet.  
+So lässt sich der Projektverlauf jederzeit transparent nachvollziehen und effizient weiterentwickeln.
 
 ---
 
@@ -97,28 +107,13 @@ Die gesamte Server- und Infrastruktur-Basis aufsetzen, inklusive Domain, HTTPS, 
 
 ## 1. Epics und User Stories
 
-| Epic (Key)   | Story-ID   | Rolle           | Ziel                                                                                | Nutzen                                                      | Akzeptanzkriterien                                                                      |
-|--------------|------------|-----------------|-------------------------------------------------------------------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------------|
-| SCRUM-4      | SCRUM-48   | Administrator   | DNS konfigurieren, damit die Website erreichbar ist                                 | Applikation ist unter eigener Domain erreichbar              | DNS zeigt auf richtigen Server, Website erreichbar                                     |
-| SCRUM-4      | SCRUM-50   | Administrator   | SSL Zertifikat mit TXT Record bestätigen                                            | Sichere HTTPS-Kommunikation                                 | SSL-Zertifikat gültig und aktiv, HTTPS funktioniert                                    |
-| SCRUM-4      | SCRUM-49   | Administrator   | DNS Konfiguration vornehmen                                                         | Domain-to-IP funktioniert                                   | DNS-Einträge sind korrekt gesetzt                                                      |
-| SCRUM-4      | SCRUM-5    | Administrator   | Domain und HTTPS-Zertifikate einrichten                                             | Sichere, eigene Zugriffs-URL                                | Domain ist erreichbar, Zertifikate sind aktiv                                          |
-| SCRUM-4      | SCRUM-36   | Administrator   | SSL-Zertifikat kaufen                                                               | HTTPS verfügbar                                             | Zertifikat wurde richtig erworben                                                      |
-| SCRUM-4      | SCRUM-35   | Administrator   | Domain kaufen                                                                      | Eigene Projekt-Domain                                       | Domain transferiert und im Besitz                                                      |
-| SCRUM-4      | SCRUM-3    | Administrator   | Streamlit auf Ubuntu Server installieren                                            | App-Grundlage steht auf Server                              | Streamlit läuft auf Produktiv-Server                                                   |
-| SCRUM-4      | SCRUM-40   | Entwickler      | app.py erstellen und testen                                                        | Funktionierende Start-App                                   | Datei vorhanden, lauffähig, Basisfunktion gegeben                                      |
-| SCRUM-4      | SCRUM-39   | Entwickler      | virtual Env für Streamlit Projekt erstellen                                        | Saubere Umgebung für Python                                 | venv eingerichtet, requirements installierbar                                          |
-| SCRUM-4      | SCRUM-38   | Entwickler      | Python auf Ubuntu Server installieren                                               | Basis für App-Laufzeitumgebung                              | Python lauffähig, Version geprüft                                                      |
-| SCRUM-4      | SCRUM-37   | Entwickler      | Streamlit auf Ubuntu Server installieren                                            | Web-Framework bereitgestellt                                | Streamlit läuft und ist über Port erreichbar                                           |
-| SCRUM-4      | SCRUM-1    | Administrator   | Ubuntu Server auf Hetzner aufsetzen, Umgebung für App bereitstellen                 | Server für Deployment verfügbar                             | Server läuft, von außen erreichbar                                                     |
-| SCRUM-4      | SCRUM-51   | Administrator   | Auto Update konfigurieren                                                           | Updates laufen automatisch                                  | Automatische Updates beim Server aktiviert                                             |
-| SCRUM-4      | SCRUM-43   | Administrator   | Firewall Rules auf Hetzner erstellen                                                | Schutz vor unerwünschten Zugriffen                          | SSH, HTTP/HTTPS explizit erlaubt, Rest blockiert                                       |
-| SCRUM-4      | SCRUM-42   | Administrator   | Loadbalancer auf Hetzner erstellen                                                  | Skalierbarkeit / Ausfallsicherheit                          | Loadbalancer läuft und verteilt Traffic                                                |
-| SCRUM-4      | SCRUM-41   | Administrator   | Zugriff testen                                                                     | Funktionsprüfung                                            | Alle Services überzugänglich, Tests erfolgreich                                        |
-| SCRUM-4      | SCRUM-2    | Administrator   | Datenbank-Instanz (PostgreSQL) installieren, um Wetterdaten zu speichern            | Persistente Datenspeicherung                                | PostgreSQL läuft, Tabellen erzeugt, Login getestet                                     |
-| SCRUM-4      | SCRUM-47   | Administrator   | Zugriff von außen sicherstellen                                                     | Nur autorisierter Zugriff                                   | Zugriffsschutz konfiguriert                                                            |
-| SCRUM-4      | SCRUM-45   | Administrator   | SQL-Instanz und DB konfigurieren                                                    | Vorbereitete Datenbankstruktur                              | Parameter und Struktur sind projektspezifisch gesetzt                                  |
-| SCRUM-4      | SCRUM-44   | Administrator   | Postgres auf Ubuntu Server installieren                                             | Datenbank laufend auf Server                                | Zugriff und Konnektivität sind gegeben                                                 |
+| Epic (Key) | Story-ID | Rolle         | Ziel                                                                     | Nutzen                                          | Akzeptanzkriterien                                 |
+| ---------- | -------- | ------------- | ------------------------------------------------------------------------ | ----------------------------------------------- | -------------------------------------------------- |
+| SCRUM-4    | SCRUM-48 | Administrator | DNS konfigurieren, damit die Website erreichbar ist                      | Applikation ist unter eigener Domain erreichbar | DNS zeigt auf richtigen Server, Website erreichbar |
+| SCRUM-4    | SCRUM-5  | Administrator | Domain und HTTPS-Zertifikat einrichten                                   | Sichere, eigene Zugriffs-URL                    | Domain erreichbar, HTTPS aktiv                     |
+| SCRUM-4    | SCRUM-3  | Administrator | Streamlit auf Ubuntu Server installieren                                 | App-Grundlage steht auf Server                  | Streamlit läuft auf Produktiv-Server               |
+| SCRUM-4    | SCRUM-1  | Administrator | Ubuntu-Server auf Hetzner aufsetzen, Umgebung für App bereitstellen      | Server für Deployment verfügbar                 | Server läuft, von außen erreichbar                 |
+| SCRUM-4    | SCRUM-2  | Administrator | Datenbank-Instanz (PostgreSQL) installieren, um Wetterdaten zu speichern | Persistente Datenspeicherung                    | PostgreSQL läuft, Tabellen erzeugt, Login getestet |                            |
 
 ---
 
@@ -195,9 +190,7 @@ Alle für die Serverbasis erforderlichen Systeme wurden aufgesetzt. Die Applikat
 | IP-Adresse        | 49.13.117.52                                        |
 | Firewall          | UFW mit eingeschränkten Regeln                      
 
-Hier ist die logisch gegliederte und verständlich erklärte Worklog-Sektion in Markdown mit deinen konkreten Installations- und Konfigurationsschritten. So kannst du jeden Schritt strukturiert dokumentieren und abarbeiten.
 
-***
 
 # Worklog – Sprint 1 (Server & Infrastruktur)
 
