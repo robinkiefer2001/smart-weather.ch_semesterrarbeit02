@@ -499,5 +499,75 @@ RestartSec=5
   sudo systemctl start streamlit
   sudo systemctl status streamlit
   ```
-  
+
+## Worklog: Automatisiertes App-Update und sichere Git-Integration mit systemd
+
+### 1. Service-Account eingerichtet
+
+```bash
+sudo useradd -r -s /bin/false streamlit
+sudo mkdir -p /home/streamlit
+sudo chown streamlit:streamlit /home/streamlit
+```
+
+### 2. SSH-Keys für GitLab erstellt & eingerichtet
+
+```bash
+sudo mkdir -p /home/streamlit/.ssh
+sudo chown streamlit:streamlit /home/streamlit/.ssh
+sudo -u streamlit ssh-keygen -t ed25519 -C "streamlit-deploy" -f /home/streamlit/.ssh/id_ed25519
+```
+- **Public Key** (`id_ed25519.pub`) als „Deploy Key“ Read-Only im GitLab-Repo hinzugefügt (`hf9064413/smart-weather.ch_semesterrarbeit02`).
+- **Known Hosts** gesetzt:
+  ```bash
+  sudo -u streamlit ssh-keyscan gitlab.com >> /home/streamlit/.ssh/known_hosts
+  ```
+
+### 3. Separates Verzeichnis für das Repo erstellt
+
+```bash
+sudo mkdir -p /opt/smartweather_repo
+sudo chown streamlit:streamlit /opt/smartweather_repo
+sudo -u streamlit git clone git@gitlab.com:hf9064413/smart-weather.ch_semesterrarbeit02.git /opt/smartweather_repo
+```
+
+### 4. Deploy-Verzeichnis vorbereitet
+
+```bash
+sudo mkdir -p /opt/streamlit
+sudo chown streamlit:streamlit /opt/streamlit
+```
+- venv etc. weiterhin im Deploy-Pfad.
+
+### 5. Startskript `/usr/local/bin/run_smartweather.sh` angepasst
+
+```bash
+#!/bin/bash
+REPO_DIR="/opt/smartweather_repo"
+DEPLOY_DIR="/opt/streamlit"
+
+cd "$REPO_DIR"
+git fetch origin main
+git checkout origin/main -- streamlitapp/app.py
+
+cp "$REPO_DIR/streamlitapp/app.py" "$DEPLOY_DIR/app.py"
+
+cd "$DEPLOY_DIR"
+source venv/bin/activate
+exec streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+```
+- Skript sorgt dafür, dass bei jedem Start die aktuelle `app.py` aus dem Repo ins laufende Deploy-Verzeichnis übernommen wird.
+
+### 6. systemd Unit bleibt unverändert
+
+```ini
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/run_smartweather.sh
+WorkingDirectory=/opt/streamlit
+User=streamlit
+Group=streamlit
+Restart=always
+RestartSec=5
+```
 
