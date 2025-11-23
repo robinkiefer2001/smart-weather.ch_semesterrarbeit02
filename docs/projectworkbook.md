@@ -371,30 +371,63 @@ Hier ist die logisch gegliederte und verständlich erklärte Worklog-Sektion in 
 
 ## 5. Automatischer Start per systemd
 
-- Service-Datei angelegt:
-  ```
-  sudo nano /etc/systemd/system/streamlit.service
-  ```
-- Inhalt:
-  ```
-  [Unit]
-  Description=Streamlit App
-  After=network.target
+Das ist korrekt und gehört zur optimalen Konfiguration dazu. Hier ist der abschließende, vollständige Markdown-Abschnitt für deinen Worklog, inklusive dediziertem Service-Account:
 
-  [Service]
-  User=ubuntu
-  WorkingDirectory=/opt/streamlit
-  ExecStart=/opt/streamlit/venv/bin/streamlit run /opt/streamlit/app.py --server.address=0.0.0.0 --server.port=8501
-  Restart=always
+***
 
-  [Install]
-  WantedBy=multi-user.target
-  ```
-- Service aktiviert und gestartet:
-  ```
-  sudo systemctl daemon-reload
-  sudo systemctl enable streamlit
-  sudo systemctl start streamlit
-  sudo systemctl status streamlit
-  ```
+## Streamlit als systemd-Service (SmartWeather)
 
+### 1. Service-Account erstellen und Berechtigungen setzen
+
+```bash
+sudo useradd -r -s /bin/false streamlit
+sudo chown -R streamlit:streamlit /opt/streamlit
+sudo chmod 750 /opt/streamlit
+```
+- Erstellt einen nicht-loginfähigen Systembenutzer `streamlit`.
+- Gibt dem Service-Account Besitz am App-Verzeichnis.
+
+### 2. Startskript speichern und ausführbar machen
+
+```bash
+sudo tee /usr/local/bin/run_smartweather.sh > /dev/null << 'EOF'
+#!/bin/bash
+cd /opt/streamlit
+source venv/bin/activate
+exec streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+EOF
+sudo chmod +x /usr/local/bin/run_smartweather.sh
+```
+- Startskript ruft Streamlit in der passenden Umgebung auf.
+
+### 3. systemd Service-Unit anlegen
+
+```ini
+# /etc/systemd/system/streamlit.service
+[Unit]
+Description=Streamlit App
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/run_smartweather.sh
+WorkingDirectory=/opt/streamlit
+User=streamlit
+Group=streamlit
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+- Nutzt explizit den Service-Account für höchste Sicherheit.
+
+### 4. Dienst aktivieren und starten
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable streamlit.service
+sudo systemctl start streamlit.service
+sudo systemctl status streamlit.service
+```
+- Dienst ist nun dauerhaft aktiv und läuft unter dem Service-Account.

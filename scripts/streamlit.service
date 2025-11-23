@@ -1,0 +1,18 @@
+[Unit]
+Description=Streamlit App
+After=network.target
+
+[Service]
+Type=simple
+
+# Über Start‑Skript:
+ExecStart=/bin/bash /usr/local/bin/run_smartweather.sh
+
+WorkingDirectory=/opt/streamlit
+User=streamlit          
+Group=streamlit         
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
