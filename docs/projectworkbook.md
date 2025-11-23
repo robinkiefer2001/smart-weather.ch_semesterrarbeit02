@@ -362,65 +362,6 @@ Alle für die Serverbasis erforderlichen Systeme wurden aufgesetzt. Die Applikat
   sudo ufw status verbose
   ```
 
-## 5. Automatischer Start per systemd
-
-Das ist korrekt und gehört zur optimalen Konfiguration dazu. Hier ist der abschließende, vollständige Markdown-Abschnitt für deinen Worklog, inklusive dediziertem Service-Account:
-
-***
-
-## Streamlit als systemd-Service (SmartWeather)
-
-### 1. Service-Account erstellen und Berechtigungen setzen
-
-```bash
-sudo useradd -r -s /bin/false streamlit
-sudo chown -R streamlit:streamlit /opt/streamlit
-sudo chmod 750 /opt/streamlit
-```
-- Erstellt einen nicht-loginfähigen Systembenutzer `streamlit`.
-- Gibt dem Service-Account Besitz am App-Verzeichnis.
-
-### 2. Startskript speichern und ausführbar machen
-
-```bash
-sudo tee /usr/local/bin/run_smartweather.sh > /dev/null << 'EOF'
-#!/bin/bash
-cd /opt/streamlit
-source venv/bin/activate
-exec streamlit run app.py --server.port=8501 --server.address=0.0.0.0
-EOF
-sudo chmod +x /usr/local/bin/run_smartweather.sh
-```
-- Startskript ruft Streamlit in der passenden Umgebung auf.
-
-### 3. systemd Service-Unit anlegen
-
-```ini
-# /etc/systemd/system/streamlit.service
-[Unit]
-Description=Streamlit App
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/run_smartweather.sh
-WorkingDirectory=/opt/streamlit
-User=streamlit
-Group=streamlit
-Restart=always
-RestartSec=5
-
-  [Install]
-  WantedBy=multi-user.target
-  ```
-- Service aktiviert und gestartet:
-  ```
-  sudo systemctl daemon-reload
-  sudo systemctl enable streamlit
-  sudo systemctl start streamlit
-  sudo systemctl status streamlit
-  ```
-
 # Sprint 2 – Automatisierung & Integration
 
 ## Ziel des Sprints
@@ -500,6 +441,63 @@ Sudo apt update
 sudo apt install git
 ```
 
+### Automatischer Start per systemd
 
----
+Das ist korrekt und gehört zur optimalen Konfiguration dazu. Hier ist der abschließende, vollständige Markdown-Abschnitt für deinen Worklog, inklusive dediziertem Service-Account:
+
+***
+
+## Streamlit als systemd-Service (SmartWeather)
+
+### 1. Service-Account erstellen und Berechtigungen setzen
+
+```bash
+sudo useradd -r -s /bin/false streamlit
+sudo chown -R streamlit:streamlit /opt/streamlit
+sudo chmod 750 /opt/streamlit
+```
+- Erstellt einen nicht-loginfähigen Systembenutzer `streamlit`.
+- Gibt dem Service-Account Besitz am App-Verzeichnis.
+
+### 2. Startskript speichern und ausführbar machen
+
+```bash
+sudo tee /usr/local/bin/run_smartweather.sh > /dev/null << 'EOF'
+#!/bin/bash
+cd /opt/streamlit
+source venv/bin/activate
+exec streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+EOF
+sudo chmod +x /usr/local/bin/run_smartweather.sh
+```
+- Startskript ruft Streamlit in der passenden Umgebung auf.
+
+### 3. systemd Service-Unit anlegen
+
+```ini
+# /etc/systemd/system/streamlit.service
+[Unit]
+Description=Streamlit App
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/run_smartweather.sh
+WorkingDirectory=/opt/streamlit
+User=streamlit
+Group=streamlit
+Restart=always
+RestartSec=5
+
+  [Install]
+  WantedBy=multi-user.target
+  ```
+- Service aktiviert und gestartet:
+  ```
+  sudo systemctl daemon-reload
+  sudo systemctl enable streamlit
+  sudo systemctl start streamlit
+  sudo systemctl status streamlit
+  ```
+  
 
