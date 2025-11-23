@@ -3,7 +3,7 @@ import pandas as pd
 
 # Page Infos
 st.set_page_config(
-    page_titel="smart weather CH",
+    page_title="smart weather CH",
     page_icon="🌤️",
 )
 
