@@ -1219,3 +1219,200 @@ gitlab-runner register  --url https://gitlab.com  --token glrt-QKc2J8D6MtrIpGyWV
 sudo sytemctl enable gitlab-runner
 ```
 
+
+# CI/CD Dokumentation
+
+* Python-Script zur Wetterdatenabfrage
+* PostgreSQL Datenbank fuer Standortdaten
+* GitLab CI/CD Pipeline
+* GitLab Runner (Shared Runner)
+* Open-Meteo Wetter-API
+
+---
+
+## 2. CI/CD Pipeline Uebersicht
+
+Die CI/CD Pipeline wird mit GitLab CI realisiert. Ziel der Pipeline ist es:
+
+* den Code automatisiert auszufuehren
+* sicherzustellen, dass alle Abhaengigkeiten korrekt installiert sind
+* das Wetterdaten-Script fehlerfrei zu starten
+
+Die Pipeline besteht aktuell aus einem Stage:
+
+* **test**: Fuehrt das Python-Script aus und prueft, ob Daten verarbeitet werden koennen
+
+---
+
+## 3. GitLab Runner
+
+### 3.1 Art des Runners
+
+Fuer dieses Projekt wird ein **GitLab SaaS Shared Runner** verwendet. Dieser Runner wird von GitLab bereitgestellt und nutzt den Executor-Typ:
+
+* `docker+machine`
+
+Das bedeutet:
+
+* Jeder Job laeuft in einem temporaeren Docker-Container
+* Es ist keine manuelle Installation eines Runners noetig
+* Die Ausfuehrungsumgebung ist reproduzierbar
+
+### 3.2 Docker-Image
+
+Als Laufzeitumgebung wird folgendes Image verwendet:
+
+* `python:3.12`
+
+Dieses Image enthaelt:
+
+* Python 3.12
+* Standard Python Bibliotheken
+
+Benutzerdefinierte Libraries werden uebers `pip install` installiert.
+
+---
+
+## 4. Pipeline Konfiguration (.gitlab-ci.yml)
+
+Die CI/CD Pipeline ist wie folgt aufgebaut:
+
+```
+stages:
+  - test
+
+test_job:
+  stage: test
+  image: python:3.12
+  script:
+    - pip install -r requirements.txt
+    - python get-weatherdata.py
+```
+
+### Erklaerung:
+
+* **image**: Definiert das Docker-Image
+* **pip install**: Installiert alle benoetigten Python-Bibliotheken
+* **python get-weatherdata.py**: Fuehrt das eigentliche Wetterdaten-Script aus
+
+---
+
+## 5. Python-Abhaengigkeiten
+
+Die benoetigten Libraries sind in der Datei `requirements.txt` definiert:
+
+```
+psycopg[binary]
+pandas
+requests-cache
+openmeteo-requests
+retry-requests
+```
+
+### Zweck der Libraries:
+
+| Bibliothek         | Zweck                                 |
+| ------------------ | ------------------------------------- |
+| psycopg            | Verbindung zur PostgreSQL Datenbank   |
+| pandas             | Datenverarbeitung und Tabellen        |
+| requests-cache     | Caching von API Requests              |
+| openmeteo-requests | Zugriff auf Open-Meteo API            |
+| retry-requests     | automatisches Wiederholen bei Fehlern |
+
+---
+
+## 6. Verwendete Umgebungsvariablen
+
+Sensible Daten werden **nicht im Code gespeichert**, sondern als CI/CD Variablen in GitLab hinterlegt:
+
+* DB_HOST
+* DB_NAME
+* DB_USER
+* DB_PASSWORD
+* DB_PORT
+
+Diese Variablen werden im Python-Script mit `os.environ` gelesen.
+
+---
+
+## 7. Datenquelle – Open-Meteo API
+
+Die Wetterdaten stammen von der Open-Meteo API. Pro Standort werden folgende Daten abgefragt:
+
+### 7.1 Aktuelle Wetterdaten (Current)
+
+* Temperatur
+* Gefuehlte Temperatur
+* Luftfeuchtigkeit
+* Niederschlag
+* Windgeschwindigkeit und Boeen
+* Luftdruck
+* Bewoelkung
+* Wettercode
+
+---
+
+### 7.2 Stundenbasierte Daten (Hourly)
+
+Fuer bis zu 28 Tage:
+
+* Temperatur
+* Niederschlagsmenge und Wahrscheinlichkeit
+* Bewoelkung (low, mid, high)
+* Windgeschwindigkeiten in verschiedenen Hoehen
+* Bodentemperatur
+* Bodenfeuchte
+* Sichtweite
+
+Diese Daten werden in einem Pandas DataFrame verarbeitet.
+
+---
+
+### 7.3 Tagesdaten (Daily)
+
+* Tages-Minimum und -Maximum
+* Sonnenaufgang und Sonnenuntergang
+* Sonnenscheindauer
+* Niederschlagssummen
+* UV-Index
+* Evapotranspiration (ET0)
+
+---
+
+## 8. Datenverarbeitung
+
+Die Daten werden:
+
+* fuer mehrere Standorte verarbeitet (Latitude / Longitude)
+* strukturiert als Pandas DataFrames
+* fuer jede Location einzeln erzeugt
+
+Beispiel:
+
+* Current Data: Einzelwerte
+* Hourly Data: 672 Stunden
+* Daily Data: 28 Tage
+
+Diese Struktur eignet sich optimal fuer:
+
+* Datenbank-Speicherung
+* API-Ausgabe
+* Visualisierung in einer Wetter-App
+
+---
+
+## 9. Fehlerbehandlung & Optimierungen
+
+### API Rate-Limits
+
+* Requests wurden reduziert
+* Retry und Caching eingesetzt
+* Optionale Pausen zwischen API Calls
+
+### CI-spezifische Anpassungen
+
+* Keine Massendaten fuer Tests
+* Fokus auf Funktionsfaehigkeit
+
+---
+
