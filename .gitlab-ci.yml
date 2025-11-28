@@ -1,0 +1,25 @@
+stages:
+  - Testing
+
+test_job:
+  stage: test
+  script:
+    - echo "Running tests..."
+    
+import csv
+import requests
+import json
+import psycopg
+from typing import List
+
+DB_HOST = "host.smart-ch.ch"    
+DB_NAME = "smartweatherdb" 
+DB_USER = "dbadm_robin"
+DB_PASSWORD = "xxxxx"
+DB_PORT = "5432"      
+
+with psycopg.connect(connection_string) as conn:
+    with conn.cursor() as cur:
+        cur.execute("SELECT latitude, logitude FROM geo_location;")
+        count = cur.fetchone()[0]
+        

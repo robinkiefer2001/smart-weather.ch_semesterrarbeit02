@@ -221,3 +221,4 @@ daily_data["et0_fao_evapotranspiration"] = daily_et0_fao_evapotranspiration
 
 daily_dataframe = pd.DataFrame(data = daily_data)
 print("\nDaily data\n", daily_dataframe)
+

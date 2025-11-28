@@ -1027,7 +1027,7 @@ Das Skript wird einmalig ausgeführt, um die Stammdaten für alle weiteren Wette
 
 ## Skript
 
-[get-locations.py](//scripts/get-locations.py)
+[get-locations.py](/scripts/get-locations.py)
 
 ---
 
@@ -1208,3 +1208,14 @@ Nach erfolgreicher Ausfuehrung enthaelt die Tabelle `geo_location` eine eindeuti
 Diese Tabelle dient als Grundlage fuer alle weiteren Wetterdaten-Tabellen des Projekts.
 
 ---
+
+## Install Gitlab Runner
+
+```bash
+curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+
+gitlab-runner register  --url https://gitlab.com  --token glrt-QKc2J8D6MtrIpGyWVQ7lHG86MQpwOjE5Nmtldwp0OjMKdTpmemIzdRg.01.1j19icnsn
+
+sudo sytemctl enable gitlab-runner
+```
+

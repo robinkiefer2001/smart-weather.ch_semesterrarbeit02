@@ -100,4 +100,3 @@ with psycopg.connect(connection_string) as conn:
                 )
             )
     conn.commit()
-
