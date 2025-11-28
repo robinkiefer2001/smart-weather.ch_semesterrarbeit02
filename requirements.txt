@@ -1,0 +1,5 @@
+psycopg[binary]
+pandas
+requests-cache
+openmeteo-requests
+retry-requests
