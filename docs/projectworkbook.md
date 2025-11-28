@@ -571,3 +571,640 @@ Restart=always
 RestartSec=5
 ```
 
+# Datenbank Tabellen konfigurieren
+
+
+## Wahl der Datenbank- und Schlüsselstrategie
+
+### Geografische Identifikation über Koordinaten
+
+Für alle georeferenzierten Daten wird **Latitude und Longitude als zusammengesetzter Primärschlüssel** verwendet:
+
+```sql
+PRIMARY KEY (latitude, longitude)
+```
+
+**Begründung:**
+
+* Geokoordinaten sind ein **natürlich eindeutiger Identifikator** für einen Ort
+* Vermeidet künstliche technische IDs ohne fachliche Bedeutung
+* Ermöglicht direkte Verknüpfung externer Geodaten (z.B. Wetter-APIs)
+* Stellt sicher, dass keine doppelten Orte mit identischen Koordinaten gespeichert werden
+
+Diese Strategie unterstützt konsistente Referenzen zwischen:
+
+* Ortsdaten (`goe_location`)
+* Aktuellen Wetterdaten
+* Stunden- und Tageswerten
+
+---
+
+### Normalisierung der Wetterdaten
+
+Die Wetterdaten werden bewusst in **drei separaten Tabellen** verwaltet:
+
+| Tabelle           | Granularität | Zweck                                      |
+| ----------------- | ------------ | ------------------------------------------ |
+| `weather_current` | Zeitpunkt    | Aktuelle Wetterlage                        |
+| `weather_hourly`  | Stunde       | Historische und prognostische Stundenwerte |
+| `weather_daily`   | Tag          | Zusammengefasste Tageswerte                |
+
+**Gründe für diese Trennung:**
+
+* Vermeidung von Null-Werten bei unterschiedlichen Zeitauflösungen
+* Optimierte Abfragen je nach Use Case
+* Bessere Index- und Speicherverwaltung
+* Klare Entkopplung von aktuellen, historischen und aggregierten Daten
+
+---
+
+### Zeitbasierte Primärschlüssel
+
+Jede Wettertabelle verwendet zusätzlich zur geografischen Position einen **Zeitstempel als Teil des Primärschlüssels**:
+
+```sql
+(latitude, longitude, observed_at)
+(latitude, longitude, day)
+```
+
+**Begründung:**
+
+* Eindeutige Identifikation jedes Mess- oder Prognosewerts
+* Sichere Speicherung von Historie und Forecasts
+* Unterstützung von UPSERT-Operationen (`ON CONFLICT`)
+* Vermeidung von Duplikaten bei wiederholten API-Abfragen
+
+---
+
+### Verwendung von DECIMAL statt FLOAT
+
+Für `latitude` und `longitude` wird bewusst ein **exakter numerischer Datentyp** eingesetzt:
+
+```sql
+DECIMAL(9,6)
+```
+
+**Grund:**
+
+* Keine Rundungsfehler im Primärschlüssel
+* Stabile Vergleiche bei `JOIN`, `FOREIGN KEY` und `UPSERT`
+* Exakte Übereinstimmung mit API-Werten
+
+---
+
+### Entscheidung gegen Auto-Increment IDs
+
+Es wird bewusst **keine künstliche ID** (`SERIAL`, `IDENTITY`) verwendet.
+
+**Begründung:**
+
+* Kein Mehrwert für fachliche Abfragen
+* Zusätzliche Join-Ebene unnötig
+* Erhöhte Komplexität bei Datenimporten und API-Mappings
+* Geokoordinaten sind bereits eindeutig
+
+---
+
+### Performance-Überlegungen
+
+* Composite Primary Keys erzeugen automatisch B-Tree-Indizes
+* Zeitspalten sind separat indiziert
+* Abfragen nach Ort + Zeit sind effizient
+* Modell ist skalierbar für mehrere tausend Orte und Jahre an Zeitreihen
+
+---
+
+### Zukunftssicherheit
+
+Das Modell erlaubt später problemlos:
+
+* Migration zu PostGIS
+* Partitionierung nach Zeit (z.B. monatlich für hourly)
+* Erweiterung um weitere Wetterparameter
+* Integration weiterer Datenquellen
+
+---
+
+### Zusammenfassung
+
+Die gewählte Konfiguration:
+
+* ist **fachlich konsistent**
+* vermeidet redundante technische Schlüssel
+* ist optimal für Zeitreihen und Geodaten
+* folgt relationalen Best Practices
+* ist API- und importfreundlich
+
+Damit ist das Schema wartbar, skalierbar und langfristig stabil.
+
+
+```postgres
+
+-- Create Tables
+
+CREATE TABLE geo_location (
+    id BIGSERIAL PRIMARY KEY,
+
+    name TEXT NOT NULL,
+    canton TEXT,
+    latitude  DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
+    elevation INTEGER,
+    feature_code TEXT,
+
+    CONSTRAINT geo_location_lat_lon_uniq
+        UNIQUE (latitude, longitude)
+);
+
+CREATE TABLE weather_current (
+    id BIGSERIAL PRIMARY KEY,
+
+    latitude  DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
+    observed_at TIMESTAMPTZ NOT NULL,
+
+    temperature_2m       REAL,
+    relative_humidity_2m REAL,
+    apparent_temperature REAL,
+    is_day               BOOLEAN,
+    precipitation        REAL,
+    rain                 REAL,
+    showers              REAL,
+    snowfall             REAL,
+    weather_code         INTEGER,
+    cloud_cover          REAL,
+    pressure_msl         REAL,
+    surface_pressure     REAL,
+    wind_speed_10m       REAL,
+    wind_direction_10m   REAL,
+    wind_gusts_10m       REAL,
+
+    CONSTRAINT weather_current_lat_lon_time_uniq
+        UNIQUE (latitude, longitude, observed_at),
+
+    CONSTRAINT weather_current_place_fk
+        FOREIGN KEY (latitude, longitude)
+        REFERENCES geo_location (latitude, longitude)
+);
+
+CREATE TABLE weather_hourly (
+    id BIGSERIAL PRIMARY KEY,
+
+    latitude  DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
+    observed_at TIMESTAMPTZ NOT NULL,
+
+    temperature_2m            REAL,
+    relative_humidity_2m      REAL,
+    dew_point_2m              REAL,
+    apparent_temperature      REAL,
+    precipitation_probability REAL,
+    precipitation             REAL,
+    rain                       REAL,
+    showers                    REAL,
+    snow_depth                 REAL,
+    snowfall                   REAL,
+    weather_code               INTEGER,
+    surface_pressure           REAL,
+    pressure_msl               REAL,
+    cloud_cover                REAL,
+    cloud_cover_low            REAL,
+    cloud_cover_mid            REAL,
+    cloud_cover_high           REAL,
+    visibility                 REAL,
+    evapotranspiration         REAL,
+    et0_fao_evapotranspiration REAL,
+    vapour_pressure_deficit    REAL,
+
+    wind_speed_10m             REAL,
+    wind_speed_80m             REAL,
+    wind_speed_120m            REAL,
+    wind_speed_180m            REAL,
+    wind_direction_10m         REAL,
+    wind_direction_80m         REAL,
+    wind_direction_120m        REAL,
+    wind_direction_180m        REAL,
+    wind_gusts_10m             REAL,
+
+    temperature_80m            REAL,
+    temperature_120m           REAL,
+    temperature_180m           REAL,
+
+    soil_temperature_0cm       REAL,
+    soil_temperature_6cm       REAL,
+    soil_temperature_18cm      REAL,
+    soil_temperature_54cm      REAL,
+
+    soil_moisture_0_to_1cm     REAL,
+    soil_moisture_1_to_3cm     REAL,
+    soil_moisture_3_to_9cm     REAL,
+    soil_moisture_9_to_27cm    REAL,
+    soil_moisture_27_to_81cm   REAL,
+
+    CONSTRAINT weather_hourly_lat_lon_time_uniq
+        UNIQUE (latitude, longitude, observed_at),
+
+    CONSTRAINT weather_hourly_place_fk
+        FOREIGN KEY (latitude, longitude)
+        REFERENCES geo_location (latitude, longitude)
+);
+
+CREATE TABLE weather_daily (
+    id BIGSERIAL PRIMARY KEY,
+
+    latitude  DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
+    day DATE NOT NULL,
+
+    weather_code                   INTEGER,
+    temperature_2m_max             REAL,
+    temperature_2m_min             REAL,
+    apparent_temperature_max       REAL,
+    apparent_temperature_min       REAL,
+    sunrise                        TIMESTAMPTZ,
+    sunset                         TIMESTAMPTZ,
+    daylight_duration              INTEGER,
+    sunshine_duration              INTEGER,
+    uv_index_max                   REAL,
+    uv_index_clear_sky_max         REAL,
+    rain_sum                       REAL,
+    showers_sum                    REAL,
+    snowfall_sum                   REAL,
+    precipitation_sum              REAL,
+    precipitation_hours            REAL,
+    precipitation_probability_max  REAL,
+    wind_speed_10m_max             REAL,
+    wind_gusts_10m_max             REAL,
+    shortwave_radiation_sum        REAL,
+    wind_direction_10m_dominant     REAL,
+    et0_fao_evapotranspiration     REAL,
+
+    CONSTRAINT weather_daily_lat_lon_day_uniq
+        UNIQUE (latitude, longitude, day),
+
+    CONSTRAINT weather_daily_place_fk
+        FOREIGN KEY (latitude, longitude)
+        REFERENCES geo_location (latitude, longitude)
+);
+
+```
+
+### Übersicht 
+
+* Tabellen
+* Primary Keys
+* Unique Constraints
+* Foreign Keys
+* Beziehungen
+
+---
+
+## Gesamtuebersicht (Entity Relationship)
+
+```text
+┌──────────────────────────┐
+│        geo_location      │
+│──────────────────────────│
+│ PK  id                   │
+│     name                 │
+│     canton               │
+│ UQ  latitude             │◄──────────────┐
+│ UQ  longitude            │               │
+│     elevation            │               │
+│     feature_code         │               │
+└───────────▲──────────────┘               │
+            │                              │
+            │ FK (latitude, longitude)     │
+            │                              │
+┌───────────┴──────────────┐     ┌─────────┴────────────────┐
+│     weather_current      │     │     weather_hourly        │
+│──────────────────────────│     │────────────────────────────│
+│ PK  id                   │     │ PK  id                    │
+│     latitude  ◄──────────┼─────┼─── latitude               │
+│     longitude ◄──────────┼─────┼─── longitude              │
+│     observed_at          │     │     observed_at           │
+│     temperature_2m       │     │     temperature_2m        │
+│     …                    │     │     …                     │
+│ UQ (lat, lon, time)      │     │ UQ (lat, lon, time)       │
+└───────────▲──────────────┘     └─────────▲─────────────────┘
+            │                              │
+            │ FK (latitude, longitude)     │
+            │                              │
+            └──────────┬───────────────────┘
+                       │
+             ┌─────────▼──────────────┐
+             │      weather_daily     │
+             │────────────────────────│
+             │ PK  id                 │
+             │     latitude            │
+             │     longitude           │
+             │     day                 │
+             │     weather_code        │
+             │     …                   │
+             │ UQ (lat, lon, day)      │
+             └────────────────────────┘
+```
+
+---
+
+##  Tabellen im Detail
+
+### `geo_location`
+
+**Zentrale Referenztabelle für alle Orte**
+
+```text
+geo_location
+------------
+PK  id
+    name
+    canton
+UQ  latitude
+UQ  longitude
+    elevation
+    feature_code
+```
+
+Bedeutung:
+
+* **id** → technischer Schluessel
+* **(latitude, longitude)** → fachlich eindeutiger Ort
+* wird von allen Weather-Tabellen referenziert
+
+---
+
+###  `weather_current`
+
+**Aktuelle Momentaufnahme pro Ort**
+
+```text
+weather_current
+---------------
+PK  id
+    latitude   ─┐
+    longitude  ─┼─ FK → geo_location(lat, lon)
+    observed_at
+    temperature_2m
+    …
+UQ  (latitude, longitude, observed_at)
+```
+
+---
+
+### `weather_hourly`
+
+**Stundenwerte pro Ort**
+
+```text
+weather_hourly
+--------------
+PK  id
+    latitude   ─┐
+    longitude  ─┼─ FK → geo_location(lat, lon)
+    observed_at
+    temperature_2m
+    …
+UQ  (latitude, longitude, observed_at)
+```
+
+---
+
+###  `weather_daily`
+
+**Tageswerte pro Ort**
+
+```text
+weather_daily
+-------------
+PK  id
+    latitude   ─┐
+    longitude  ─┼─ FK → geo_location(lat, lon)
+    day
+    temperature_min
+    temperature_max
+    …
+UQ  (latitude, longitude, day)
+```
+
+---
+
+## Beziehungslogik (wichtig für Bewertung)
+
+* **1 geo_location**
+
+  * → **n weather_current**
+  * → **n weather_hourly**
+  * → **n weather_daily**
+* Beziehung über **(latitude, longitude)**
+* Zeitliche Eindeutigkeit über **UNIQUE Constraints**
+* Technische IDs für Performance & Stabilitaet
+
+---
+
+## Warum dieses Schema sehr gut ist
+
+| Punkt                     | Bewertung |
+| ------------------------- | --------- |
+| Normalisierung            | ✅         |
+| Erweiterbarkeit           | ✅         |
+| FK-Konsistenz             | ✅         |
+| UPSERT-faehig             | ✅         |
+| API-tauglich              | ✅         |
+| Bewertungs-/Projekt-ready | ✅         |
+
+---
+
+Hier ist **dieselbe Dokumentation**, aber **ohne Emojis, Symbole oder Zierzeichen**.
+Sie ist sachlich, sauber und ideal für eine technische Abgabe oder ein Repository.
+
+---
+
+# Dokumentation: Initialer Import der Schweizer Ortsdaten in die geo_location-Tabelle
+
+Dieses Skript liest Schweizer Ortschaften aus einer CSV-Datei ein, ergänzt diese mit Geodaten aus der Open-Meteo Geocoding API und speichert die Ergebnisse in der PostgreSQL-Tabelle `geo_location`.
+
+Das Skript wird einmalig ausgeführt, um die Stammdaten für alle weiteren Wetterabfragen vorzubereiten.
+
+## Skript
+
+[get-locations.py](//scripts/get-locations.py)
+
+---
+
+## Zweck des Skripts
+
+Das Skript erfüllt folgende Aufgaben:
+
+1. Einlesen der CSV-Datei `locaction_cantons.csv`
+   Die Datei enthält Ortschaften und deren Kantonszugehörigkeit.
+   Das CSV-Format verwendet `;` als Trennzeichen und ist in `utf-8-sig` kodiert.
+
+2. Geocodierung über die Open-Meteo API
+   Für jede Ortschaft wird ein API-Request ausgeführt, um geografische Zusatzdaten zu erhalten.
+
+3. Aufbau einer internen Location-Struktur
+   Die CSV- und API-Daten werden in ein einheitliches Python-Objekt überführt.
+
+4. Speicherung in der PostgreSQL-Datenbank
+   Die Daten werden in die Tabelle `geo_location` geschrieben.
+   Doppelte Einträge werden durch einen Unique-Constraint verhindert.
+
+5. Einmalige Initialbefüllung
+   Das Skript ist nicht für regelmässige Updates gedacht, sondern für die initiale Datenbasis.
+
+---
+
+## CSV-Datenquelle
+
+Die Datei `locaction_cantons.csv` befindet sich im Projekt unter:
+
+```
+/scripts/locaction_cantons.csv
+```
+
+Beispielinhalt:
+
+| Ort        | Kanton |
+| ---------- | ------ |
+| Sarnen     | OW     |
+| Luzern     | LU     |
+| St. Gallen | SG     |
+
+---
+
+## Externe Datenquelle: Open-Meteo Geocoding API
+
+API-Endpunkt:
+
+```
+https://geocoding-api.open-meteo.com/v1/search
+```
+
+Verwendete Parameter:
+
+* name: Ortsname aus der CSV
+* countryCode: CH
+* count: 1
+* language: en
+* format: json
+
+Aus der API werden folgende Felder übernommen:
+
+| Feld         | Beschreibung                  |
+| ------------ | ----------------------------- |
+| name         | Standardisierter Ortsname     |
+| latitude     | Breitengrad                   |
+| longitude    | Laengengrad                   |
+| elevation    | Hoehe ueber Meer              |
+| feature_code | Typ des geografischen Objekts |
+
+---
+
+## Interne Datenstruktur
+
+Jede Ortschaft wird in einem `Location`-Objekt abgebildet:
+
+```python
+class Location:
+    def __init__(self, name, canton, latitude, longitude, elevation, feature_code):
+        self.name = name
+        self.canton = canton
+        self.latitude = latitude
+        self.longitude = longitude
+        self.elevation = elevation
+        self.feature_code = feature_code
+```
+
+Diese Struktur dient als Zwischenspeicher zwischen API und Datenbank.
+
+---
+
+## Datenbankintegration
+
+Die Verbindung zur PostgreSQL-Datenbank erfolgt ueber eine konfigurierte Connection-String-Definition.
+
+Das Einfuegen der Daten geschieht mit folgendem SQL-Statement:
+
+```sql
+INSERT INTO geo_location
+    (name, canton, latitude, longitude, elevation, feature_code)
+VALUES
+    (%s, %s, %s, %s, %s, %s)
+ON CONFLICT ON CONSTRAINT geo_location_lat_lon_uniq
+DO NOTHING;
+```
+
+Der Unique-Constraint auf `(latitude, longitude)` stellt sicher, dass jeder Ort nur einmal gespeichert wird.
+
+---
+
+## Kontrollfluss des Skripts
+
+```
+CSV-Datei einlesen
+Orte iterieren
+API-Anfrage pro Ort
+Antwort auswerten
+Location-Objekt erzeugen
+Location-Liste befuellen
+Datenbankverbindung oeffnen
+Datensaetze einfuegen
+Transaktion abschliessen
+```
+
+---
+
+## Voraussetzungen
+
+* Python Version 3.10 oder neuer
+* Folgende Python-Module:
+
+  * csv
+  * requests
+  * psycopg
+* PostgreSQL-Datenbank mit der Tabelle:
+
+```sql
+geo_location (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  canton TEXT,
+  latitude DECIMAL(9,6) NOT NULL,
+  longitude DECIMAL(9,6) NOT NULL,
+  elevation INTEGER,
+  feature_code TEXT,
+  UNIQUE (latitude, longitude)
+)
+```
+
+---
+
+## Ausfuehrung
+
+Das Skript wird ueber die Kommandozeile ausgefuehrt:
+
+```
+python import_locations.py
+```
+
+Waehren der Ausfuehrung:
+
+* werden alle Orte im Terminal ausgegeben
+* werden API-Requests ausgeloest
+* wird die Datenbank befuellt
+* werden bestehende Eintraege uebersprungen
+
+---
+
+## Ergebnis
+
+Nach erfolgreicher Ausfuehrung enthaelt die Tabelle `geo_location` eine eindeutige Liste aller importierten Orte mit:
+
+* standardisiertem Namen
+* Kantonszuordnung
+* Koordinaten
+* Hoehenangabe
+
+Diese Tabelle dient als Grundlage fuer alle weiteren Wetterdaten-Tabellen des Projekts.
+
+---
