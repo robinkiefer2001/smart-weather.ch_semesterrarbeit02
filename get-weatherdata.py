@@ -5,20 +5,20 @@ import openmeteo_requests
 from retry_requests import retry
 import os
 
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-
+DB_HOST = os.environ["DB_HOST"]
+DB_NAME = os.environ["DB_NAME"]
+DB_USER = os.environ["DB_USER"]
+DB_PASSWORD = os.environ["DB_PASSWORD"]
+DB_PORT = int(os.environ.get("DB_PORT", 5432))
 
 connection_string = (
-    f"host=DB_HOST"
-    f"dbname=DB_NAME"
-    f"user=DB_USER"
-    f"password=DB_PASSWORD"
-    f"port=DB_PORT"
+    f"host={DB_HOST} "
+    f"dbname={DB_NAME} "
+    f"user={DB_USER} "
+    f"password={DB_PASSWORD} "
+    f"port={DB_PORT}"
 )
+
 
 locations = []
 
