@@ -5,9 +5,5 @@ test_job:
   stage: test
   image: python:3.12
   script:
-    - export DB_HOST = "{DB_HOST}"
-    - export DB_NAME = "{DB_NAME}"
-    - export DB_USER = "{DB_USER}"
-    - export DB_PASSWORD = "{DB_PASSWORD}"
-    - pip install psycopg pandas requests-cache openmeteo-requests retry-requests
-    - python ./get-weatherdata.py
+    - python get-weatherdata.py
+
