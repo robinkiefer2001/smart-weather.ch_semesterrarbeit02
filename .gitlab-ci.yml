@@ -1,25 +1,13 @@
 stages:
-  - Testing
+  - test
 
 test_job:
   stage: test
+  image: python:3.12
   script:
-    - echo "Running tests..."
-    
-import csv
-import requests
-import json
-import psycopg
-from typing import List
-
-DB_HOST = "host.smart-ch.ch"    
-DB_NAME = "smartweatherdb" 
-DB_USER = "dbadm_robin"
-DB_PASSWORD = "xxxxx"
-DB_PORT = "5432"      
-
-with psycopg.connect(connection_string) as conn:
-    with conn.cursor() as cur:
-        cur.execute("SELECT latitude, logitude FROM geo_location;")
-        count = cur.fetchone()[0]
-        
+    - export DB_HOST = "{DB_HOST}"
+    - export DB_NAME = "{DB_NAME}"
+    - export DB_USER = "{DB_USER}"
+    - export DB_PASSWORD = "{DB_PASSWORD}"
+    - pip install psycopg pandas requests-cache openmeteo-requests retry-requests
+    - python ./get-weatherdata.py
