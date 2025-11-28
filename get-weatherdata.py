@@ -4,6 +4,7 @@ import requests_cache
 import openmeteo_requests
 from retry_requests import retry
 import os
+import time
 
 DB_HOST = os.environ["DB_HOST"]
 DB_NAME = os.environ["DB_NAME"]
@@ -248,4 +249,4 @@ for latitude, longitude in locations:
 
 	daily_dataframe = pd.DataFrame(data = daily_data)
 	print("\nDaily data\n", daily_dataframe)
-
+	time.sleep(2)
