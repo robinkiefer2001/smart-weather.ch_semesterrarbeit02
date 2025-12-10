@@ -8,6 +8,10 @@ import pandas as pd
 from streamlit_calendar import calendar  # neues Package
 conn = st.connection("sql")
 
+tempData = pd.read_sql(
+    "SELECT * FROM weather_current WHERE id = 1;",
+    conn
+)
 # Datum
 heute = datetime.date.today()
 
@@ -58,8 +62,7 @@ col1, col2, col3 = st.columns(3, border=True, gap="small")
 with col1:
     st.metric(
         label="Lufttemperatur",
-        value="22 °C",
-        delta="+2 °C",
+        value=f"{tempData['temperature_2m'][0]} °C",
     )
 
 with col2:
