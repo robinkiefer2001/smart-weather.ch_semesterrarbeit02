@@ -17,7 +17,7 @@ st.subheader("Wilkommen zur Smart Weather CH Ihre persönliche Wetterquelle")
 col1, col2 = st.columns(2)
 
 with col1:
-    location_input = st.text_input("Geben Sie Ihren eine Location ein")
+    location_input = st.text_input(placeholder = "Geben Sie Ihren eine Location ein")
 
 with col2:
     querry_button = st.button("Suchen")
