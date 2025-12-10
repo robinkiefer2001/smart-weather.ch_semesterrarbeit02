@@ -10,8 +10,17 @@ st.set_page_config(
 # Titel
 st.title("Smart Weather CH")
 
-# Leere Tabelle anlegen
-df = pd.DataFrame(columns=["Temperatur", "Windgeschwindigkeit", "Stadt"])
+# subtitle
+st.subheader("Wilkommen zur Smart Weather CH Ihre persönliche Wetterquelle")
+
+# columns
+col1, col2 = st.columns(2)
+
+with col1:
+    location_input = st.text_input("Geben Sie Ihren eine Location ein")
+
+with col2:
+    querry_button = st.button("Suchen")
 
 # Leere Tabelle anzeigen
-st.dataframe(df)
+st.subheader(df)
