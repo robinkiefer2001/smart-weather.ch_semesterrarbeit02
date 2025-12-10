@@ -8,8 +8,8 @@ st.set_page_config(
 )
 
 # Titel
-st.title("Smart Weather CH")(
-    "SmartWeather Dashboard",
+st.title(
+    "Smart Weather CH",
     anchor=False,                # kein Anker-Icon
     text_alignment="center",     # "left", "center", "right"
     width="stretch"              # "stretch" = volle Breite nutzen
