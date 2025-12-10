@@ -2,6 +2,10 @@ import streamlit as st
 import datetime
 import streamlit.components.v1 as components
 import pandas as pd
+from streamlit_calendar import calendar  # neues Package
+
+# Datum
+heute = datetime.date.today()
 
 # Page Infos
 st.set_page_config(
@@ -10,11 +14,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# Titel
-st.title(
-    "Smart Weather CH",
-    anchor=False  # kein Anker-Icon
-)
+col1, col2 = st.columns([6, 3])
+with col1:
+    # Titel
+    st.title(
+        "Smart Weather CH",
+        anchor=False  # kein Anker-Icon
+    )
+with col2:
+    st.write(heute)
+
+
 
 # subtitle
 st.subheader("Wilkommen zur Smart Weather CH – Ihre persönliche Wetterquelle")
@@ -32,16 +42,13 @@ with col1:
 with col2:
     query_button = st.button("Suchen")
 
-# Datum
-heute = datetime.date.today()
 
-auswahl = st.date_input(
-    "Datum auswählen",
-    value=heute,                       # Standard: heute
-    min_value=heute,                   # frühestes Datum
-    max_value=heute.replace(year=heute.year + 1),  # spätestes Datum
-    format="DD.MM.YYYY"               # Anzeigeformat
-)
+
+# Minimale Optionen: Monatsansicht + klickbare Tage
+calendar_options = {
+    "initialView": "dayGridMonth",  # Monatsansicht
+    "selectable": True,             # Klick auf Datum / Bereich
+}
 
 # 3 Spalten
 col1, col2, col3 = st.columns(3, border=True, gap="small")
@@ -67,8 +74,12 @@ with col2:
     )
 
 with col3:
-    st.write("Gewähltes Datum:")
-    st.write(auswahl)
+    cal_data = calendar(
+    events=[],
+    options={"initialView": "dayGridMonth", "selectable": True},
+    key="smartweather_calendar",
+    )
+    st.write("", cal_data)
 
 # Leaflet-Karte
 leaflet_html = """
