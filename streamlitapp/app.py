@@ -30,32 +30,42 @@ with col1:
 with col2:
     querry_button = st.button("Suchen")
 
+st.markdown("### 7-Tage Wettervorhersage für Zürich")
+
 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+
 with col1:
     st.write("Mo")
-    st.metric("Temperatur", "22 °C", "+1 °C", wind_speed_10m="up")
+    st.metric(label="Temperatur", value="22 °C", delta="+1 °C")
+    st.metric(label="Wind", value="10 km/h", delta="+2 km/h")
 
 with col2:
     st.write("Di")
-    st.metric("Temperatur", "21 °C", "-1 °C", wind_speed_10m="down")
+    st.metric(label="Temperatur", value="21 °C", delta="-1 °C")
+    st.metric(label="Wind", value="8 km/h", delta="-1 km/h")
 
 with col3:
     st.write("Mi")
-    st.metric("Temperatur", "19 °C", "-2 °C", wind_speed_10m="down")
+    st.metric(label="Temperatur", value="19 °C", delta="-2 °C")
+    st.metric(label="Wind", value="12 km/h", delta="+3 km/h")
 
 with col4:
     st.write("Do")
-    st.metric("Temperatur", "20 °C", "+1 °C", wind_speed_10m="up")
+    st.metric(label="Temperatur", value="20 °C", delta="+1 °C")
+    st.metric(label="Wind", value="11 km/h", delta="-1 km/h")
 
 with col5:
     st.write("Fr")
-    st.metric("Temperatur", "18 °C", "-2 °C", wind_speed_10m="down")
+    st.metric(label="Temperatur", value="18 °C", delta="-2 °C")
+    st.metric(label="Wind", value="9 km/h", delta="-2 km/h")
 
 with col6:
     st.write("Sa")
-    st.metric("Temperatur", "17 °C", "-1 °C", wind_speed_10m="down")
+    st.metric(label="Temperatur", value="17 °C", delta="-1 °C")
+    st.metric(label="Wind", value="7 km/h", delta="-1 km/h")
 
 with col7:
     st.write("So")
-    st.metric("Temperatur", "16 °C", "-1 °C", wind_speed_10m="down")
-    
+    st.metric(label="Temperatur", value="16 °C", delta="-1 °C")
+    st.metric(label="Wind", value="6 km/h", delta="-1 km/h")
+
