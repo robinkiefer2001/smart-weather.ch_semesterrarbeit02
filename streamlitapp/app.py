@@ -1,4 +1,6 @@
 import streamlit as st
+import datetime
+import streamlit.components.v1 as components
 import pandas as pd
 
 # Page Infos
@@ -31,71 +33,34 @@ with col1:
 with col2:
     querry_button = st.button("Suchen")
 
-# --- Dummy-Daten ---
-tage = ["Mo1", "Di1", "Mi1", "Do1", "Fr1", "Sa1", "So1",
-        "Mo2", "Di2", "Mi2", "Do2", "Fr2", "Sa2", "So2"]
 
-temperaturen = [22, 21, 19, 20, 18, 17, 16,
-                23, 22, 20, 19, 18, 17, 16]
-temp_delta   = [+1, -1, -2, +1, -2, -1, -1,
-                +1, -1, -2, -1, -1, -1,  0]
+heute = datetime.date.today()
 
-windspeed    = [10, 8, 12, 11, 9, 7, 6,
-                11, 9, 13, 12, 10, 8, 7]
-wind_delta   = [+2, -1, +3, -1, -2, -1, -1,
-                +1, -1, +2, -1, -1, -1,  0]
+auswahl = st.date_input(
+    "Datum auswählen",
+    value=heute,              # Standard: heute
+    min_value=heute,          # frühestes Datum
+    max_value=heute.replace(year=heute.year + 1),  # spätestes Datum
+    format="DD.MM.YYYY"       # Anzeigeformat
+)
 
-n = len(tage)
-window_size = 5           # mind. 5 Tage sichtbar
-radius = window_size // 2
+st.write("Gewähltes Datum:", auswahl)
 
-# --- Session State für die aktuelle Position ---
-if "center" not in st.session_state:
-    st.session_state.center = 0  # Start beim ersten Tag
+col1, col2, col3 = st.columns(border=True, gap="small")
 
-# --- Navigation: Pfeile links/rechts ---
-nav_left, nav_mid, nav_right = st.columns([1, 3, 1])
-with nav_left:
-    if st.button("<"):
-        st.session_state.center = (st.session_state.center - 1) % n
-with nav_right:
-    if st.button(">"):
-        st.session_state.center = (st.session_state.center + 1) % n
+with col1:
+    st.metric(
+        label="Lufttemperatur",
+        value="22 °C",
+        delta="+2 °C",
+    )
 
-center = st.session_state.center
+with col2:
+    st.Text("Im Mittelland Nebel, Obergrenze um 600 Meter, bis am Nachmittag wahrscheinlich grösstenteils Auflösung. Darüber und in den Alpen und Voralpen meist sonnig. Von der Region Bern bis zur Nordwestschweiz mit zeitweise dichteren mittelhohen und hohen Wolkenfeldern nur teilweise sonnig. Am Abend aus Westen allgemein Bewölkungszunahme und in der Nacht besonders am Nordrand der Schweiz etwas Regen möglich. Temperatur am Nachmittag um 10 Grad. In den Bergen schwacher bis mässiger Südwestwind. Temperatur auf 2000 Metern bis am Abend auf rund 3 Grad sinkend.")
 
-# --- Indizes der 5 sichtbaren Tage (zirkulär) ---
-indices = [(center + i) % n for i in range(-radius, radius + 1)]
+with col3:
+    auswahl
 
-# Mittlere Spalte breiter machen, damit sie „im Vordergrund“ wirkt
-# Beispiel: 1 – 2 – 3 – 2 – 1
-col_widths = [1, 2, 3, 2, 1]
-
-cols = st.columns(col_widths, border=True, gap="small")
-
-for col, idx in zip(cols, indices):
-    with col:
-        if idx == center:
-            # Center-Block: größer & fett
-            st.markdown(
-                f"### {tage[idx]}",
-                help="Aktueller Tag im Fokus"
-            )
-        else:
-            st.write(tage[idx])
-
-        st.metric(
-            label="Temperatur",
-            value=f"{temperaturen[idx]} °C",
-            delta=f"{temp_delta[idx]:+} °C",
-        )
-        st.metric(
-            label="Wind",
-            value=f"{windspeed[idx]} km/h",
-            delta=f"{wind_delta[idx]:+} km/h",
-        )
-
-import streamlit.components.v1 as components
 
 leaflet_html = """
 <div id="map" style="width: 100%; height: 650px;"></div>
