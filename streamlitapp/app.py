@@ -4,12 +4,16 @@ import pandas as pd
 # Page Infos
 st.set_page_config(
     page_title="smart weather CH",
-    page_icon="🌤️",
-    layout="wide",
+    page_icon="🌤️"
 )
 
 # Titel
-st.title("Smart Weather CH")
+st.title("Smart Weather CH")(
+    "SmartWeather Dashboard",
+    anchor=False,                # kein Anker-Icon
+    text_alignment="center",     # "left", "center", "right"
+    width="stretch"              # "stretch" = volle Breite nutzen
+)
 
 # subtitle
 st.subheader("Wilkommen zur Smart Weather CH Ihre persönliche Wetterquelle")
