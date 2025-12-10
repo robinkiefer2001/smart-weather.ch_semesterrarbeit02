@@ -57,9 +57,9 @@ radius = window_size // 2  # z.B. 2 links, 2 rechts
 # Indizes im Karussell (zirkulär)
 indices = [ (center + i) % n for i in range(-radius, radius + 1) ]
 
-cols = st.columns(window_size)
+cols = st.columns(window_size, border=True, gap="small")
 
-for col, idx in zip(cols, indices, border=True, gap="small"):
+for col, idx in zip(cols, indices):
     with col:
         # Hervorheben des „vorderen“ Tages
         if idx == center:
