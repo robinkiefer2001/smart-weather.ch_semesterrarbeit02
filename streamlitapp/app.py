@@ -59,7 +59,7 @@ indices = [ (center + i) % n for i in range(-radius, radius + 1) ]
 
 cols = st.columns(window_size)
 
-for col, idx in zip(cols, indices):
+for col, idx in zip(cols, indices, border=True, gap="small"):
     with col:
         # Hervorheben des „vorderen“ Tages
         if idx == center:
