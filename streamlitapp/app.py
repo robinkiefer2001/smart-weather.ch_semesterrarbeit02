@@ -11,7 +11,6 @@ st.set_page_config(
 st.title(
     "Smart Weather CH",
     anchor=False,                # kein Anker-Icon
-    text_alignment="center",     # "left", "center", "right"
     width="stretch"              # "stretch" = volle Breite nutzen
 )
 
