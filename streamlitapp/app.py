@@ -1,8 +1,10 @@
 import streamlit as st
 import datetime
+import streamlit_calendar
 import streamlit.components.v1 as components
 import pandas as pd
 from streamlit_calendar import calendar  # neues Package
+conn = st.connection("sql")
 
 # Datum
 heute = datetime.date.today()
@@ -23,8 +25,6 @@ with col1:
     )
 with col2:
     st.write(heute)
-
-
 
 # subtitle
 st.subheader("Wilkommen zur Smart Weather CH – Ihre persönliche Wetterquelle")
