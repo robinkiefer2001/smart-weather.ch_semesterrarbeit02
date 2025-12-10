@@ -94,3 +94,34 @@ for col, idx in zip(cols, indices):
             value=f"{windspeed[idx]} km/h",
             delta=f"{wind_delta[idx]:+} km/h",
         )
+
+import streamlit.components.v1 as components
+
+leaflet_html = """
+<div id="map" style="width: 100%; height: 600px;"></div>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  // Karte initialisieren (CH-Zentrum)
+  var map = L.map('map').setView([46.8, 8.3], 7);
+
+  // SwissTopo- oder OpenStreetMap-Basiskarte
+  L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {{
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }}
+  ).addTo(map);
+
+  // HIER später MeteoSwiss / WMTS Layer ergänzen
+  // z.B. Radar / Niederschlag / Temperatur-Kacheln
+</script>
+"""
+
+components.html(leaflet_html, height=650)
