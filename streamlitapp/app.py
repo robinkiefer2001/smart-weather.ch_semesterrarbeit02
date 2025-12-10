@@ -5,6 +5,7 @@ import pandas as pd
 st.set_page_config(
     page_title="smart weather CH",
     page_icon="🌤️",
+    layout="wide",
 )
 
 # Titel
@@ -14,10 +15,14 @@ st.title("Smart Weather CH")
 st.subheader("Wilkommen zur Smart Weather CH Ihre persönliche Wetterquelle")
 
 # columns
-col1, col2 = st.columns(2)
+col1, col2 = st.columns([4, 1])
 
 with col1:
-    location_input = st.text_input(placeholder = "Geben Sie Ihren eine Location ein")
+    query = st.text_input(
+        "Suche",                      # interner Label-Text (für Screenreader)
+        placeholder="Suchbegriff...", # das ist der sichtbare Text
+        label_visibility="collapsed"  # Label ausblenden
+    )
 
 with col2:
     querry_button = st.button("Suchen")
