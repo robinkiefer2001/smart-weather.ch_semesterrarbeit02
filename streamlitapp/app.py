@@ -43,8 +43,6 @@ auswahl = st.date_input(
     format="DD.MM.YYYY"               # Anzeigeformat
 )
 
-st.write("Gewähltes Datum:", auswahl)
-
 # 3 Spalten
 col1, col2, col3 = st.columns(3, border=True, gap="small")
 
@@ -69,13 +67,8 @@ with col2:
     )
 
 with col3:
-    row1, row2 = st.rows(2, gap="small")
-
-    with row1:
-        st.write("Gewähltes Datum:")
-    
-    with row2:
-        st.write(auswahl)
+    st.write("Gewähltes Datum:")
+    st.write(auswahl)
 
 # Leaflet-Karte
 leaflet_html = """
