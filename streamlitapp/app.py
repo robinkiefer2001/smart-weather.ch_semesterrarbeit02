@@ -1,4 +1,6 @@
 import streamlit as st
+import psycopg2
+import psycopg
 import datetime
 import streamlit_calendar
 import streamlit.components.v1 as components
@@ -75,7 +77,6 @@ with col2:
 
 with col3:
     cal_data = calendar(
-    events=[],
     options={"initialView": "dayGridMonth", "selectable": True},
     key="smartweather_calendar",
     )
@@ -100,8 +101,7 @@ leaflet_html = """
   L.tileLayer(
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
+      maxZoom: 19
     }
   ).addTo(map);
 
