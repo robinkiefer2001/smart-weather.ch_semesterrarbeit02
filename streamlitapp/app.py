@@ -98,8 +98,9 @@ for col, idx in zip(cols, indices):
 import streamlit.components.v1 as components
 
 leaflet_html = """
-<div id="map" style="width: 100%; height: 600px;"></div>
+<div id="map" style="width: 100%; height: 650px;"></div>
 
+<!-- Leaflet CSS & JS -->
 <link
   rel="stylesheet"
   href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -107,21 +108,46 @@ leaflet_html = """
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-  // Karte initialisieren (CH-Zentrum)
+  // Karte initialisieren (Schweiz-Zentrum)
   var map = L.map('map').setView([46.8, 8.3], 7);
 
-  // SwissTopo- oder OpenStreetMap-Basiskarte
+  // Swisstopo / Swiss Base Map (vereinfachtes Beispiel)
+  // ACHTUNG: Für produktiven Einsatz unbedingt Terms of Use beachten!
+  // [Hier als Demo: OpenStreetMap als Basiskarte]
   L.tileLayer(
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {{
+    {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
-    }}
+    }
   ).addTo(map);
 
-  // HIER später MeteoSwiss / WMTS Layer ergänzen
-  // z.B. Radar / Niederschlag / Temperatur-Kacheln
+  // -------------------------------------------
+  // Platzhalter für MeteoSwiss / WMTS-Radar-Layer
+  // -------------------------------------------
+  // Wenn du eine WMTS-Tile-URL aus wmts.geo.admin.ch
+  // oder MeteoSwiss-Open-Data hast, kommt sie hier rein,
+  // z.B. (syntaktisch! URL musst du aus den Capabilities nehmen):
+
+  /*
+  L.tileLayer(
+    'https://wmts{5-9}.geo.admin.ch/1.0.0/<LAYERNAME>/default/<TIMESTAMP>/21781/{z}/{x}/{y}.png',
+    {
+      opacity: 0.7,
+      attribution: 'MeteoSwiss / geo.admin.ch'
+    }
+  ).addTo(map);
+  */
+
+  // Stattdessen ein Fake-Radar-Layer (halbtransparentes Grid) zum Testen:
+  var bounds = L.latLngBounds(L.latLng(45.5, 5.5), L.latLng(48.0, 11.0));
+  var overlay = L.rectangle(bounds, {
+    color: "#00aaff",
+    weight: 1,
+    fillOpacity: 0.15
+  }).addTo(map);
+  overlay.bindPopup("Radar / Meteo-Layer Platzhalter");
 </script>
 """
 
-components.html(leaflet_html, height=650)
+components.html(leaflet_html, height=700)
