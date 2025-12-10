@@ -21,6 +21,3 @@ with col1:
 
 with col2:
     querry_button = st.button("Suchen")
-
-# Leere Tabelle anzeigen
-st.subheader(df)
