@@ -6,12 +6,13 @@ import streamlit_calendar
 import streamlit.components.v1 as components
 import pandas as pd
 from streamlit_calendar import calendar  # neues Package
-conn = st.connection("sql")
+conn = st.connection("postgresql", type="sql")
 
-tempData = pd.read_sql(
+tempData = conn.query(
     "SELECT * FROM weather_current WHERE id = 1;",
-    conn
+    ttl="10m"   # Cache-Dauer, optional
 )
+
 # Datum
 heute = datetime.date.today()
 
