@@ -30,42 +30,51 @@ with col1:
 with col2:
     querry_button = st.button("Suchen")
 
-st.markdown("### 7-Tage Wettervorhersage für Zürich")
+st.set_page_config(layout="wide")
 
-col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+tage = ["Mo1", "Di1", "Mi1", "Do1", "Fr1", "Sa1", "So1",
+        "Mo2", "Di2", "Mi2", "Do2", "Fr2", "Sa2", "So2"]
 
-with col1:
-    st.write("Mo")
-    st.metric(label="Temperatur", value="22 °C", delta="+1 °C")
-    st.metric(label="Wind", value="10 km/h", delta="+2 km/h")
+temperaturen = [22, 21, 19, 20, 18, 17, 16,
+                23, 22, 20, 19, 18, 17, 16]
+temp_delta   = [+1, -1, -2, +1, -2, -1, -1,
+                +1, -1, -2, -1, -1, -1,  0]
 
-with col2:
-    st.write("Di")
-    st.metric(label="Temperatur", value="21 °C", delta="-1 °C")
-    st.metric(label="Wind", value="8 km/h", delta="-1 km/h")
+windspeed    = [10, 8, 12, 11, 9, 7, 6,
+                11, 9, 13, 12, 10, 8, 7]
+wind_delta   = [+2, -1, +3, -1, -2, -1, -1,
+                +1, -1, +2, -1, -1, -1,  0]
 
-with col3:
-    st.write("Mi")
-    st.metric(label="Temperatur", value="19 °C", delta="-2 °C")
-    st.metric(label="Wind", value="12 km/h", delta="+3 km/h")
+n = len(tage)
 
-with col4:
-    st.write("Do")
-    st.metric(label="Temperatur", value="20 °C", delta="+1 °C")
-    st.metric(label="Wind", value="11 km/h", delta="-1 km/h")
+# Mittelpunkt des Karussells (0–13)
+center = st.slider("Tag wählen", 0, n - 1, 0)
 
-with col5:
-    st.write("Fr")
-    st.metric(label="Temperatur", value="18 °C", delta="-2 °C")
-    st.metric(label="Wind", value="9 km/h", delta="-2 km/h")
+# Wie viele Tage insgesamt anzeigen (muss ungerade sein: 5, 7, ...)
+window_size = 5
+radius = window_size // 2  # z.B. 2 links, 2 rechts
 
-with col6:
-    st.write("Sa")
-    st.metric(label="Temperatur", value="17 °C", delta="-1 °C")
-    st.metric(label="Wind", value="7 km/h", delta="-1 km/h")
+# Indizes im Karussell (zirkulär)
+indices = [ (center + i) % n for i in range(-radius, radius + 1) ]
 
-with col7:
-    st.write("So")
-    st.metric(label="Temperatur", value="16 °C", delta="-1 °C")
-    st.metric(label="Wind", value="6 km/h", delta="-1 km/h")
+cols = st.columns(window_size)
 
+for col, idx in zip(cols, indices):
+    with col:
+        # Hervorheben des „vorderen“ Tages
+        if idx == center:
+            st.markdown(f"### {tage[idx]}")   # vorne, größer
+        else:
+            st.write(tage[idx])               # hinten, kleiner
+
+        st.metric(
+            label="Temperatur",
+            value=f"{temperaturen[idx]} °C",
+            delta=f"{temp_delta[idx]:+} °C",
+        )
+
+        st.metric(
+            label="Wind",
+            value=f"{windspeed[idx]} km/h",
+            delta=f"{wind_delta[idx]:+} km/h",
+        )
