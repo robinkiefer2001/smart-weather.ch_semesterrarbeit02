@@ -4,7 +4,8 @@ import pandas as pd
 # Page Infos
 st.set_page_config(
     page_title="smart weather CH",
-    page_icon="🌤️"
+    page_icon="🌤️",
+    layout="wide"
 )
 
 # Titel
@@ -30,8 +31,7 @@ with col1:
 with col2:
     querry_button = st.button("Suchen")
 
-st.set_page_config(layout="wide")
-
+# --- Dummy-Daten ---
 tage = ["Mo1", "Di1", "Mi1", "Do1", "Fr1", "Sa1", "So1",
         "Mo2", "Di2", "Mi2", "Do2", "Fr2", "Sa2", "So2"]
 
@@ -46,33 +46,49 @@ wind_delta   = [+2, -1, +3, -1, -2, -1, -1,
                 +1, -1, +2, -1, -1, -1,  0]
 
 n = len(tage)
+window_size = 5           # mind. 5 Tage sichtbar
+radius = window_size // 2
 
-# Mittelpunkt des Karussells (0–13)
-center = st.slider("Tag wählen", 0, n - 1, 0)
+# --- Session State für die aktuelle Position ---
+if "center" not in st.session_state:
+    st.session_state.center = 0  # Start beim ersten Tag
 
-# Wie viele Tage insgesamt anzeigen (muss ungerade sein: 5, 7, ...)
-window_size = 5
-radius = window_size // 2  # z.B. 2 links, 2 rechts
+# --- Navigation: Pfeile links/rechts ---
+nav_left, nav_mid, nav_right = st.columns([1, 3, 1])
+with nav_left:
+    if st.button("<"):
+        st.session_state.center = (st.session_state.center - 1) % n
+with nav_right:
+    if st.button(">"):
+        st.session_state.center = (st.session_state.center + 1) % n
 
-# Indizes im Karussell (zirkulär)
-indices = [ (center + i) % n for i in range(-radius, radius + 1) ]
+center = st.session_state.center
 
-cols = st.columns(window_size, border=True, gap="small")
+# --- Indizes der 5 sichtbaren Tage (zirkulär) ---
+indices = [(center + i) % n for i in range(-radius, radius + 1)]
+
+# Mittlere Spalte breiter machen, damit sie „im Vordergrund“ wirkt
+# Beispiel: 1 – 2 – 3 – 2 – 1
+col_widths = [1, 2, 3, 2, 1]
+
+cols = st.columns(col_widths, border=True, gap="small")
 
 for col, idx in zip(cols, indices):
     with col:
-        # Hervorheben des „vorderen“ Tages
         if idx == center:
-            st.markdown(f"### {tage[idx]}")   # vorne, größer
+            # Center-Block: größer & fett
+            st.markdown(
+                f"### {tage[idx]}",
+                help="Aktueller Tag im Fokus"
+            )
         else:
-            st.write(tage[idx])               # hinten, kleiner
+            st.write(tage[idx])
 
         st.metric(
             label="Temperatur",
             value=f"{temperaturen[idx]} °C",
             delta=f"{temp_delta[idx]:+} °C",
         )
-
         st.metric(
             label="Wind",
             value=f"{windspeed[idx]} km/h",
