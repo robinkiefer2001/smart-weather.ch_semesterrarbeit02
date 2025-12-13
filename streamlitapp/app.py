@@ -79,7 +79,7 @@ with col2:
             value=f"{tempData['precipitation_sum'][0]} mm",
         )
 
-col1, col2 = st.columns(1,2, border=True)
+col1, col2 = st.columns([2, 1], border=True, gap="small")
 with col1:
     st.write(
         "Am Morgen in den Niederungen gebietsweise Nebel oder "
