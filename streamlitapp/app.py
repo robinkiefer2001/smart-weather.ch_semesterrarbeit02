@@ -46,13 +46,13 @@ with col1:
 
 if query:
     selectedLocation = conn.query(
-        text("""
-            SELECT latitude, longitude
-            FROM geo_location
-            WHERE name ILIKE :name
-            LIMIT 1;
-        """),
-        params={"name": query},   # oder f"{query}%" für Prefix-Suche
+        """
+        SELECT latitude, longitude
+        FROM geo_location
+        WHERE name ILIKE %(name)s
+        LIMIT 1;
+        """,
+        params={"name": query},
     )
     if len(selectedLocation) == 0:
         st.error("Ort nicht gefunden")
