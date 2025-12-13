@@ -6,8 +6,9 @@ import streamlit_calendar
 import streamlit.components.v1 as components
 import pandas as pd
 from streamlit_calendar import calendar  # neues Package
-import requests_cache
-from retry_requests import retry
+#import requests_cache
+#from retry_requests import retry
+import requests
 import openmeteo_requests
 
 conn = st.connection("sql")
@@ -59,9 +60,9 @@ with col2:
 with col3:
     st.write("")
 
-cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-openmeteo = openmeteo_requests.Client(session=retry_session)
+#cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
+#retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+openmeteo = openmeteo_requests.Client() #(session=retry_session)
 
 url = "https://api.open-meteo.com/v1/forecast"
 params = {
