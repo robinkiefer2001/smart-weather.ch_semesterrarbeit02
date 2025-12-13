@@ -104,26 +104,37 @@ with col2:
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-      // Karte initialisieren (Schweiz-Zentrum)
-      var map = L.map('map').setView([46.8, 8.3], 7);
+      // Bounds für Schweiz‑Ausschnitt
+      var bounds = L.latLngBounds(
+        L.latLng(45.5, 5.5),   // Süd‑West
+        L.latLng(48.0, 11.0)   // Nord‑Ost
+      );
 
-      // Basiskarte (hier OSM als Demo)
+      // Karte auf diese Bounds zoomen und begrenzen
+      var map = L.map('map', {
+        maxBounds: bounds,
+        maxBoundsViscosity: 1.0
+      }).fitBounds(bounds);
+
+      // Basiskarte (OSM)
       L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
-          maxZoom: 19
+          maxZoom: 14,
+          minZoom: 6
         }
       ).addTo(map);
 
-      // Fake-Radar-Overlay als Platzhalter
-      var bounds = L.latLngBounds(L.latLng(45.5, 5.5), L.latLng(48.0, 11.0));
-      var overlay = L.rectangle(bounds, {
+      // Optional: nur Rahmen statt blauem Overlay
+      L.rectangle(bounds, {
         color: "#00aaff",
         weight: 1,
-        fillOpacity: 0.15
+        fillOpacity: 0.0     // 0 = kein Blau, nur Linie
       }).addTo(map);
-      overlay.bindPopup("Radar / Meteo-Layer Platzhalter");
+
+      // Später kannst du hier deine Meteo‑Daten als Layer hinzufügen,
+      // z.B. L.imageOverlay(imageUrl, bounds, {opacity: 0.6}).addTo(map);
     </script>
     """
-
+    
     components.html(leaflet_html, height=700)
