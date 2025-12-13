@@ -49,35 +49,52 @@ tempData = conn.query(
     ttl="10m"   # Cache-Dauer, optional
 )
 
+
+
 # Minimale Optionen: Monatsansicht + klickbare Tage
 calendar_options = {
     "initialView": "dayGridMonth",  # Monatsansicht
     "selectable": True,             # Klick auf Datum / Bereich
 }
 
-# 3 Spalten
-col1, col2 = st.columns([2,1], border=True, gap="small")
+# 2 Spalten: links breit (Wetter-Metrics), rechts schmal (Kalender + Metric)
+col1, col2 = st.columns([2, 1], border=True, gap="small")
 
+# ---- linke Spalte: mehrere Metrics in Unter-Spalten ----
 with col1:
-    st.metric(
-        label="Lufttemperatur",
-        value=f"{tempData['temperature_2m'][0]} °C",
-    )
+    # ein Container für die aktuelle Station / den aktuellen Zeitpunkt
+    box = st.container(border=False)
 
+    with box:
+        row = tempData.iloc[0]
+
+        m1, m2, m3 = st.columns(3, gap="small")  # „sub columns“ im Container
+
+        with m1:
+            st.metric("🌡️ Lufttemperatur", f"{row['temperature_2m']:.1f} °C")
+            st.metric("🥵 Gefühlte Temp.", f"{row['apparent_temperature']:.1f} °C")
+
+        with m2:
+            st.metric("💧 rel. Feuchte", f"{row['relative_humidity_2m']:.0f} %")
+            st.metric("☁️ Bewölkung", f"{row['cloud_cover']:.0f} %")
+
+        with m3:
+            st.metric("🌬️ Wind 10 m", f"{row['wind_speed_10m']:.1f} km/h")
+            st.metric("💨 Böen 10 m", f"{row['wind_gusts_10m']:.1f} km/h")
+
+# ---- rechte Spalte: Kalender + extra-Metric ----
 with col2:
-    box1 = st.container()
+    box1 = st.container(border=True)
     with box1:
         cal_data = calendar(
-        options={"initialView": "dayGridMonth", "selectable": True},
-        key="smartweather_calendar",
+            options={"initialView": "dayGridMonth", "selectable": True},
+            key="smartweather_calendar",
         )
-    
-    box2 = st.container()
-    with box2: 
-        st.metric(
-            label="Niederschlag",
-            value="12 mm",
-        )
+
+    box2 = st.container(border=True)
+    with box2:
+        st.metric("🌧️ Niederschlag", f"{row['precipitation']:.1f} mm")
+
 
 col1, col2 = st.columns([1, 2], border=True, gap="small")
 with col1:
@@ -136,5 +153,5 @@ with col2:
       // z.B. L.imageOverlay(imageUrl, bounds, {opacity: 0.6}).addTo(map);
     </script>
     """
-    
+
     components.html(leaflet_html, height=700)
