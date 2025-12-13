@@ -56,7 +56,7 @@ calendar_options = {
 }
 
 # 3 Spalten
-col1, col2 = st.columns(2,1, border=True, gap="small")
+col1, col2 = st.columns([2,1], border=True, gap="small")
 
 with col1:
     st.metric(
