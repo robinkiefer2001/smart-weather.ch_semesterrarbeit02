@@ -16,7 +16,6 @@ conn = st.connection("sql")
 # Variabel vereinbahurng
 heute = datetime.date.today()
 
-x
 # Page Infos
 st.set_page_config(
     page_title="smart weather CH",
