@@ -45,8 +45,7 @@ with col1:
 
 if query:
     selectedLocation = conn.query(
-        "SELECT latitude, longitude FROM geo_location WHERE name = %(name)s LIMIT 1;",
-        params={"name": query},
+        "SELECT latitude, longitude FROM geo_location WHERE name = '{query}' LIMIT 1;",
     )
     if len(selectedLocation) == 0:
         st.error("Ort nicht gefunden")
