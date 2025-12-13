@@ -6,6 +6,10 @@ import streamlit_calendar
 import streamlit.components.v1 as components
 import pandas as pd
 from streamlit_calendar import calendar  # neues Package
+import requests_cache
+from retry_requests import retry
+import openmeteo_requests
+
 conn = st.connection("sql")
 
 # Variabel vereinbahurng
