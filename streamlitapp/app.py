@@ -6,6 +6,7 @@ import streamlit_calendar
 import streamlit.components.v1 as components
 import pandas as pd
 from streamlit_calendar import calendar  # neues Package
+from sqlalchemy import text
 #import requests_cache
 #from retry_requests import retry
 import requests
