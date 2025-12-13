@@ -45,17 +45,19 @@ with col1:
     )
 
 if query:
-    # optional: einfache Sanitization, um Quotes zu vermeiden
-    q = query.replace("'", "''")
+    # einfache Sanitization
+    q = query.strip().replace("'", "''")
 
     selectedLocation = conn.query(
         f"""
         SELECT latitude, longitude
         FROM geo_location
-        WHERE name ILIKE '{q}'
+        WHERE name ILIKE '%{q}%'
         LIMIT 1;
         """
     )
+
+    st.write("Debug selectedLocation:", selectedLocation)  # zum Testen
     if len(selectedLocation) == 0:
         st.error("Ort nicht gefunden")
     else:
