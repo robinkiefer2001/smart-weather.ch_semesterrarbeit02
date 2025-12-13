@@ -9,7 +9,6 @@ from streamlit_calendar import calendar  # neues Package
 #import requests_cache
 #from retry_requests import retry
 import requests
-import urllib3
 import openmeteo_requests
 
 conn = st.connection("sql")
