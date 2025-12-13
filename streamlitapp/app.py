@@ -76,7 +76,7 @@ with col2:
     with box2: 
         st.metric(
             label="Niederschlag",
-            value=f"{tempData['precipitation_sum'][0]} mm",
+            value="12 mm",
         )
 
 col1, col2 = st.columns([2, 1], border=True, gap="small")
