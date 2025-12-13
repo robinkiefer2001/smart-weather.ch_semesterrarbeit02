@@ -8,11 +8,6 @@ import pandas as pd
 from streamlit_calendar import calendar  # neues Package
 conn = st.connection("sql")
 
-tempData = conn.query(
-    "SELECT * FROM weather_current WHERE id = 1;",
-    ttl="10m"   # Cache-Dauer, optional
-)
-
 # Datum
 heute = datetime.date.today()
 
@@ -37,7 +32,7 @@ with col2:
 st.subheader("Wilkommen zur Smart Weather CH – Ihre persönliche Wetterquelle")
 
 # Suche
-col1, col2 = st.columns([4, 1])
+col1, col2, col3 = st.columns([2, 1, 2])
 
 with col1:
     query = st.text_input(
@@ -49,7 +44,13 @@ with col1:
 with col2:
     query_button = st.button("Suchen")
 
+with col3:
+    st.write("")
 
+tempData = conn.query(
+    "SELECT * FROM weather_current WHERE id = 1;",
+    ttl="10m"   # Cache-Dauer, optional
+)
 
 # Minimale Optionen: Monatsansicht + klickbare Tage
 calendar_options = {
