@@ -228,12 +228,10 @@ with col1:
                 st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
                 st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
             
-with m3:
-    st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
-    st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
+            with m3:
+                st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
+                st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
 
-col1 = st.columns(1)[0]
-with col1:
     st.write("### 24 Stunden Übersicht")
 
     # Heute's Daten filtern
@@ -281,7 +279,7 @@ with col1:
     display_df["🌬️ Wind (km/h)"] = display_df["🌬️ Wind (km/h)"].round(1)
     display_df["💨 Böen (km/h)"] = display_df["💨 Böen (km/h)"].round(1)
     display_df["➡️ Windrichtung (°)"] = display_df["➡️ Windrichtung (°)"].round(0).astype(int)
-    
+
     # Tabelle anzeigen
     st.dataframe(
         display_df,
