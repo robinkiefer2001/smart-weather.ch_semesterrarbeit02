@@ -352,7 +352,7 @@ with col2:
         with col4:
             st.metric("📉 Größter Rückgang", f"{max_decrease:.2f} °C/h")
 
-col1, col2, col3, col4 = st.columns(4, gap="small")
+col1, col2 = st.columns(2, gap="small")
 if st.session_state.weather_data is not None:
     with col1:
         # Zeit formatieren
@@ -407,7 +407,9 @@ if st.session_state.weather_data is not None:
         with col2:
             st.metric("💨 Max. Böen", f"{max_boesen:.1f} km/h")
 
-    with col3:
+col1, col2 = st.columns(2, gap="small")
+if st.session_state.weather_data is not None:
+    with col1:
         # Bewölkungsdaten vorbereiten
         Tagesübersicht_chart["Bewölkung (%)"] = Tagesübersicht_chart["cloud_cover"].round(0).astype(int)
 
@@ -425,7 +427,7 @@ if st.session_state.weather_data is not None:
 
         st.metric("☁️ Durchschnittl. Bewölkung", f"{avg_cloud_cover:.0f} %")
 
-    with col4:
+    with col2:
         # snowfall Daten vorbereiten
         Tagesübersicht_chart["Schneefall (cm)"] = Tagesübersicht_chart["snowfall"].round(2)
 
