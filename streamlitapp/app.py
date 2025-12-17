@@ -352,9 +352,9 @@ with col2:
         with col4:
             st.metric("📉 Größter Rückgang", f"{max_decrease:.2f} °C/h")
 
-col1, col2 = st.columns([1,1], gap="small")
+col13, col23 = st.columns([1,1], gap="small")
 if st.session_state.weather_data is not None:
-    with col1:
+    with col13:
         # Zeit formatieren
         Tagesübersicht_chart = Tagesübersicht.copy()
         Tagesübersicht_chart["Uhrzeit"] = Tagesübersicht_chart["time"].dt.strftime("%H:00")
@@ -383,7 +383,7 @@ if st.session_state.weather_data is not None:
         with col3:
             st.metric("💧 Gesamtniederschlag", f"{total_precipitation:.1f} mm")
     
-    with col2:
+    with col23:
         # Winddaten vorbereiten
         Tagesübersicht_chart["Wind (km/h)"] = Tagesübersicht_chart["wind_speed_10m"].round(1)
         Tagesübersicht_chart["Böen (km/h)"] = Tagesübersicht_chart["wind_gusts_10m"].round(1)
