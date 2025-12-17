@@ -13,7 +13,6 @@ import requests
 import openmeteo_requests
 
 conn = st.connection("sql")
-cur = None
 
 # Variabel vereinbahurng
 heute = datetime.date.today()
