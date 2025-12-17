@@ -232,72 +232,70 @@ with col1:
                 st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
                 st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
 
-    st.write("### 24 Stunden Übersicht")
-
-    # Heute's Daten filtern
-    Tagesübersicht = st.session_state.weather_data['hourly_df'][
-        st.session_state.weather_data['hourly_df']['time'].dt.date == heute
-    ].copy()
-
-    # Für Anzeige formatieren
-    display_df = Tagesübersicht[[
-        "time", 
-        "temperature_2m", 
-        "apparent_temperature",
-        "relative_humidity_2m", 
-        "precipitation",
-        "weather_code",
-        "cloud_cover",
-        "wind_speed_10m",
-        "wind_gusts_10m",
-        "wind_direction_10m"
-    ]].copy()
-
-    # Spalten umbenennen für bessere Lesbarkeit
-    display_df.columns = [
-        "🕐 Uhrzeit",
-        "🌡️ Temp. (°C)",
-        "🥵 Gefühlt (°C)",
-        "💧 Feuchte (%)",
-        "🌧️ Niederschlag (mm)",
-        "☁️ Wetter",
-        "☁️ Bewölkung (%)",
-        "🌬️ Wind (km/h)",
-        "💨 Böen (km/h)",
-        "➡️ Windrichtung (°)"
-    ]
+        # Tagesübersicht (stündlich)    # Heute's Daten filtern
+        Tagesübersicht = st.session_state.weather_data['hourly_df'][
+            st.session_state.weather_data['hourly_df']['time'].dt.date == heute
+        ].copy()
     
-    # Zeit formatieren (nur Stunde anzeigen)
-    display_df["🕐 Uhrzeit"] = display_df["🕐 Uhrzeit"].dt.strftime("%H:%M")
-
-    # Dezimalzahlen formatieren
-    display_df["🌡️ Temp. (°C)"] = display_df["🌡️ Temp. (°C)"].round(1)
-    display_df["🥵 Gefühlt (°C)"] = display_df["🥵 Gefühlt (°C)"].round(1)
-    display_df["💧 Feuchte (%)"] = display_df["💧 Feuchte (%)"].round(0).astype(int)
-    display_df["🌧️ Niederschlag (mm)"] = display_df["🌧️ Niederschlag (mm)"].round(1)
-    display_df["☁️ Bewölkung (%)"] = display_df["☁️ Bewölkung (%)"].round(0).astype(int)
-    display_df["🌬️ Wind (km/h)"] = display_df["🌬️ Wind (km/h)"].round(1)
-    display_df["💨 Böen (km/h)"] = display_df["💨 Böen (km/h)"].round(1)
-    display_df["➡️ Windrichtung (°)"] = display_df["➡️ Windrichtung (°)"].round(0).astype(int)
-
-    # Tabelle anzeigen
-    st.dataframe(
-        display_df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "🕐 Uhrzeit": st.column_config.TextColumn(width="small"),
-            "🌡️ Temp. (°C)": st.column_config.NumberColumn(width="small"),
-            "🥵 Gefühlt (°C)": st.column_config.NumberColumn(width="small"),
-            "💧 Feuchte (%)": st.column_config.NumberColumn(width="small"),
-            "🌧️ Niederschlag (mm)": st.column_config.NumberColumn(width="small"),
-            "☁️ Wetter": st.column_config.NumberColumn(width="small"),
-            "☁️ Bewölkung (%)": st.column_config.NumberColumn(width="small"),
-            "🌬️ Wind (km/h)": st.column_config.NumberColumn(width="small"),
-            "💨 Böen (km/h)": st.column_config.NumberColumn(width="small"),
-            "➡️ Windrichtung (°)": st.column_config.NumberColumn(width="small"),
-        }
-    )
+        # Für Anzeige formatieren
+        display_df = Tagesübersicht[[
+            "time", 
+            "temperature_2m", 
+            "apparent_temperature",
+            "relative_humidity_2m", 
+            "precipitation",
+            "weather_code",
+            "cloud_cover",
+            "wind_speed_10m",
+            "wind_gusts_10m",
+            "wind_direction_10m"
+        ]].copy()
+    
+        # Spalten umbenennen für bessere Lesbarkeit
+        display_df.columns = [
+            "🕐 Uhrzeit",
+            "🌡️ Temp. (°C)",
+            "🥵 Gefühlt (°C)",
+            "💧 Feuchte (%)",
+            "🌧️ Niederschlag (mm)",
+            "☁️ Wetter",
+            "☁️ Bewölkung (%)",
+            "🌬️ Wind (km/h)",
+            "💨 Böen (km/h)",
+            "➡️ Windrichtung (°)"
+        ]
+        
+        # Zeit formatieren (nur Stunde anzeigen)
+        display_df["🕐 Uhrzeit"] = display_df["🕐 Uhrzeit"].dt.strftime("%H:%M")
+    
+        # Dezimalzahlen formatieren
+        display_df["🌡️ Temp. (°C)"] = display_df["🌡️ Temp. (°C)"].round(1)
+        display_df["🥵 Gefühlt (°C)"] = display_df["🥵 Gefühlt (°C)"].round(1)
+        display_df["💧 Feuchte (%)"] = display_df["💧 Feuchte (%)"].round(0).astype(int)
+        display_df["🌧️ Niederschlag (mm)"] = display_df["🌧️ Niederschlag (mm)"].round(1)
+        display_df["☁️ Bewölkung (%)"] = display_df["☁️ Bewölkung (%)"].round(0).astype(int)
+        display_df["🌬️ Wind (km/h)"] = display_df["🌬️ Wind (km/h)"].round(1)
+        display_df["💨 Böen (km/h)"] = display_df["💨 Böen (km/h)"].round(1)
+        display_df["➡️ Windrichtung (°)"] = display_df["➡️ Windrichtung (°)"].round(0).astype(int)
+    
+        # Tabelle anzeigen
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "🕐 Uhrzeit": st.column_config.TextColumn(width="small"),
+                "🌡️ Temp. (°C)": st.column_config.NumberColumn(width="small"),
+                "🥵 Gefühlt (°C)": st.column_config.NumberColumn(width="small"),
+                "💧 Feuchte (%)": st.column_config.NumberColumn(width="small"),
+                "🌧️ Niederschlag (mm)": st.column_config.NumberColumn(width="small"),
+                "☁️ Wetter": st.column_config.NumberColumn(width="small"),
+                "☁️ Bewölkung (%)": st.column_config.NumberColumn(width="small"),
+                "🌬️ Wind (km/h)": st.column_config.NumberColumn(width="small"),
+                "💨 Böen (km/h)": st.column_config.NumberColumn(width="small"),
+                "➡️ Windrichtung (°)": st.column_config.NumberColumn(width="small"),
+            }
+        )
 
 # ---- rechte Spalte: Kalender + extra-Metric ----
 with col2:
