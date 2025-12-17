@@ -5,53 +5,48 @@ import datetime
 import streamlit_calendar
 import streamlit.components.v1 as components
 import pandas as pd
-from streamlit_calendar import calendar  # neues Package
+from streamlit_calendar import calendar
 from sqlalchemy import text
-#import requests_cache
-#from retry_requests import retry
 import requests
 import openmeteo_requests
 from numpy.random import default_rng as rng
 
 conn = st.connection("sql")
-#cur = None
 
-# Variabel vereinbahurng
+# ===== VARIABLEN =====
 heute = datetime.date.today()
 
-# Page Infos
+# ===== PAGE CONFIG =====
 st.set_page_config(
     page_title="smart weather CH",
     page_icon="🌤️",
     layout="wide"
 )
 
-st.title(
-    "Smart Weather CH",
-    anchor=False  # kein Anker-Icon
-)
-
-
-# subtitle
+st.title("Smart Weather CH", anchor=False)
 st.subheader("Wilkommen zur Smart Weather CH – Ihre persönliche Wetterquelle")
 
-# Suche
-col1, col2, col3 = st.columns([2, 1, 2])
-
-with col1:
-    query = st.text_input(
-        "Suche",                       # interner Label-Text (für Screenreader)
-        placeholder="Suchbegriff...",  # sichtbarer Text
-        label_visibility="collapsed"   # Label ausblenden
-    )
-
-with col2:
-    query_button = st.button("Suchen")
-
-# einmalig initialisieren
+# ===== SESSION STATE INIT =====
 if "weather_data" not in st.session_state:
     st.session_state.weather_data = None
 
+# ===== SUCHBEREICH =====
+search_col_left, search_col_middle, search_col_right = st.columns([2, 1, 2])
+
+with search_col_left:
+    query = st.text_input(
+        "Suche",
+        placeholder="Suchbegriff...",
+        label_visibility="collapsed"
+    )
+
+with search_col_middle:
+    query_button = st.button("Suchen")
+
+with search_col_right:
+    st.write("")
+
+# ===== API CALL bei Button =====
 if query_button and query:
     q = query.strip().replace("'", "''")
 
@@ -64,16 +59,15 @@ if query_button and query:
         """
     )
 
-    st.write("Debug selectedLocation:", selectedLocation)  # zum Testen
+    st.write("Debug selectedLocation:", selectedLocation)
+    
     if len(selectedLocation) == 0:
         st.error("Ort nicht gefunden")
     else:
         latitude = float(selectedLocation["latitude"][0])
         longitude = float(selectedLocation["longitude"][0])
 
-        #cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-        #retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-        openmeteo = openmeteo_requests.Client() #(session=retry_session)
+        openmeteo = openmeteo_requests.Client()
 
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
@@ -120,28 +114,27 @@ if query_button and query:
         responses = openmeteo.weather_api(url, params=params)
         response = responses[0]
 
-        # ---------------- Current in Dict ----------------
-        current = response.Current()  # Reihenfolge wie params["current"][web:160]
-
-        cur = {
-            "temperature_2m":       current.Variables(0).Value(),
+        # ===== CURRENT DATA =====
+        current = response.Current()
+        current_data = {
+            "temperature_2m": current.Variables(0).Value(),
             "relative_humidity_2m": current.Variables(1).Value(),
             "apparent_temperature": current.Variables(2).Value(),
-            "is_day":               current.Variables(3).Value(),
-            "precipitation":        current.Variables(4).Value(),
-            "rain":                 current.Variables(5).Value(),
-            "showers":              current.Variables(6).Value(),
-            "snowfall":             current.Variables(7).Value(),
-            "weather_code":         current.Variables(8).Value(),
-            "cloud_cover":          current.Variables(9).Value(),
-            "pressure_msl":         current.Variables(10).Value(),
-            "surface_pressure":     current.Variables(11).Value(),
-            "wind_speed_10m":       current.Variables(12).Value(),
-            "wind_direction_10m":   current.Variables(13).Value(),
-            "wind_gusts_10m":       current.Variables(14).Value(),
+            "is_day": current.Variables(3).Value(),
+            "precipitation": current.Variables(4).Value(),
+            "rain": current.Variables(5).Value(),
+            "showers": current.Variables(6).Value(),
+            "snowfall": current.Variables(7).Value(),
+            "weather_code": current.Variables(8).Value(),
+            "cloud_cover": current.Variables(9).Value(),
+            "pressure_msl": current.Variables(10).Value(),
+            "surface_pressure": current.Variables(11).Value(),
+            "wind_speed_10m": current.Variables(12).Value(),
+            "wind_direction_10m": current.Variables(13).Value(),
+            "wind_gusts_10m": current.Variables(14).Value(),
         }
 
-        # ---------------- Hourly DataFrame ----------------
+        # ===== HOURLY DATA =====
         hourly = response.Hourly()
         hourly_time = pd.date_range(
             start=pd.to_datetime(hourly.Time(), unit="s"),
@@ -166,7 +159,7 @@ if query_button and query:
             "wind_gusts_10m": hourly.Variables(31).ValuesAsNumpy(),
         })
 
-        # ---------------- Daily DataFrame (14 zurück + 14 vor) ----------------
+        # ===== DAILY DATA =====
         daily = response.Daily()
         daily_time = pd.date_range(
             start=pd.to_datetime(daily.Time(), unit="s"),
@@ -188,113 +181,94 @@ if query_button and query:
             "wind_gusts_10m_max": daily.Variables(19).ValuesAsNumpy(),
         })
 
+        # ===== IN SESSION SPEICHERN =====
         st.session_state.weather_data = {
-        "cur": cur,
-        "hourly_df": hourly_df,
-        "daily_df": daily_df,
-    }
+            "current": current_data,
+            "hourly_df": hourly_df,
+            "daily_df": daily_df,
+        }
 
-with col3:
-    st.write("")
+# ===== HAUPTBEREICH: METRIKEN + KALENDER =====
+metrics_col_left, metrics_col_right = st.columns([2, 1], border=True, gap="small")
 
-
-
-# Minimale Optionen: Monatsansicht + klickbare Tage
-calendar_options = {
-    "initialView": "dayGridMonth",  # Monatsansicht
-    "selectable": True,             # Klick auf Datum / Bereich
-}
-
-# 2 Spalten: links breit (Wetter-Metrics), rechts schmal (Kalender + Metric)
-col1, col2 = st.columns([2, 1], border=True, gap="small")
-
-# ---- linke Spalte: mehrere Metrics in Unter-Spalten ----
-with col1:
+# ---- LINKE SPALTE: AKTUELLE METRIKEN ----
+with metrics_col_left:
     if st.session_state.weather_data is not None:
-        box = st.container(border=False)
+        metrics_box = st.container(border=False)
 
-        with box:
-            st.write("Wetterdaten für {datetime.date.today().strftime('%d.%m.%Y')}")
-            m1, m2, m3 = st.columns(3, gap="small")  # „sub columns“ im Container
+        with metrics_box:
+            st.write(f"Wetterdaten für {heute.strftime('%d.%m.%Y')}")
+            
+            metric_col_temp, metric_col_humidity, metric_col_wind = st.columns(3, gap="small")
 
-            with m1:
-                st.metric("🌡️ Lufttemperatur", f"{st.session_state.weather_data['cur']['temperature_2m']:.1f} °C")
-                st.metric("🥵 Gefühlte Temp.", f"{st.session_state.weather_data['cur']['apparent_temperature']:.1f} °C")
+            with metric_col_temp:
+                st.metric("🌡️ Lufttemperatur", 
+                         f"{st.session_state.weather_data['current']['temperature_2m']:.1f} °C")
+                st.metric("🥵 Gefühlte Temp.", 
+                         f"{st.session_state.weather_data['current']['apparent_temperature']:.1f} °C")
 
-            with m2:
-                st.metric("💧 rel. Feuchte", f"{st.session_state.weather_data['cur']['relative_humidity_2m']:.0f} %")
-                st.metric("☁️ Bewölkung", f"{st.session_state.weather_data['cur']['cloud_cover']:.0f} %")
+            with metric_col_humidity:
+                st.metric("💧 rel. Feuchte", 
+                         f"{st.session_state.weather_data['current']['relative_humidity_2m']:.0f} %")
+                st.metric("☁️ Bewölkung", 
+                         f"{st.session_state.weather_data['current']['cloud_cover']:.0f} %")
 
-            with m3:
-                st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
-                st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
+            with metric_col_wind:
+                st.metric("🌬️ Wind 10 m", 
+                         f"{st.session_state.weather_data['current']['wind_speed_10m']:.1f} km/h")
+                st.metric("💨 Böen 10 m", 
+                         f"{st.session_state.weather_data['current']['wind_gusts_10m']:.1f} km/h")
 
-# ---- rechte Spalte: Kalender + extra-Metric ----
-with col2:
-    box1 = st.container(border=True)
-    with box1:
+# ---- RECHTE SPALTE: KALENDER + NIEDERSCHLAG ----
+with metrics_col_right:
+    calendar_box = st.container(border=True)
+    with calendar_box:
         cal_data = calendar(
             options={"initialView": "dayGridMonth", "selectable": True},
             key="smartweather_calendar",
         )
 
-    box2 = st.container(border=True)
-    with box2:
+    precipitation_box = st.container(border=True)
+    with precipitation_box:
         if st.session_state.weather_data is not None:
-            st.metric("🌧️ Niederschlag", f"{st.session_state.weather_data['cur']['precipitation']:.1f} mm")
+            st.metric("🌧️ Niederschlag", 
+                     f"{st.session_state.weather_data['current']['precipitation']:.1f} mm")
 
+# ===== TABELLE + TEMPERATUR CHART =====
+table_col, temp_chart_col = st.columns([1, 1], gap="small")
 
-col1, col2 = st.columns([1, 1], gap="small")
-with col1:
+# ---- TABELLE: STÜNDLICHE ÜBERSICHT ----
+with table_col:
     if st.session_state.weather_data is not None:
-        st.subheader("Stündliche Tagesübersicht")
-        # Tagesübersicht (stündlich)    # Heute's Daten filtern
-        Tagesübersicht = st.session_state.weather_data['hourly_df'][
+        st.subheader("📊 Stündliche Tagesübersicht")
+        
+        today_hourly_df = st.session_state.weather_data['hourly_df'][
             st.session_state.weather_data['hourly_df']['time'].dt.date == heute
-        ].copy()
-    
-        # Für Anzeige formatieren
-        display_df = Tagesübersicht[[
-            "time", 
-            "temperature_2m", 
-            "apparent_temperature",
-            "relative_humidity_2m", 
-            "precipitation",
-            "cloud_cover",
-            "wind_speed_10m",
-            "wind_gusts_10m"
+        ].copy().sort_values("time")
+        
+        table_display_df = today_hourly_df[[
+            "time", "temperature_2m", "apparent_temperature",
+            "relative_humidity_2m", "precipitation",
+            "cloud_cover", "wind_speed_10m", "wind_gusts_10m"
         ]].copy()
 
-        # Nach Zeit sortieren
-        display_df = display_df.sort_values("time")
-    
-        # Spalten umbenennen für bessere Lesbarkeit
-        display_df.columns = [
-            "🕐 Uhrzeit",
-            "🌡️ Temp. (°C)",
-            "🥵 Gefühlt (°C)",
-            "💧 Feuchte (%)",
-            "🌧️ Niederschlag (mm)",
-            "☁️ Bewölkung (%)",
-            "🌬️ Wind (km/h)",
-            "💨 Böen (km/h)"
+        table_display_df.columns = [
+            "🕐 Uhrzeit", "🌡️ Temp. (°C)", "🥵 Gefühlt (°C)",
+            "💧 Feuchte (%)", "🌧️ Niederschlag (mm)",
+            "☁️ Bewölkung (%)", "🌬️ Wind (km/h)", "💨 Böen (km/h)"
         ]
         
-        # Zeit formatieren (nur Stunde anzeigen)
-        display_df["🕐 Uhrzeit"] = display_df["🕐 Uhrzeit"].dt.strftime("%H:%M")
+        table_display_df["🕐 Uhrzeit"] = table_display_df["🕐 Uhrzeit"].dt.strftime("%H:%M")
+        table_display_df["🌡️ Temp. (°C)"] = table_display_df["🌡️ Temp. (°C)"].round(1)
+        table_display_df["🥵 Gefühlt (°C)"] = table_display_df["🥵 Gefühlt (°C)"].round(1)
+        table_display_df["💧 Feuchte (%)"] = table_display_df["💧 Feuchte (%)"].round(0).astype(int)
+        table_display_df["🌧️ Niederschlag (mm)"] = table_display_df["🌧️ Niederschlag (mm)"].round(1)
+        table_display_df["☁️ Bewölkung (%)"] = table_display_df["☁️ Bewölkung (%)"].round(0).astype(int)
+        table_display_df["🌬️ Wind (km/h)"] = table_display_df["🌬️ Wind (km/h)"].round(1)
+        table_display_df["💨 Böen (km/h)"] = table_display_df["💨 Böen (km/h)"].round(1)
     
-        # Dezimalzahlen formatieren
-        display_df["🌡️ Temp. (°C)"] = display_df["🌡️ Temp. (°C)"].round(1)
-        display_df["🥵 Gefühlt (°C)"] = display_df["🥵 Gefühlt (°C)"].round(1)
-        display_df["💧 Feuchte (%)"] = display_df["💧 Feuchte (%)"].round(0).astype(int)
-        display_df["🌧️ Niederschlag (mm)"] = display_df["🌧️ Niederschlag (mm)"].round(1)
-        display_df["☁️ Bewölkung (%)"] = display_df["☁️ Bewölkung (%)"].round(0).astype(int)
-        display_df["🌬️ Wind (km/h)"] = display_df["🌬️ Wind (km/h)"].round(1)
-        display_df["💨 Böen (km/h)"] = display_df["💨 Böen (km/h)"].round(1)
-    
-        # Tabelle anzeigen
         st.dataframe(
-            display_df,
+            table_display_df,
             use_container_width=True,
             hide_index=True,
             column_config={
@@ -309,142 +283,150 @@ with col1:
             }
         )
 
-with col2:
+# ---- TEMPERATUR CHART ----
+with temp_chart_col:
     if st.session_state.weather_data is not None:
-        st.subheader("Visuals")
-        # Tagesübersicht vorbereiten und sortieren
-        Tagesübersicht = st.session_state.weather_data['hourly_df'][
+        st.subheader("📈 Temperaturverlauf")
+        
+        today_hourly_df = st.session_state.weather_data['hourly_df'][
             st.session_state.weather_data['hourly_df']['time'].dt.date == heute
         ].copy().sort_values("time")
 
-        # Temperaturveränderung berechnen (Differenz zur vorherigen Stunde)
-        Tagesübersicht["temp_change"] = Tagesübersicht["temperature_2m"].diff()
-        Tagesübersicht["temp_change"] = Tagesübersicht["temp_change"].fillna(0)
+        today_hourly_df["temp_change"] = today_hourly_df["temperature_2m"].diff().fillna(0)
 
-        # Zeit formatieren für X-Achse (0:00, 1:00, ..., 23:00)
-        Tagesübersicht_chart = Tagesübersicht.copy()
-        Tagesübersicht_chart["Uhrzeit"] = Tagesübersicht_chart["time"].dt.strftime("%H:00")
-        Tagesübersicht_chart["Absolute Temperatur (°C)"] = Tagesübersicht_chart["temperature_2m"].round(1)
-        Tagesübersicht_chart["Temperaturveränderung (°C)"] = Tagesübersicht_chart["temp_change"].round(2)
+        temp_chart_df = today_hourly_df.copy()
+        temp_chart_df["Uhrzeit"] = temp_chart_df["time"].dt.strftime("%H:00")
+        temp_chart_df["Absolute Temperatur (°C)"] = temp_chart_df["temperature_2m"].round(1)
+        temp_chart_df["Temperaturveränderung (°C)"] = temp_chart_df["temp_change"].round(2)
 
-        # Chart: Beide Linien
         st.line_chart(
-            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+            data=temp_chart_df.set_index("Uhrzeit")[
                 ["Absolute Temperatur (°C)", "Temperaturveränderung (°C)"]
             ],
             height=400,
             use_container_width=True
         )
 
-        # Metriken
-        max_increase = Tagesübersicht["temp_change"].max()
-        max_decrease = Tagesübersicht["temp_change"].min()
-        max_temp = Tagesübersicht["temperature_2m"].max()
-        min_temp = Tagesübersicht["temperature_2m"].min()
+        max_temp = today_hourly_df["temperature_2m"].max()
+        min_temp = today_hourly_df["temperature_2m"].min()
+        max_increase = today_hourly_df["temp_change"].max()
+        max_decrease = today_hourly_df["temp_change"].min()
 
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
+        temp_metric_col1, temp_metric_col2, temp_metric_col3, temp_metric_col4 = st.columns(4)
+        with temp_metric_col1:
             st.metric("🌡️ Max. Temperatur", f"{max_temp:.1f} °C")
-        with col2:
+        with temp_metric_col2:
             st.metric("🥶 Min. Temperatur", f"{min_temp:.1f} °C")
-        with col3:
+        with temp_metric_col3:
             st.metric("📈 Größter Anstieg", f"+{max_increase:.2f} °C/h")
-        with col4:
+        with temp_metric_col4:
             st.metric("📉 Größter Rückgang", f"{max_decrease:.2f} °C/h")
 
-col13, col23 = st.columns([1,1], gap="small")
-if st.session_state.weather_data is not None:
-    with col13:
-        # Zeit formatieren
-        Tagesübersicht_chart = Tagesübersicht.copy()
-        Tagesübersicht_chart["Uhrzeit"] = Tagesübersicht_chart["time"].dt.strftime("%H:00")
-        Tagesübersicht_chart["Regen (mm)"] = Tagesübersicht_chart["rain"].round(2)
-        Tagesübersicht_chart["Schauer (mm)"] = Tagesübersicht_chart["showers"].round(2)
+# ===== NIEDERSCHLAG + WIND CHARTS =====
+precip_wind_col_left, precip_wind_col_right = st.columns([1, 1], gap="small")
 
-        # Chart mit beiden Linien
+if st.session_state.weather_data is not None:
+    # ---- NIEDERSCHLAG (LINKS) ----
+    with precip_wind_col_left:
+        st.subheader("🌧️ Niederschlag")
+        
+        today_hourly_df = st.session_state.weather_data['hourly_df'][
+            st.session_state.weather_data['hourly_df']['time'].dt.date == heute
+        ].copy().sort_values("time")
+
+        precip_chart_df = today_hourly_df.copy()
+        precip_chart_df["Uhrzeit"] = precip_chart_df["time"].dt.strftime("%H:00")
+        precip_chart_df["Regen (mm)"] = precip_chart_df["rain"].round(2)
+        precip_chart_df["Schauer (mm)"] = precip_chart_df["showers"].round(2)
+
         st.line_chart(
-            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+            data=precip_chart_df.set_index("Uhrzeit")[
                 ["Regen (mm)", "Schauer (mm)"]
             ],
             height=400,
             use_container_width=True
         )
 
-        # Optional: Metriken
-        total_rain = Tagesübersicht["rain"].sum()
-        total_showers = Tagesübersicht["showers"].sum()
+        total_rain = today_hourly_df["rain"].sum()
+        total_showers = today_hourly_df["showers"].sum()
         total_precipitation = total_rain + total_showers
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
+        precip_metric_col1, precip_metric_col2, precip_metric_col3 = st.columns(3)
+        with precip_metric_col1:
             st.metric("🌧️ Regen (gesamt)", f"{total_rain:.1f} mm")
-        with col2:
+        with precip_metric_col2:
             st.metric("⛈️ Schauer (gesamt)", f"{total_showers:.1f} mm")
-        with col3:
+        with precip_metric_col3:
             st.metric("💧 Gesamtniederschlag", f"{total_precipitation:.1f} mm")
     
-    with col23:
-        # Winddaten vorbereiten
-        Tagesübersicht_chart["Wind (km/h)"] = Tagesübersicht_chart["wind_speed_10m"].round(1)
-        Tagesübersicht_chart["Böen (km/h)"] = Tagesübersicht_chart["wind_gusts_10m"].round(1)
+    # ---- WIND (RECHTS) ----
+    with precip_wind_col_right:
+        st.subheader("🌬️ Wind")
+        
+        wind_chart_df = today_hourly_df.copy()
+        wind_chart_df["Uhrzeit"] = wind_chart_df["time"].dt.strftime("%H:00")
+        wind_chart_df["Wind (km/h)"] = wind_chart_df["wind_speed_10m"].round(1)
+        wind_chart_df["Böen (km/h)"] = wind_chart_df["wind_gusts_10m"].round(1)
 
-        # Chart mit beiden Linien
         st.line_chart(
-            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+            data=wind_chart_df.set_index("Uhrzeit")[
                 ["Wind (km/h)", "Böen (km/h)"]
             ],
             height=400,
             use_container_width=True
         )
 
-        # Optional: Metriken
-        max_wind = Tagesübersicht["wind_speed_10m"].max()
-        max_boesen = Tagesübersicht["wind_gusts_10m"].max()
+        max_wind = today_hourly_df["wind_speed_10m"].max()
+        max_gusts = today_hourly_df["wind_gusts_10m"].max()
 
-        col1, col2 = st.columns(2)
-        with col1:
+        wind_metric_col1, wind_metric_col2 = st.columns(2)
+        with wind_metric_col1:
             st.metric("🌬️ Max. Wind", f"{max_wind:.1f} km/h")
-        with col2:
-            st.metric("💨 Max. Böen", f"{max_boesen:.1f} km/h")
+        with wind_metric_col2:
+            st.metric("💨 Max. Böen", f"{max_gusts:.1f} km/h")
 
-col1, col2 = st.columns([1,1], gap="small")
+# ===== BEWÖLKUNG + SCHNEEFALL CHARTS =====
+cloud_snow_col_left, cloud_snow_col_right = st.columns([1, 1], gap="small")
+
 if st.session_state.weather_data is not None:
-    with col1:
-        # Bewölkungsdaten vorbereiten
-        Tagesübersicht_chart["Bewölkung (%)"] = Tagesübersicht_chart["cloud_cover"].round(0).astype(int)
+    # ---- BEWÖLKUNG (LINKS) ----
+    with cloud_snow_col_left:
+        st.subheader("☁️ Bewölkung")
+        
+        cloud_chart_df = today_hourly_df.copy()
+        cloud_chart_df["Uhrzeit"] = cloud_chart_df["time"].dt.strftime("%H:00")
+        cloud_chart_df["Bewölkung (%)"] = cloud_chart_df["cloud_cover"].round(0).astype(int)
 
-        # Chart
         st.line_chart(
-            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+            data=cloud_chart_df.set_index("Uhrzeit")[
                 ["Bewölkung (%)"]
             ],
             height=400,
             use_container_width=True
         )
 
-        # Optional: Metrik
-        avg_cloud_cover = Tagesübersicht["cloud_cover"].mean()
-
+        avg_cloud_cover = today_hourly_df["cloud_cover"].mean()
         st.metric("☁️ Durchschnittl. Bewölkung", f"{avg_cloud_cover:.0f} %")
 
-    with col2:
-        # snowfall Daten vorbereiten
-        Tagesübersicht_chart["Schneefall (cm)"] = Tagesübersicht_chart["snowfall"].round(2)
+    # ---- SCHNEEFALL (RECHTS) ----
+    with cloud_snow_col_right:
+        st.subheader("❄️ Schneefall")
+        
+        snow_chart_df = today_hourly_df.copy()
+        snow_chart_df["Uhrzeit"] = snow_chart_df["time"].dt.strftime("%H:00")
+        snow_chart_df["Schneefall (cm)"] = snow_chart_df["snowfall"].round(2)
 
-        # Chart
         st.line_chart(
-            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+            data=snow_chart_df.set_index("Uhrzeit")[
                 ["Schneefall (cm)"]
             ],
             height=400,
             use_container_width=True
         )
 
-        # Optional: Metrik
-        total_snowfall = Tagesübersicht["snowfall"].sum()
+        total_snowfall = today_hourly_df["snowfall"].sum()
         st.metric("❄️ Gesamtschneefall", f"{total_snowfall:.1f} cm")
 
-    
 
 #col1, col2 = st.columns([1, 2], border=True, gap="small")
 #with col1:
