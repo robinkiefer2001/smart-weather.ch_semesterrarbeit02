@@ -44,8 +44,11 @@ with col1:
         label_visibility="collapsed"   # Label ausblenden
     )
 
-if query:
-    # einfache Sanitization
+with col2:
+    query_button = st.button("Suchen")
+
+
+if query_button and query:
     q = query.strip().replace("'", "''")
 
     selectedLocation = conn.query(
@@ -180,11 +183,6 @@ if query:
             "wind_speed_10m_max": daily.Variables(18).ValuesAsNumpy(),
             "wind_gusts_10m_max": daily.Variables(19).ValuesAsNumpy(),
         })
-
-
-
-with col2:
-    query_button = st.button("Suchen")
 
 with col3:
     st.write("")
