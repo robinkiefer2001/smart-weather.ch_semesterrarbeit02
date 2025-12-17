@@ -1,6 +1,5 @@
 import streamlit as st
 import psycopg2
-import psycopg
 import datetime
 import streamlit_calendar
 import streamlit.components.v1 as components
@@ -30,7 +29,7 @@ st.subheader("Wilkommen zur Smart Weather CH – Ihre persönliche Wetterquelle"
 if "weather_data" not in st.session_state:
     st.session_state.weather_data = None
 
-def weatherIcon(weather_code: int) -> str:
+def weatherIcon(current_weather_code):
     weather_icons = {
         0: "☀️",    # Klar
         1: "🌤️",   # Teilweise bewölkt
@@ -53,9 +52,9 @@ def weatherIcon(weather_code: int) -> str:
         95: "⛈️",   # Gewitter
         99: "⛈️",   # Schweres Gewitter mit Hagel
     }
-    return weather_icons.get(weather_code, "❓")  # Standardicon für unbekannte Codes
+    return weather_icons.get(current_weather_code, "❓")  # Standardicon für unbekannte Codes
 
-def weatherDescription(weather_code):
+def weatherDescription(current_weather_code: int) -> str:
 
     weather_descriptions = {
         # Bewölkungsentwicklung
@@ -180,7 +179,7 @@ def weatherDescription(weather_code):
         98: "Gewitter mit Sandsturm",
         99: "Starkes Gewitter mit Hagel"
     }
-    return weather_descriptions.get(weather_code, "") # Standardbeschreibung für unbekannte Codes
+    return weather_descriptions.get(current_weather_code, "") # Standardbeschreibung für unbekannte Codes
 
 # ===== SUCHBEREICH =====
 search_col_left, search_col_middle, search_col_right = st.columns([2, 1, 2])
@@ -373,21 +372,21 @@ with metrics_col_left:
             col_houerlyOverview = st.container()
             with col_houerlyOverview:
                 st.subheader("Stündliche Übersicht für heute:")
-                
-                current_weather_icon = weatherIcon(st.session_state.weather_data['hourly_df']['weather_code'].iloc[0])               
-                current_weather_description = weatherDescription(st.session_state.weather_data['hourly_df']['weather_code'])
 
 
                 hoyrly_df = st.session_state.weather_data['hourly_df'][
                     st.session_state.weather_data['hourly_df']['time'].dt.date == heute
                 ].copy().sort_values("time")
+                hoyrly_df["icon"] = hoyrly_df["weather_code"].apply(weatherIcon)
+                hoyrly_df["description"] = hoyrly_df["weather_code"].apply(weatherDescription)
+                hoyrly_df["short"] = hoyrly_df["icon"] + " " + hoyrly_df["description"]
                 st.dataframe(
-                    hoyrly_df[["time", "cloud_cover", "temperature_2m", "precipitation", "wind_speed_10m"]],
+                    hoyrly_df[["time","short", "cloud_cover", "temperature_2m", "precipitation", "wind_speed_10m"]],
                     use_container_width=True,
                     hide_index=True,
                     column_config={
                         "time": st.column_config.TextColumn("🕐 Uhrzeit", width="small"),
-                        "": st.column_config.TextColumn(current_weather_icon + " " + current_weather_description, width="small"),
+                        "short": st.column_config.TextColumn("☁️ Wetter", width="small"),
                         "temperature_2m": st.column_config.NumberColumn("🌡️ Temp. (°C)", width="small"),
                         "apparent_temperature": st.column_config.NumberColumn("🥵 Gefühlt (°C)", width="small"),
                         "precipitation": st.column_config.NumberColumn("🌧️ Niederschlag (mm)", width="small"),

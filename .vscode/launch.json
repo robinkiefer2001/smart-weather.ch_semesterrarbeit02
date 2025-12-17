@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // ============================
+      // 1) Debug normal Python file
+      // ============================
+      "name": "Python: Current File (.venv)",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+
+      // 👇 explizit .venv verwenden
+      "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+    },
+
+    {
+      // ============================
+      // 2) Debug Streamlit app
+      // ============================
+      "name": "Streamlit: Debug App (.venv)",
+      "type": "python",
+      "request": "launch",
+      "module": "streamlit",
+      "args": [
+        "run",
+        "${file}",
+        "--server.port",
+        "8501",
+        "--server.headless",
+        "true"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+
+      // 👇 explizit .venv verwenden
+      "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+    }
+  ]
+}
