@@ -316,17 +316,17 @@ with col2:
         Tagesübersicht = st.session_state.weather_data['hourly_df'][
             st.session_state.weather_data['hourly_df']['time'].dt.date == heute
         ].copy().sort_values("time")
-    
+
         # Temperaturveränderung berechnen (Differenz zur vorherigen Stunde)
         Tagesübersicht["temp_change"] = Tagesübersicht["temperature_2m"].diff()
         Tagesübersicht["temp_change"] = Tagesübersicht["temp_change"].fillna(0)
-    
+
         # Zeit formatieren für X-Achse (0:00, 1:00, ..., 23:00)
         Tagesübersicht_chart = Tagesübersicht.copy()
         Tagesübersicht_chart["Uhrzeit"] = Tagesübersicht_chart["time"].dt.strftime("%H:00")
         Tagesübersicht_chart["Absolute Temperatur (°C)"] = Tagesübersicht_chart["temperature_2m"].round(1)
         Tagesübersicht_chart["Temperaturveränderung (°C)"] = Tagesübersicht_chart["temp_change"].round(2)
-    
+
         # Chart: Beide Linien
         st.line_chart(
             data=Tagesübersicht_chart.set_index("Uhrzeit")[
@@ -335,13 +335,13 @@ with col2:
             height=400,
             use_container_width=True
         )
-    
+
         # Metriken
         max_increase = Tagesübersicht["temp_change"].max()
         max_decrease = Tagesübersicht["temp_change"].min()
         max_temp = Tagesübersicht["temperature_2m"].max()
         min_temp = Tagesübersicht["temperature_2m"].min()
-        
+
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.metric("🌡️ Max. Temperatur", f"{max_temp:.1f} °C")
@@ -352,64 +352,155 @@ with col2:
         with col4:
             st.metric("📉 Größter Rückgang", f"{max_decrease:.2f} °C/h")
 
+col1, col2, col3, col4 = st.columns(4, gap="small")
+if st.session_state.weather_data is not None:
+    with col1:
+        # Zeit formatieren
+        Tagesübersicht_chart = Tagesübersicht.copy()
+        Tagesübersicht_chart["Uhrzeit"] = Tagesübersicht_chart["time"].dt.strftime("%H:00")
+        Tagesübersicht_chart["Regen (mm)"] = Tagesübersicht_chart["rain"].round(2)
+        Tagesübersicht_chart["Schauer (mm)"] = Tagesübersicht_chart["showers"].round(2)
 
+        # Chart mit beiden Linien
+        st.line_chart(
+            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+                ["Regen (mm)", "Schauer (mm)"]
+            ],
+            height=400,
+            use_container_width=True
+        )
 
-col1, col2 = st.columns([1, 2], border=True, gap="small")
-with col1:
-    st.write(
-        "Am Morgen in den Niederungen gebietsweise Nebel oder "
-        "Tieflagenbewölkung, lokal auch Hochnebel. Im Laufe des "
-        "Vormittags allmähliche Auflösung. Tagsüber meist sonnig mit "
-        "einzelnen hohen Wolkenfeldern. In den Alpen stellenweise "
-        "Föhnwolken. Am Nachmittag im Westen und Süden vermehrt "
-        "hochreichende Wolkenfelder. Temperatur am Nachmittag um 20 "
-        "Grad im Flachland, in den Bergen auf 2000 Metern um 8 Grad. "
-        "In den Alpen mässiger bis starker Föhnwind, sonst meist "
-        "leichter bis mässiger Wind aus Südwest bis West."
-    )
-with col2:
-    leaflet_html = """
-    <div id="map" style="width: 100%; height: 650px;"></div>
+        # Optional: Metriken
+        total_rain = Tagesübersicht["rain"].sum()
+        total_showers = Tagesübersicht["showers"].sum()
+        total_precipitation = total_rain + total_showers
 
-    <!-- Leaflet CSS & JS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("🌧️ Regen (gesamt)", f"{total_rain:.1f} mm")
+        with col2:
+            st.metric("⛈️ Schauer (gesamt)", f"{total_showers:.1f} mm")
+        with col3:
+            st.metric("💧 Gesamtniederschlag", f"{total_precipitation:.1f} mm")
+    
+    with col2:
+        # Winddaten vorbereiten
+        Tagesübersicht_chart["Wind (km/h)"] = Tagesübersicht_chart["wind_speed_10m"].round(1)
+        Tagesübersicht_chart["Böen (km/h)"] = Tagesübersicht_chart["wind_gusts_10m"].round(1)
 
-    <script>
-      // Bounds für Schweiz‑Ausschnitt
-      var bounds = L.latLngBounds(
-        L.latLng(45.5, 5.5),   // Süd‑West
-        L.latLng(48.0, 11.0)   // Nord‑Ost
-      );
+        # Chart mit beiden Linien
+        st.line_chart(
+            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+                ["Wind (km/h)", "Böen (km/h)"]
+            ],
+            height=400,
+            use_container_width=True
+        )
 
-      // Karte auf diese Bounds zoomen und begrenzen
-      var map = L.map('map', {
-        maxBounds: bounds,
-        maxBoundsViscosity: 1.0
-      }).fitBounds(bounds);
+        # Optional: Metriken
+        max_wind = Tagesübersicht["wind_speed_10m"].max()
+        max_boesen = Tagesübersicht["wind_gusts_10m"].max()
 
-      // Basiskarte (OSM)
-      L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {
-          maxZoom: 14,
-          minZoom: 6
-        }
-      ).addTo(map);
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("🌬️ Max. Wind", f"{max_wind:.1f} km/h")
+        with col2:
+            st.metric("💨 Max. Böen", f"{max_boesen:.1f} km/h")
 
-      // Optional: nur Rahmen statt blauem Overlay
-      L.rectangle(bounds, {
-        color: "#00aaff",
-        weight: 1,
-        fillOpacity: 0.0     // 0 = kein Blau, nur Linie
-      }).addTo(map);
+    with col3:
+        # Bewölkungsdaten vorbereiten
+        Tagesübersicht_chart["Bewölkung (%)"] = Tagesübersicht_chart["cloud_cover"].round(0).astype(int)
 
-      // Später kannst du hier deine Meteo‑Daten als Layer hinzufügen,
-      // z.B. L.imageOverlay(imageUrl, bounds, {opacity: 0.6}).addTo(map);
-    </script>
-    """
+        # Chart
+        st.line_chart(
+            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+                ["Bewölkung (%)"]
+            ],
+            height=400,
+            use_container_width=True
+        )
 
-    components.html(leaflet_html, height=700)
+        # Optional: Metrik
+        avg_cloud_cover = Tagesübersicht["cloud_cover"].mean()
+
+        st.metric("☁️ Durchschnittl. Bewölkung", f"{avg_cloud_cover:.0f} %")
+
+    with col4:
+        # snowfall Daten vorbereiten
+        Tagesübersicht_chart["Schneefall (cm)"] = Tagesübersicht_chart["snowfall"].round(2)
+
+        # Chart
+        st.line_chart(
+            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+                ["Schneefall (cm)"]
+            ],
+            height=400,
+            use_container_width=True
+        )
+
+        # Optional: Metrik
+        total_snowfall = Tagesübersicht["snowfall"].sum()
+        st.metric("❄️ Gesamtschneefall", f"{total_snowfall:.1f} cm")
+
+    
+
+#col1, col2 = st.columns([1, 2], border=True, gap="small")
+#with col1:
+#    st.write(
+#        "Am Morgen in den Niederungen gebietsweise Nebel oder "
+#        "Tieflagenbewölkung, lokal auch Hochnebel. Im Laufe des "
+#        "Vormittags allmähliche Auflösung. Tagsüber meist sonnig mit "
+#        "einzelnen hohen Wolkenfeldern. In den Alpen stellenweise "
+#        "Föhnwolken. Am Nachmittag im Westen und Süden vermehrt "
+#        "hochreichende Wolkenfelder. Temperatur am Nachmittag um 20 "
+#        "Grad im Flachland, in den Bergen auf 2000 Metern um 8 Grad. "
+#        "In den Alpen mässiger bis starker Föhnwind, sonst meist "
+#        "leichter bis mässiger Wind aus Südwest bis West."
+#    )
+#with col2:
+#    leaflet_html = """
+#    <div id="map" style="width: 100%; height: 650px;"></div>
+#
+#    <!-- Leaflet CSS & JS -->
+#    <link
+#      rel="stylesheet"
+#      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+#    />
+#    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+#
+#    <script>
+#      // Bounds für Schweiz‑Ausschnitt
+#      var bounds = L.latLngBounds(
+#        L.latLng(45.5, 5.5),   // Süd‑West
+#        L.latLng(48.0, 11.0)   // Nord‑Ost
+#      );
+#
+#      // Karte auf diese Bounds zoomen und begrenzen
+#      var map = L.map('map', {
+#        maxBounds: bounds,
+#        maxBoundsViscosity: 1.0
+#      }).fitBounds(bounds);
+#
+#      // Basiskarte (OSM)
+#      L.tileLayer(
+#        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+#        {
+#          maxZoom: 14,
+#          minZoom: 6
+#        }
+#      ).addTo(map);
+#
+#      // Optional: nur Rahmen statt blauem Overlay
+#      L.rectangle(bounds, {
+#        color: "#00aaff",
+#        weight: 1,
+#        fillOpacity: 0.0     // 0 = kein Blau, nur Linie
+#      }).addTo(map);
+#
+#      // Später kannst du hier deine Meteo‑Daten als Layer hinzufügen,
+#      // z.B. L.imageOverlay(imageUrl, bounds, {opacity: 0.6}).addTo(map);
+#    </script>
+#    """
+#
+#    components.html(leaflet_html, height=700)
+#
