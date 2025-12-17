@@ -209,7 +209,7 @@ col1, col2 = st.columns([2, 1], border=True, gap="small")
 
 # ---- linke Spalte: mehrere Metrics in Unter-Spalten ----
 with col1:
-    if st.session_state.weather_data['cur'] is not None:
+    if st.session_state.weather_data is not None:
         box = st.container(border=False)
 
         with box:
@@ -222,6 +222,7 @@ with col1:
             with m2:
                 st.metric("💧 rel. Feuchte", f"{st.session_state.weather_data['cur']['relative_humidity_2m']:.0f} %")
                 st.metric("☁️ Bewölkung", f"{st.session_state.weather_data['cur']['cloud_cover']:.0f} %")
+                
             with m3:
                 st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
                 st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
@@ -237,7 +238,7 @@ with col2:
 
     box2 = st.container(border=True)
     with box2:
-        if st.session_state.weather_data['cur'] is not None:
+        if st.session_state.weather_data is not None:
             st.metric("🌧️ Niederschlag", f"{st.session_state.weather_data['cur']['precipitation']:.1f} mm")
 
 
