@@ -11,6 +11,7 @@ from sqlalchemy import text
 #from retry_requests import retry
 import requests
 import openmeteo_requests
+from numpy.random import default_rng as rng
 
 conn = st.connection("sql")
 #cur = None
@@ -227,11 +228,26 @@ with col1:
             with m3:
                 st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
                 st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
-            
-            with m3:
-                st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
-                st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
 
+# ---- rechte Spalte: Kalender + extra-Metric ----
+with col2:
+    box1 = st.container(border=True)
+    with box1:
+        cal_data = calendar(
+            options={"initialView": "dayGridMonth", "selectable": True},
+            key="smartweather_calendar",
+        )
+
+    box2 = st.container(border=True)
+    with box2:
+        if st.session_state.weather_data is not None:
+            st.metric("🌧️ Niederschlag", f"{st.session_state.weather_data['cur']['precipitation']:.1f} mm")
+
+
+col1, col2 = st.columns([1, 1], gap="small")
+with col1:
+    if st.session_state.weather_data is not None:
+        st.subheader("Stündliche Tagesübersicht")
         # Tagesübersicht (stündlich)    # Heute's Daten filtern
         Tagesübersicht = st.session_state.weather_data['hourly_df'][
             st.session_state.weather_data['hourly_df']['time'].dt.date == heute
@@ -250,6 +266,9 @@ with col1:
             "wind_gusts_10m",
             "wind_direction_10m"
         ]].copy()
+
+        # Nach Zeit sortieren
+        display_df = display_df.sort_values("time")
     
         # Spalten umbenennen für bessere Lesbarkeit
         display_df.columns = [
@@ -297,20 +316,26 @@ with col1:
             }
         )
 
-# ---- rechte Spalte: Kalender + extra-Metric ----
 with col2:
-    box1 = st.container(border=True)
-    with box1:
-        cal_data = calendar(
-            options={"initialView": "dayGridMonth", "selectable": True},
-            key="smartweather_calendar",
+    st.subheader("Visuals")
+    if st.session_state.weather_data is not None:
+        # Temperaturveränderung berechnen (Differenz zur vorherigen Stunde)
+        Tagesübersicht["temp_change"] = Tagesübersicht["temperature_2m"].diff()
+
+        # Für die erste Stunde ist die Änderung NaN, das können wir mit 0 füllen
+        Tagesübersicht["temp_change"] = Tagesübersicht["temp_change"].fillna(0)
+
+        # Chart mit Original-Temperatur UND Veränderung
+        st.line_chart(
+            data=Tagesübersicht,
+            x="time",
+            y=["temperature_2m", "temp_change"],
+            height=300,
+            use_container_width=True,
+            title="Temperatur & stündliche Veränderung"
         )
-
-    box2 = st.container(border=True)
-    with box2:
-        if st.session_state.weather_data is not None:
-            st.metric("🌧️ Niederschlag", f"{st.session_state.weather_data['cur']['precipitation']:.1f} mm")
-
+        # Optional: auch in der Tabelle anzeigen
+        display_df["📈 Temp. Änderung (°C)"] = Tagesübersicht["temp_change"].round(2)
 
 
 col1, col2 = st.columns([1, 2], border=True, gap="small")
