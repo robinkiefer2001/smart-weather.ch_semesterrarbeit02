@@ -13,7 +13,7 @@ import requests
 import openmeteo_requests
 
 conn = st.connection("sql")
-cur = None
+#cur = None
 
 # Variabel vereinbahurng
 heute = datetime.date.today()
@@ -209,7 +209,7 @@ col1, col2 = st.columns([2, 1], border=True, gap="small")
 
 # ---- linke Spalte: mehrere Metrics in Unter-Spalten ----
 with col1:
-    if cur is not None:
+    if st.session_state.weather_data['cur'] is not None:
         box = st.container(border=False)
 
         with box:
@@ -237,7 +237,7 @@ with col2:
 
     box2 = st.container(border=True)
     with box2:
-        if st.session_state.weather_data is not None:
+        if st.session_state.weather_data['cur'] is not None:
             st.metric("🌧️ Niederschlag", f"{st.session_state.weather_data['cur']['precipitation']:.1f} mm")
 
 
