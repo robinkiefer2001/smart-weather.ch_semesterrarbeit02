@@ -47,6 +47,9 @@ with col1:
 with col2:
     query_button = st.button("Suchen")
 
+# einmalig initialisieren
+if "weather_data" not in st.session_state:
+    st.session_state.weather_data = None
 
 if query_button and query:
     q = query.strip().replace("'", "''")
@@ -183,6 +186,12 @@ if query_button and query:
             "wind_speed_10m_max": daily.Variables(18).ValuesAsNumpy(),
             "wind_gusts_10m_max": daily.Variables(19).ValuesAsNumpy(),
         })
+
+        st.session_state.weather_data = {
+        "cur": cur,
+        "hourly_df": hourly_df,
+        "daily_df": daily_df,
+    }
 
 with col3:
     st.write("")
