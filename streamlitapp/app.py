@@ -215,16 +215,15 @@ with col1:
             m1, m2, m3 = st.columns(3, gap="small")  # „sub columns“ im Container
 
             with m1:
-                st.metric("🌡️ Lufttemperatur", f"{cur['temperature_2m']:.1f} °C")
-                st.metric("🥵 Gefühlte Temp.", f"{cur['apparent_temperature']:.1f} °C")
+                st.metric("🌡️ Lufttemperatur", f"{st.session_state.weather_data['cur']['temperature_2m']:.1f} °C")
+                st.metric("🥵 Gefühlte Temp.", f"{st.session_state.weather_data['cur']['apparent_temperature']:.1f} °C")
 
             with m2:
-                st.metric("💧 rel. Feuchte", f"{cur['relative_humidity_2m']:.0f} %")
-                st.metric("☁️ Bewölkung", f"{cur['cloud_cover']:.0f} %")
-
+                st.metric("💧 rel. Feuchte", f"{st.session_state.weather_data['cur']['relative_humidity_2m']:.0f} %")
+                st.metric("☁️ Bewölkung", f"{st.session_state.weather_data['cur']['cloud_cover']:.0f} %")
             with m3:
-                st.metric("🌬️ Wind 10 m", f"{cur['wind_speed_10m']:.1f} km/h")
-                st.metric("💨 Böen 10 m", f"{cur['wind_gusts_10m']:.1f} km/h")
+                st.metric("🌬️ Wind 10 m", f"{st.session_state.weather_data['cur']['wind_speed_10m']:.1f} km/h")
+                st.metric("💨 Böen 10 m", f"{st.session_state.weather_data['cur']['wind_gusts_10m']:.1f} km/h")
 
 # ---- rechte Spalte: Kalender + extra-Metric ----
 with col2:
@@ -237,8 +236,8 @@ with col2:
 
     box2 = st.container(border=True)
     with box2:
-        if cur is not None:
-            st.metric("🌧️ Niederschlag", f"{cur['precipitation']:.1f} mm")
+        if st.session_state.weather_data is not None:
+            st.metric("🌧️ Niederschlag", f"{st.session_state.weather_data['cur']['precipitation']:.1f} mm")
 
 
 
