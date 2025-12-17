@@ -30,7 +30,7 @@ st.subheader("Wilkommen zur Smart Weather CH – Ihre persönliche Wetterquelle"
 if "weather_data" not in st.session_state:
     st.session_state.weather_data = None
 
-def weatherIcon(weather_code):
+def weatherIcon(weather_code: int) -> str:
     weather_icons = {
         0: "☀️",    # Klar
         1: "🌤️",   # Teilweise bewölkt
@@ -374,7 +374,7 @@ with metrics_col_left:
             with col_houerlyOverview:
                 st.subheader("Stündliche Übersicht für heute:")
                 
-                current_weather_icon = weatherIcon(st.session_state.weather_data['hourly_df']['weather_code'])               
+                current_weather_icon = weatherIcon(st.session_state.weather_data['hourly_df']['weather_code'].iloc[0])               
                 current_weather_description = weatherDescription(st.session_state.weather_data['hourly_df']['weather_code'])
 
 
