@@ -260,11 +260,9 @@ with col1:
             "apparent_temperature",
             "relative_humidity_2m", 
             "precipitation",
-            "weather_code",
             "cloud_cover",
             "wind_speed_10m",
-            "wind_gusts_10m",
-            "wind_direction_10m"
+            "wind_gusts_10m"
         ]].copy()
 
         # Nach Zeit sortieren
@@ -277,11 +275,9 @@ with col1:
             "🥵 Gefühlt (°C)",
             "💧 Feuchte (%)",
             "🌧️ Niederschlag (mm)",
-            "☁️ Wetter",
             "☁️ Bewölkung (%)",
             "🌬️ Wind (km/h)",
-            "💨 Böen (km/h)",
-            "➡️ Windrichtung (°)"
+            "💨 Böen (km/h)"
         ]
         
         # Zeit formatieren (nur Stunde anzeigen)
@@ -295,7 +291,6 @@ with col1:
         display_df["☁️ Bewölkung (%)"] = display_df["☁️ Bewölkung (%)"].round(0).astype(int)
         display_df["🌬️ Wind (km/h)"] = display_df["🌬️ Wind (km/h)"].round(1)
         display_df["💨 Böen (km/h)"] = display_df["💨 Böen (km/h)"].round(1)
-        display_df["➡️ Windrichtung (°)"] = display_df["➡️ Windrichtung (°)"].round(0).astype(int)
     
         # Tabelle anzeigen
         st.dataframe(
@@ -308,11 +303,9 @@ with col1:
                 "🥵 Gefühlt (°C)": st.column_config.NumberColumn(width="small"),
                 "💧 Feuchte (%)": st.column_config.NumberColumn(width="small"),
                 "🌧️ Niederschlag (mm)": st.column_config.NumberColumn(width="small"),
-                "☁️ Wetter": st.column_config.NumberColumn(width="small"),
                 "☁️ Bewölkung (%)": st.column_config.NumberColumn(width="small"),
                 "🌬️ Wind (km/h)": st.column_config.NumberColumn(width="small"),
-                "💨 Böen (km/h)": st.column_config.NumberColumn(width="small"),
-                "➡️ Windrichtung (°)": st.column_config.NumberColumn(width="small"),
+                "💨 Böen (km/h)": st.column_config.NumberColumn(width="small")
             }
         )
 
@@ -323,32 +316,40 @@ with col2:
         Tagesübersicht = st.session_state.weather_data['hourly_df'][
             st.session_state.weather_data['hourly_df']['time'].dt.date == heute
         ].copy().sort_values("time")
-
+    
         # Temperaturveränderung berechnen (Differenz zur vorherigen Stunde)
         Tagesübersicht["temp_change"] = Tagesübersicht["temperature_2m"].diff()
         Tagesübersicht["temp_change"] = Tagesübersicht["temp_change"].fillna(0)
-
+    
         # Zeit formatieren für X-Achse (0:00, 1:00, ..., 23:00)
         Tagesübersicht_chart = Tagesübersicht.copy()
         Tagesübersicht_chart["Uhrzeit"] = Tagesübersicht_chart["time"].dt.strftime("%H:00")
+        Tagesübersicht_chart["Absolute Temperatur (°C)"] = Tagesübersicht_chart["temperature_2m"].round(1)
         Tagesübersicht_chart["Temperaturveränderung (°C)"] = Tagesübersicht_chart["temp_change"].round(2)
-
-        # Chart: Nur Temperaturveränderung
+    
+        # Chart: Beide Linien
         st.line_chart(
-            data=Tagesübersicht_chart.set_index("Uhrzeit")["Temperaturveränderung (°C)"],
+            data=Tagesübersicht_chart.set_index("Uhrzeit")[
+                ["Absolute Temperatur (°C)", "Temperaturveränderung (°C)"]
+            ],
             height=400,
-            use_container_width=True,
-            color="#FF6B6B"  # Rote Linie für bessere Sichtbarkeit
+            use_container_width=True
         )
-
-        # Optional: Metrik mit größter Änderung
+    
+        # Metriken
         max_increase = Tagesübersicht["temp_change"].max()
         max_decrease = Tagesübersicht["temp_change"].min()
-
-        col1, col2 = st.columns(2)
+        max_temp = Tagesübersicht["temperature_2m"].max()
+        min_temp = Tagesübersicht["temperature_2m"].min()
+        
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("📈 Größter Anstieg", f"+{max_increase:.2f} °C/h")
+            st.metric("🌡️ Max. Temperatur", f"{max_temp:.1f} °C")
         with col2:
+            st.metric("🥶 Min. Temperatur", f"{min_temp:.1f} °C")
+        with col3:
+            st.metric("📈 Größter Anstieg", f"+{max_increase:.2f} °C/h")
+        with col4:
             st.metric("📉 Größter Rückgang", f"{max_decrease:.2f} °C/h")
 
 
