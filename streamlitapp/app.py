@@ -317,24 +317,40 @@ with col1:
         )
 
 with col2:
-    st.subheader("Visuals")
     if st.session_state.weather_data is not None:
+        st.subheader("Visuals")
+        # Tagesübersicht vorbereiten und sortieren
+        Tagesübersicht = st.session_state.weather_data['hourly_df'][
+            st.session_state.weather_data['hourly_df']['time'].dt.date == heute
+        ].copy().sort_values("time")
+
         # Temperaturveränderung berechnen (Differenz zur vorherigen Stunde)
         Tagesübersicht["temp_change"] = Tagesübersicht["temperature_2m"].diff()
-
-        # Für die erste Stunde ist die Änderung NaN, das können wir mit 0 füllen
         Tagesübersicht["temp_change"] = Tagesübersicht["temp_change"].fillna(0)
 
-        # Chart mit Original-Temperatur UND Veränderung
+        # Zeit formatieren für X-Achse (0:00, 1:00, ..., 23:00)
+        Tagesübersicht_chart = Tagesübersicht.copy()
+        Tagesübersicht_chart["Uhrzeit"] = Tagesübersicht_chart["time"].dt.strftime("%H:00")
+        Tagesübersicht_chart["Temperaturveränderung (°C)"] = Tagesübersicht_chart["temp_change"].round(2)
+
+        # Chart: Nur Temperaturveränderung
         st.line_chart(
-            data=Tagesübersicht,
-            x="time",
-            y=["temperature_2m", "temp_change"],
-            height=300,
+            data=Tagesübersicht_chart.set_index("Uhrzeit")["Temperaturveränderung (°C)"],
+            height=400,
             use_container_width=True,
+            color="#FF6B6B"  # Rote Linie für bessere Sichtbarkeit
         )
-        # Optional: auch in der Tabelle anzeigen
-        display_df["📈 Temp. Änderung (°C)"] = Tagesübersicht["temp_change"].round(2)
+
+        # Optional: Metrik mit größter Änderung
+        max_increase = Tagesübersicht["temp_change"].max()
+        max_decrease = Tagesübersicht["temp_change"].min()
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("📈 Größter Anstieg", f"+{max_increase:.2f} °C/h")
+        with col2:
+            st.metric("📉 Größter Rückgang", f"{max_decrease:.2f} °C/h")
+
 
 
 col1, col2 = st.columns([1, 2], border=True, gap="small")
