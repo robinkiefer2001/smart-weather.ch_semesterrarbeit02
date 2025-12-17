@@ -332,7 +332,6 @@ with col2:
             y=["temperature_2m", "temp_change"],
             height=300,
             use_container_width=True,
-            title="Temperatur & stündliche Veränderung"
         )
         # Optional: auch in der Tabelle anzeigen
         display_df["📈 Temp. Änderung (°C)"] = Tagesübersicht["temp_change"].round(2)
