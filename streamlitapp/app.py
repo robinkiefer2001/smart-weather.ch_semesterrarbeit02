@@ -352,7 +352,7 @@ with col2:
         with col4:
             st.metric("📉 Größter Rückgang", f"{max_decrease:.2f} °C/h")
 
-col1, col2 = st.columns(2, gap="small")
+col1, col2 = st.columns(1,1, gap="small")
 if st.session_state.weather_data is not None:
     with col1:
         # Zeit formatieren
@@ -407,7 +407,7 @@ if st.session_state.weather_data is not None:
         with col2:
             st.metric("💨 Max. Böen", f"{max_boesen:.1f} km/h")
 
-col1, col2 = st.columns(2, gap="small")
+col1, col2 = st.columns(1,1, gap="small")
 if st.session_state.weather_data is not None:
     with col1:
         # Bewölkungsdaten vorbereiten
