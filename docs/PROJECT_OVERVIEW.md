@@ -24,7 +24,6 @@
 13. [Sprint-Übersicht](#sprint-übersicht)
 14. [Roadmap](#roadmap)
 15. [Risiken und Herausforderungen](#risiken-und-herausforderungen)
-16. [Erfolgsmetriken](#erfolgsmetriken)
 
 ---
 
@@ -580,40 +579,6 @@ CREATE TABLE geo_location (
 - **Design-Entscheidungen:** Mehrfache UI-Überarbeitungen
 - **Architektur-Wechsel:** Pipeline → direkte API (erfolgreich gelöst)
 - **Code-Wartbarkeit:** Wachsende Komplexität in app.py (Sprint 3 geplant)
-
----
-
-## Erfolgsmetriken
-
-### Technische Metriken
-
-| Metrik | Zielwert | Aktuell | Status |
-|--------|----------|---------|--------|
-| **Uptime** | > 99% | ~99.5% | OK |
-| **API Response Time** | < 3s | ~2s | OK |
-| **Code Coverage (Tests)** | > 70% | 0% | Geplant |
-| **Deployment-Zeit** | < 5 min | ~2 min | OK |
-
-### Projekt-Metriken
-
-| Metrik | Zielwert | Aktuell | Status |
-|--------|----------|---------|--------|
-| **Abgeschlossene Sprints** | 5 | 3 | In Arbeit |
-| **Dokumentierte User Stories** | 15+ | 12 | OK |
-| **Deliverables erreicht** | 100% | 100% | OK |
-| **Code-Zeilen** | - | 650+ | - |
-
-### Lernziele
-
-- [X] Cloud-Infrastruktur (Hetzner)
-- [X] Linux Server-Administration
-- [X] PostgreSQL Datenbank-Design
-- [X] Streamlit Web-Framework
-- [X] API-Integration
-- [X] systemd Service-Management
-- [X] Git-basiertes Deployment
-- [ ] Code-Architektur (Refactoring geplant)
-- [ ] Agiles Projektmanagement
 
 ---
 
