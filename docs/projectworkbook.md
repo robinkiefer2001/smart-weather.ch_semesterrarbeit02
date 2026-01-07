@@ -1735,4 +1735,3 @@ Die Applikation durch Code-Refactoring wartbarer machen, das UI-Design finalisie
 
 ## 6. Worklog
 
-
