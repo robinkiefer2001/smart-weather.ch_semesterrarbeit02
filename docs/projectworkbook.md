@@ -1735,3 +1735,319 @@ Die Applikation durch Code-Refactoring wartbarer machen, das UI-Design finalisie
 
 ## 6. Worklog
 
+### Code-Refactoring: Modulare Struktur
+
+Die monolithische `app.py` (650+ Zeilen) wurde in eine wartbare, modulare Struktur aufgeteilt. Dies verbessert die Code-Qualität erheblich und erleichtert zukünftige Erweiterungen.
+
+---
+
+#### Neue Projektstruktur
+
+```
+streamlitapp/
+├── app.py                  # Hauptanwendung (nur noch UI-Orchestrierung)
+├── ui_components.py        # Wiederverwendbare UI-Komponenten
+├── data_handlers.py        # Datenverarbeitung und Business-Logik
+├── api_client.py           # Open-Meteo API-Kommunikation
+└── database.py             # Datenbankabfragen
+```
+
+---
+
+#### 1. api_client.py – API-Kommunikation
+
+**Zweck:** Zentrale Schnittstelle zur Open-Meteo API
+
+**Hauptfunktion:**
+```python
+def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.DataFrame, pd.DataFrame]
+```
+
+**Verantwortlichkeiten:**
+- Konfiguration der API-Parameter (current, hourly, daily)
+- HTTP-Request an Open-Meteo
+- Verarbeitung der Raw-Response
+- Erstellung von strukturierten DataFrames
+- Rückgabe von drei Datenstrukturen:
+  - `current_data`: Dict mit aktuellen Wetterwerten
+  - `hourly_df`: DataFrame mit stündlichen Daten (28 Tage)
+  - `daily_df`: DataFrame mit Tagesdaten (28 Tage)
+
+**Vorteile der Auslagerung:**
+- API-Logik ist unabhängig testbar
+- Parameter können zentral angepasst werden
+- Wiederverwendbar für andere Teile der Anwendung
+- Klare Trennung von Datenbeschaffung und Darstellung
+
+---
+
+#### 2. data_handlers.py – Datenverarbeitung
+
+**Zweck:** Pandas-Operationen und Business-Logik für Wetterdaten
+
+**Wichtige Funktionen:**
+
+**Filterfunktion:**
+```python
+def filter_today_data(hourly_df: pd.DataFrame, target_date: datetime.date = None) -> pd.DataFrame
+```
+- Filtert DataFrame nach bestimmtem Datum
+- Wird von allen anderen Handler-Funktionen verwendet
+
+**Vorbereitung für UI:**
+```python
+def prepare_hourly_overview(hourly_df, target_date) -> pd.DataFrame
+def prepare_temperature_chart(hourly_df, target_date) -> pd.DataFrame
+def prepare_precipitation_chart(hourly_df, target_date) -> pd.DataFrame
+def prepare_wind_chart(hourly_df, target_date) -> pd.DataFrame
+def prepare_cloud_chart(hourly_df, target_date) -> pd.DataFrame
+def prepare_snow_chart(hourly_df, target_date) -> pd.DataFrame
+```
+
+**Statistik-Berechnung:**
+```python
+def calculate_temperature_stats(hourly_df, target_date) -> dict
+def calculate_precipitation_stats(hourly_df, target_date) -> dict
+def calculate_wind_stats(hourly_df, target_date) -> dict
+def calculate_cloud_stats(hourly_df, target_date) -> dict
+def calculate_snow_stats(hourly_df, target_date) -> dict
+```
+
+**Hilfsfunktionen:**
+```python
+def weather_icon(weather_code: int) -> str
+def weather_description(weather_code: int) -> str
+```
+
+**Vorteile:**
+- Datenlogik getrennt von UI-Darstellung
+- Konsistente Formatierung (Rundungen, Uhrzeiten)
+- Wiederverwendbare Funktionen
+- Einfach testbar mit Mock-DataFrames
+
+---
+
+#### 3. ui_components.py – UI-Komponenten
+
+**Zweck:** Wiederverwendbare Streamlit-UI-Elemente
+
+**Komponenten:**
+
+**Metriken-Dashboard:**
+```python
+def display_current_metrics(current_data: dict)
+```
+- Zeigt 6 Hauptmetriken in 3 Spalten
+- Temperatur, Luftfeuchtigkeit, Wind
+- Einheitliche Formatierung
+
+**Stündliche Übersicht:**
+```python
+def display_hourly_overview(hourly_df: pd.DataFrame)
+```
+- Tabelle mit Wettericons und Daten
+- Custom Column Configuration
+- Responsive Design
+
+**Detailtabelle:**
+```python
+def display_detailed_table(table_df: pd.DataFrame)
+```
+- Erweiterte Wetterdaten-Tabelle
+- Alle verfügbaren Parameter
+
+**Chart-Komponenten:**
+```python
+def display_temperature_chart(chart_df: pd.DataFrame, stats: dict)
+def display_precipitation_chart(chart_df: pd.DataFrame, stats: dict)
+def display_wind_chart(chart_df: pd.DataFrame, stats: dict)
+def display_cloud_chart(chart_df: pd.DataFrame, stats: dict)
+def display_snow_chart(chart_df: pd.DataFrame, stats: dict)
+```
+
+**Vorteile:**
+- DRY-Prinzip (Don't Repeat Yourself)
+- Konsistentes Look & Feel
+- Einfache UI-Updates
+- Komponenten können isoliert getestet werden
+
+---
+
+#### 4. database.py – Datenbankzugriffe
+
+**Zweck:** Zentrale Verwaltung aller Datenbankoperationen
+
+**Hauptfunktion:**
+```python
+def search_location(search_query: str) -> pd.DataFrame
+```
+
+**Funktionalität:**
+- Fuzzy-Suche mit ILIKE
+- Abfrage gegen geo_location Tabelle
+- Rückgabe von Koordinaten
+- Connection-Handling via Streamlit
+
+**Vorteile:**
+- Datenbanklogik gekapselt
+- SQL-Queries zentral verwaltbar
+- Einfach erweiterbar (z.B. für PLZ-Suche)
+- Connection-Pooling möglich
+
+---
+
+#### 5. app.py – Hauptanwendung (Refactored)
+
+**Neue Struktur:**
+
+```python
+# Imports der neuen Module
+from ui_components import (
+    display_current_metrics,
+    display_hourly_overview,
+    # ...
+)
+from data_handlers import (
+    prepare_hourly_overview,
+    prepare_temperature_chart,
+    # ...
+)
+from api_client import fetch_weather_data
+from database import search_location
+
+# App-Konfiguration
+st.set_page_config(...)
+
+# Session State
+if "weather_data" not in st.session_state:
+    st.session_state.weather_data = None
+
+# UI-Layout
+# Suchbereich
+# Metrikbereich
+# Chart-Bereiche
+
+# Orchestrierung: Daten holen, vorbereiten, anzeigen
+```
+
+**Was bleibt in app.py:**
+- Page Configuration
+- Session State Management
+- Layout-Struktur (Spalten, Container)
+- Orchestrierung der Module
+- Event-Handling (Button-Clicks)
+
+**Was wurde ausgelagert:**
+- API-Calls → `api_client.py`
+- Datenverarbeitung → `data_handlers.py`
+- UI-Komponenten → `ui_components.py`
+- Datenbankabfragen → `database.py`
+
+---
+
+### Verbesserungen durch Refactoring
+
+| Aspekt | Vorher | Nachher |
+|--------|--------|---------|
+| **Datei-Länge** | 650+ Zeilen in einer Datei | ~200 Zeilen pro Modul |
+| **Testbarkeit** | Schwer testbar | Module einzeln testbar |
+| **Wartbarkeit** | Unübersichtlich | Klare Verantwortlichkeiten |
+| **Wiederverwendbarkeit** | Keine | Funktionen wiederverwendbar |
+| **Erweiterbarkeit** | Kompliziert | Einfach neue Features |
+| **Code-Qualität** | Monolithisch | Modular & sauber |
+
+---
+
+### Deployment-Anpassungen
+
+**Aktualisierung des Startskripts:**
+
+Das systemd-Startskript wurde angepasst, um alle Module zu kopieren:
+
+```bash
+#!/bin/bash
+REPO_DIR="/opt/smartweather_repo"
+DEPLOY_DIR="/opt/streamlit"
+
+cd "$REPO_DIR"
+git fetch origin main
+git checkout origin/main -- streamlitapp/
+
+# Kopiere alle Python-Module
+cp "$REPO_DIR/streamlitapp/"*.py "$DEPLOY_DIR/"
+
+cd "$DEPLOY_DIR"
+source venv/bin/activate
+exec streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+```
+
+**Wichtige Änderungen:**
+- `git checkout origin/main -- streamlitapp/` statt nur `app.py`
+- `cp "$REPO_DIR/streamlitapp/"*.py` kopiert alle Module
+- Service wird automatisch mit allen aktuellen Modulen gestartet
+
+---
+
+### Code-Qualitätsmerkmale
+
+**1. Separation of Concerns**
+- Jedes Modul hat eine klar definierte Verantwortung
+- Keine Überschneidungen zwischen Modulen
+- Klare Schnittstellen
+
+**2. Single Responsibility Principle**
+- `api_client.py`: Nur API-Kommunikation
+- `data_handlers.py`: Nur Datenverarbeitung
+- `ui_components.py`: Nur UI-Darstellung
+- `database.py`: Nur Datenbankzugriffe
+
+**3. DRY (Don't Repeat Yourself)**
+- Chart-Komponenten wiederverwendbar
+- Statistik-Berechnungen konsistent
+- Formatierungslogik zentral
+
+**4. Dokumentation**
+- Jede Funktion hat Docstrings
+- Type Hints für alle Parameter
+- Inline-Kommentare für komplexe Logik
+
+---
+
+### Testing-Möglichkeiten (Zukunft)
+
+Durch die modulare Struktur sind jetzt Unit-Tests möglich:
+
+```python
+# Beispiel: test_data_handlers.py
+def test_filter_today_data():
+    df = create_mock_dataframe()
+    result = filter_today_data(df, date(2026, 1, 7))
+    assert len(result) == 24  # 24 Stunden
+
+def test_weather_icon():
+    assert weather_icon(0) == "☀️"
+    assert weather_icon(61) == "🌧️"
+
+# Beispiel: test_api_client.py (mit Mocking)
+@patch('requests.get')
+def test_fetch_weather_data(mock_get):
+    mock_get.return_value.json.return_value = mock_api_response()
+    current, hourly, daily = fetch_weather_data(47.0, 8.0)
+    assert current['temperature_2m'] is not None
+```
+
+---
+
+### Migration und Kompatibilität
+
+**Keine Breaking Changes:**
+- Session State bleibt identisch
+- UI-Layout unverändert
+- Funktionalität vollständig erhalten
+- Nur interne Struktur verbessert
+
+**Rückwärtskompatibilität:**
+- Alte app.py kann durch neue Module ersetzt werden
+- Datenstrukturen bleiben gleich
+- API-Integration unverändert
+
