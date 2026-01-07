@@ -376,9 +376,11 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 |--------------------------------------------|----------|---------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
 | SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-52   | Administrator | Streamlit als Dienst automatisch und dauerhaft betreiben                           | Der Service ist jederzeit verfügbar                  | Streamlit läuft als Systemdienst, Neustart & Logging getestet                  |
 | SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-53   | Administrator | Git auf dem Ubuntu-Server installieren, app.py aus Repo bereitstellen               | Änderungen am Code sind direkt deploybar             | Git installiert; Repo geklont; app.py lauffähig aus Repo bereitgestellt        |
-| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-54   | Administrator | Wetterdaten via API durch eine CI/CD-Pipeline in die Datenbank automatisiert laden | Wetterdaten sind immer aktuell                      | API funktioniert; CI/CD-Pipeline überträgt Daten korrekt; DB-Test durchgeführt |
-| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-55   | Entwickler    | Wetterdaten testweise als einfache Tabelle in Streamlit anzeigen                    | Daten sind visualisiert                             | Tabelle ist sichtbar; Testdaten werden angezeigt                               |
-| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-56   | Administrator | Streamlit-App aktualisiert Daten alle 5 Minuten                                    | Visualisierung bleibt aktuell                       | Automatisches Update erfolgt zuverlässig alle 5 Minuten                        |
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-54   | Entwickler    | Datenbank-Schema erstellen und Schweizer Ortsdaten importieren | Geodaten als Basis für Standortsuche verfügbar     | Schema erstellt; geo_location Tabelle befüllt; Foreign Keys funktionieren |
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-55   | Entwickler    | Wetterdaten mit umfangreichen Visualisierungen in Streamlit anzeigen                    | Benutzer erhalten detaillierte Wetterinformationen             | Charts, Tabellen und Metriken sind sichtbar und interaktiv                               |
+| SCRUM-57 Automatisierung & Datenintegration für SmartWeather-Backend | SCRUM-56   | Entwickler    | Wetterdaten direkt bei Standortsuche von API laden                                    | Daten sind immer aktuell ohne Pipeline-Overhead       | API-Integration funktioniert; Daten werden bei Suche geladen                        |
+
+**Hinweis zur Story SCRUM-54:** Die ursprünglich geplante CI/CD-Pipeline zur zeitgesteuerten Datenaktualisierung wurde als **nicht notwendig** eingestuft und verworfen. Stattdessen wurde eine direktere Lösung implementiert: Die Wetterdaten werden nun bei jeder Standortsuche in Echtzeit von der Open-Meteo API abgerufen. Dies reduziert die Systemkomplexität, eliminiert Synchronisationsprobleme und stellt sicher, dass immer die aktuellsten Daten angezeigt werden.
 
 ---
 
@@ -410,14 +412,19 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 |-----|------------------------------------|-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
 | 1   | Streamlit-Dienst produktiv         | SCRUM-52    | Streamlit läuft als Systemdienst und ist dauerhaft erreichbar         | Screenshot Service-Status, Log-Datei                  |
 | 2   | Git-Integration                    | SCRUM-53    | Repo geklont, app.py läuft aus dem Repository                        | Screenshot Terminal, Verzeichnis, Log                 |
-| 3   | API & CI/CD                       | SCRUM-54    | Automatisierter Datenimport in Datenbank über Pipeline                | Screenshot Pipeline, Datenbankabfrage                 |
-| 4   | Visualisierung Daten               | SCRUM-55    | Testdaten werden als Tabelle in Streamlit angezeigt                   | Screenshot Streamlit-App, Beispiel-Tabelle            |
-| 5   | Automatische Datenaktualisierung   | SCRUM-56    | Streamlit zeigt alle 5 Minuten aktuelle Daten                         | Screenshot Update-Timer, Log der Aktualisierungen     |
+| 3   | Datenbank-Schema und Geodaten      | SCRUM-54    | Datenbank-Tabellen erstellt, Schweizer Ortsdaten importiert           | Screenshot Datenbank-Schema, Geo-Location Tabelle     |
+| 4   | Wetterdaten-Visualisierung         | SCRUM-55    | Interaktive Streamlit-App mit umfangreichen Wetterdaten und Charts    | Screenshot Streamlit-App, Diagramme                   |
+| 5   | Direkte API-Integration            | SCRUM-56    | Wetterdaten werden bei Standortsuche direkt von API geladen           | Screenshot Suchfunktion mit Echtzeitdaten             |
 
 ---
 
 ## 6. Review
 
+Die Automatisierung und Integration der Wetterdaten ist erfolgreich abgeschlossen. Streamlit läuft als stabiler systemd-Dienst mit automatischer Git-Integration. Das ursprünglich geplante CI/CD-Pipeline-Konzept für zeitgesteuerte Datenaktualisierung wurde zugunsten einer direkten API-Anbindung beim Suchvorgang verworfen – dies reduziert Komplexität und stellt sicher, dass immer aktuelle Daten angezeigt werden.
+
+Die Streamlit-App zeigt nun umfangreiche Wetterdaten mit mehreren interaktiven Visualisierungen. Die Datenbank-Struktur mit geo_location-Tabelle ist vollständig eingerichtet und mit Schweizer Ortsdaten befüllt. Die Applikation ist produktiv nutzbar und erfüllt die Anforderungen des Sprints.
+
+Verbesserungspotenzial wurde in der Code-Struktur identifiziert: Die app.py ist mittlerweile sehr umfangreich und sollte im nächsten Sprint in kleinere, wartbare Module aufgeteilt werden.
 
 ---
 
@@ -425,14 +432,250 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 
 | Frage                                    | Antwort                                                                           |
 |-------------------------------------------|-----------------------------------------------------------------------------------|
-| Was lief gut?                             |            |
-| Was war schwierig?                        |  |
-| Was kann verbessert werden?               |           |
-| Was nehmen wir mit in den nächsten Sprint?|       |
+| Was lief gut?                             | Systemd-Service und Git-Integration funktionierten reibungslos. Die direkte API-Integration beim Suchvorgang erwies sich als elegantere Lösung als geplante Pipeline. Datenbankstruktur ist sauber und erweiterbar. |
+| Was war schwierig?                        | Design-Entscheidungen für das UI waren herausfordernd – mehrfache Überarbeitungen der Layout-Struktur und Visualisierungen. Entscheidung zwischen Pipeline- vs. direkter API-Integration kostete Zeit. |
+| Was kann verbessert werden?               | Bessere initiale Planung des UI/UX-Designs. Frühzeitigere Evaluierung verschiedener Architektur-Optionen. Code-Organisation – app.py ist zu monolithisch geworden und schwer zu warten. |
+| Was nehmen wir mit in den nächsten Sprint?| 1) Logik und Design trennen – app.py in Module aufteilen (z.B. ui_components.py, data_handlers.py, api_client.py). 2) Mehr wiederverwendbare Funktionen schreiben, um repetitive Code-Blöcke zu vermeiden. 3) Design-Entscheidungen früher im Sprint treffen und committen. |
 
 ---
 
 ## 9. Worklog
+
+### Wichtige Änderungen in app.py seit Sprint 1
+
+#### 1. Session State Management
+
+```python
+if "weather_data" not in st.session_state:
+    st.session_state.weather_data = None
+```
+
+**Zweck:** Persistierung der API-Daten während der Streamlit-Session, damit Daten zwischen Interaktionen erhalten bleiben und nicht bei jedem Rerun verloren gehen.
+
+---
+
+#### 2. Wetter-Hilfsfunktionen implementiert
+
+**weatherIcon(current_weather_code):**
+- Mapping von WMO-Wettercodes (0-99) zu Unicode-Emojis
+- Ermöglicht visuelle Darstellung des Wetters ohne externe Grafiken
+- Fallback auf ❓ für unbekannte Codes
+
+**weatherDescription(current_weather_code):**
+- Umfassende Beschreibungen für alle WMO-Codes (0-99)
+- Detaillierte Wetterlagen auf Deutsch
+- Unterstützt Unterscheidung zwischen Intensitäten (leicht/mäßig/stark)
+
+---
+
+#### 3. Datenbankanbindung und Standortsuche
+
+```python
+selectedLocation = conn.query(
+    f"""
+    SELECT latitude, longitude
+    FROM geo_location
+    WHERE name ILIKE '%{q}%'
+    LIMIT 1;
+    """
+)
+```
+
+**Funktionalität:**
+- Fuzzy-Suche mit ILIKE für flexible Ortseingaben
+- Direkte Abfrage aus geo_location-Tabelle
+- Abruf von Koordinaten für API-Request
+
+---
+
+#### 4. Open-Meteo API Integration
+
+**Vollständige API-Parameter:**
+```python
+params = {
+    "latitude": latitude,
+    "longitude": longitude,
+    "daily": [...],      # 23 Parameter
+    "hourly": [...],     # 42 Parameter
+    "current": [...],    # 15 Parameter
+    "timezone": "Europe/Berlin",
+    "past_days": 14,
+    "forecast_days": 14,
+}
+```
+
+**Besonderheiten:**
+- 28-Tage-Zeitraum (14 Tage Historie + 14 Tage Prognose)
+- Umfangreiche Wetterdaten (Temperatur, Wind, Niederschlag, Boden, etc.)
+- Strukturierte Verarbeitung in current/hourly/daily
+
+---
+
+#### 5. Datenverarbeitung mit Pandas
+
+**Stündliche Daten:**
+```python
+hourly_df = pd.DataFrame({
+    "time": hourly_time,
+    "temperature_2m": hourly.Variables(0).ValuesAsNumpy(),
+    ...
+})
+```
+
+**Tagesdaten:**
+```python
+daily_df = pd.DataFrame({
+    "date": daily_time,
+    "weather_code": daily.Variables(0).ValuesAsNumpy(),
+    ...
+})
+```
+
+**Vorteil:** Pandas ermöglicht effiziente Filterung, Aggregation und Visualisierung der Zeitreihendaten.
+
+---
+
+#### 6. UI-Layout mit Spalten-Design
+
+**Dreistufige Hierarchie:**
+- **Suchbereich:** 3 Spalten (Eingabe | Button | Spacer)
+- **Metriken:** 2 Spalten (Aktuelle Werte | Kalender)
+- **Charts:** 2 Spalten (Stundentabelle | Temperaturverlauf)
+- **Zusätzliche Charts:** 2 Spalten (Niederschlag | Wind), (Bewölkung | Schnee)
+
+**Alle Bereiche mit:**
+- `border=True` für visuelle Trennung
+- `gap="small"` für kompaktes Layout
+- `use_container_width=True` für responsive Anpassung
+
+---
+
+#### 7. Metriken-Dashboard
+
+```python
+st.metric("🌡️ Lufttemperatur", 
+         f"{st.session_state.weather_data['current']['temperature_2m']:.1f} °C")
+st.metric("🥵 Gefühlte Temp.", 
+         f"{st.session_state.weather_data['current']['apparent_temperature']:.1f} °C")
+```
+
+**Sechs Hauptmetriken:**
+- Lufttemperatur & gefühlte Temperatur
+- Relative Feuchte & Bewölkung
+- Windgeschwindigkeit & Böen
+
+**Formatierung:** Einheitlich mit 1 Dezimalstelle für Temperaturen/Wind, 0 Dezimalstellen für Prozente.
+
+---
+
+#### 8. Stündliche Übersicht mit Wettericons
+
+```python
+hoyrly_df["icon"] = hoyrly_df["weather_code"].apply(weatherIcon)
+hoyrly_df["description"] = hoyrly_df["weather_code"].apply(weatherDescription)
+hoyrly_df["short"] = hoyrly_df["icon"] + " " + hoyrly_df["description"]
+```
+
+**Innovation:** Kombination von Icon und Beschreibung in einer Spalte für kompakte Darstellung.
+
+**Tabellenkonfiguration mit st.column_config:**
+- Custom Header mit Emojis (🕐, ☁️, 🌡️, etc.)
+- Spaltenbreite auf "small" optimiert
+- Sprechende Spalten-Labels
+
+---
+
+#### 9. Interaktive Linien-Charts
+
+**Vier separate Chart-Bereiche:**
+
+1. **Temperaturverlauf:**
+   - Absolute Temperatur
+   - Temperaturveränderung (Delta pro Stunde mit diff())
+   - Metriken: Max, Min, größter Anstieg/Rückgang
+
+2. **Niederschlag:**
+   - Regen vs. Schauer getrennt dargestellt
+   - Summen pro Tag
+
+3. **Wind:**
+   - Windgeschwindigkeit vs. Böen
+   - Maximalwerte angezeigt
+
+4. **Bewölkung & Schneefall:**
+   - Prozentuale Bewölkung über den Tag
+   - Schneefallmenge in cm
+
+**Chart-Konfiguration:**
+```python
+st.line_chart(
+    data=chart_df.set_index("Uhrzeit")[...],
+    height=400,
+    use_container_width=True
+)
+```
+
+---
+
+#### 10. Datenfilterung nach heute
+
+**Konsistente Filterlogik:**
+```python
+today_hourly_df = st.session_state.weather_data['hourly_df'][
+    st.session_state.weather_data['hourly_df']['time'].dt.date == heute
+].copy().sort_values("time")
+```
+
+**Angewendet auf:** Alle Tabellen und Charts, um nur den aktuellen Tag anzuzeigen.
+
+**Vorteile:**
+- Fokussierte Darstellung
+- Bessere Performance
+- Klarheit für den Benutzer
+
+---
+
+#### 11. Kalender-Integration
+
+```python
+from streamlit_calendar import calendar
+
+cal_data = calendar(
+    options={"initialView": "dayGridMonth", "selectable": True},
+    key="smartweather_calendar",
+)
+```
+
+**Status:** Platzhalter für zukünftige Funktionalität (Tagesselektion).
+
+---
+
+#### 12. Error Handling und Feedback
+
+```python
+if len(selectedLocation) == 0:
+    st.error("Ort nicht gefunden")
+```
+
+**User Feedback bei:**
+- Ungültiger Standortsuche
+- Fehlenden Daten
+- API-Fehlern
+
+---
+
+### Zusammenfassung der Änderungen
+
+| Bereich | Änderung | Grund |
+|---------|----------|-------|
+| Datenquelle | Von statischen Testdaten zu Live-API | Echtzeitdaten statt Pipeline |
+| Datenhaltung | Session State eingeführt | Persistierung zwischen Reruns |
+| Visualisierung | Von einfacher Tabelle zu Multi-Chart-Dashboard | Umfassende Wetterübersicht |
+| UI-Struktur | Von einspaltig zu mehrspaltigen Layouts | Bessere Raumnutzung |
+| Datenverarbeitung | Pandas DataFrames mit Filterung | Effiziente Zeitreihen-Analyse |
+| Code-Umfang | Von ~50 auf ~650 Zeilen gewachsen | Feature-Komplexität gestiegen |
+
+---
 
 ### Git installieren
 
