@@ -1659,3 +1659,80 @@ Diese Struktur eignet sich optimal fuer:
 
 ---
 
+# Sprint 3 – Code-Refactoring & UI-Verbesserungen
+
+## Ziel des Sprints
+
+Die Applikation durch Code-Refactoring wartbarer machen, das UI-Design finalisieren und die Benutzererfahrung durch eine interaktive Schweizer Wetterkarte und verbesserte Standortsuche optimieren.
+
+---
+
+## 1. Epic und User Stories
+
+| Epic (Key) | Story-ID | Rolle | Ziel | Nutzen | Story Points | Akzeptanzkriterien |
+|------------|----------|-------|------|--------|--------------|-------------------|
+| SCRUM-73 Code-Qualität & UX-Optimierung | SCRUM-74 | Entwickler | app.py in wiederverwendbare Module aufteilen (Logik und Design trennen) | Code ist wartbar, testbar und erweiterbar | 5 | Module erstellt (ui_components.py, data_handlers.py, api_client.py, database.py); app.py nutzt Module; Funktionalität bleibt erhalten |
+| SCRUM-73 Code-Qualität & UX-Optimierung | SCRUM-75 | Entwickler | Interaktive Schweizer Wetterkarte implementieren | Benutzer sehen Wetter geografisch visualisiert | 5 | Leaflet-Karte zeigt Schweiz; Wetterdaten-Overlay funktioniert; Integration in Streamlit-App |
+| SCRUM-73 Code-Qualität & UX-Optimierung | SCRUM-76 | Entwickler | UI-Design finalisieren und konsistent gestalten | Professionelles, einheitliches Erscheinungsbild | 3 | Farb- und Layout-Schema definiert; Alle Sections einheitlich gestaltet; Responsive Design getestet |
+| SCRUM-73 Code-Qualität & UX-Optimierung | SCRUM-77 | Entwickler | Standortsuche mit Kanton und Postleitzahl erweitern | Eindeutige Identifikation bei doppelten Ortsnamen | 3 | Datenbank um PLZ erweitert; Suchlogik unterscheidet nach Kanton/PLZ; Dropdown zeigt mehrere Treffer |
+
+**Total Story Points:** 16
+
+---
+
+## 2. Aufgaben (Tasks)
+
+| Task-ID | Beschreibung | Zugeordnet zu Story | Verantwortlich | Status |
+|---------|-------------|---------------------|----------------|--------|
+| SCRUM-78 | Modul ui_components.py erstellen (Metriken, Charts, Tabellen) | SCRUM-74 | Robin | To Do |
+| SCRUM-79 | Modul data_handlers.py erstellen (Pandas-Operationen, Filterung) | SCRUM-74 | Robin | To Do |
+| SCRUM-80 | Modul api_client.py erstellen (Open-Meteo API-Kommunikation) | SCRUM-74 | Robin | To Do |
+| SCRUM-81 | Modul database.py erstellen (PostgreSQL Queries) | SCRUM-74 | Robin | To Do |
+| SCRUM-82 | app.py refactoren und Module importieren | SCRUM-74 | Robin | To Do |
+| SCRUM-83 | Funktionalitätstests nach Refactoring durchführen | SCRUM-74 | Robin | To Do |
+| SCRUM-84 | Leaflet-Bibliothek in Streamlit integrieren | SCRUM-75 | Robin | To Do |
+| SCRUM-85 | Schweizer Kartenbounds definieren und testen | SCRUM-75 | Robin | To Do |
+| SCRUM-86 | Wetterdaten-Layer für Karte implementieren (z.B. Temperatur-Overlay) | SCRUM-75 | Robin | To Do |
+| SCRUM-87 | Karten-Interaktion mit Standortsuche verbinden | SCRUM-75 | Robin | To Do |
+| SCRUM-88 | Farb- und Design-Schema definieren (Primär-/Sekundärfarben) | SCRUM-76 | Robin | To Do |
+| SCRUM-89 | CSS/Styling für konsistente Komponenten erstellen | SCRUM-76 | Robin | To Do |
+| SCRUM-90 | Layout-Abstände und Proportionen optimieren | SCRUM-76 | Robin | To Do |
+| SCRUM-91 | Mobile-Responsiveness testen und anpassen | SCRUM-76 | Robin | To Do |
+| SCRUM-92 | Datenbank geo_location um Spalte postal_code erweitern | SCRUM-77 | Robin | To Do |
+| SCRUM-93 | Postleitzahlen-Daten importieren (z.B. via API oder CSV) | SCRUM-77 | Robin | To Do |
+| SCRUM-94 | Suchlogik erweitern für Kanton-/PLZ-Filter | SCRUM-77 | Robin | To Do |
+| SCRUM-95 | UI-Dropdown für mehrere Suchergebnisse implementieren | SCRUM-77 | Robin | To Do |
+| SCRUM-96 | Suche testen mit doppelten Ortsnamen (z.B. Neuheim ZG vs. Neuheim AG) | SCRUM-77 | Robin | To Do |
+
+---
+
+## 3. Deliverables (Ergebnisse)
+
+| Nr. | Deliverable | Bezug Story | Beschreibung | Nachweis / Artefakt |
+|-----|-------------|-------------|--------------|---------------------|
+| 1 | Modulare Code-Struktur | SCRUM-74 | app.py aufgeteilt in 4 Module, Code ist wartbar und wiederverwendbar | Screenshot Verzeichnisstruktur, Code-Auszüge |
+| 2 | Interaktive Wetterkarte | SCRUM-75 | Leaflet-Karte mit Schweizer Wetterdaten in Streamlit-App | Screenshot Karte mit Overlay |
+| 3 | Finalisiertes UI-Design | SCRUM-76 | Konsistentes Design mit definiertem Farb-/Layout-Schema | Screenshot verschiedene App-Bereiche |
+| 4 | Erweiterte Standortsuche | SCRUM-77 | Suche unterscheidet nach Kanton/PLZ, zeigt eindeutige Ergebnisse | Screenshot Suchergebnisse mit Dropdown |
+
+---
+
+## 4. Review
+
+
+---
+
+## 5. Retrospektive
+
+| Frage | Antwort |
+|-------|---------|
+| Was lief gut? | |
+| Was war schwierig? | |
+| Was kann verbessert werden? | |
+| Was nehmen wir mit in den nächsten Sprint? | |
+
+---
+
+## 6. Worklog
+
+

@@ -94,9 +94,10 @@ Detaillierte Informationen: [Technology Stack in PROJECT_OVERVIEW.md](./docs/PRO
 | Sprint 0 | Abgeschlossen | Repository, Jira, Hetzner Account, Basis-Dokumentation |
 | Sprint 1 | Abgeschlossen | Server-Setup, Domain, HTTPS, PostgreSQL, Firewall |
 | Sprint 2 | Abgeschlossen | systemd-Service, Git-Integration, Wetterdaten-Visualisierung |
-| Sprint 3 | Geplant | Code-Refactoring, Module, erweiterte Features |
+| Sprint 3 | In Arbeit | Code-Refactoring, Schweizer Wetterkarte, UI-Finalisierung, erweiterte Suche |
 
-**Aktuelle Version:** Sprint 2 (Januar 2026)
+**Aktuelle Version:** Sprint 3 (Januar 2026)  
+**Story Points Sprint 3:** 16
 
 ---
 

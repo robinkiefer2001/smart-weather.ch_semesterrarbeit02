@@ -514,22 +514,35 @@ CREATE TABLE geo_location (
 
 ## Roadmap
 
-### Sprint 3: Code-Refactoring & Features (Geplant)
+### Sprint 3: Code-Refactoring & UI-Verbesserungen (In Arbeit)
 
-**Ziele:**
-- app.py in Module aufteilen
-  - `ui_components.py` – Wiederverwendbare UI-Elemente
-  - `data_handlers.py` – Daten-Processing Funktionen
-  - `api_client.py` – API-Kommunikation
-  - `database.py` – Datenbank-Queries
-- Wiederverwendbare Funktionen für repetitive Blöcke
-- Kalender-Funktionalität implementieren (Tagesselektion)
-- Error-Handling verbessern
+**Ziel:** Code wartbarer machen und UX optimieren
+
+**Story Points:** 16
+
+**User Stories:**
+1. **Code-Modularisierung (5 SP):** app.py in Module aufteilen
+   - `ui_components.py` – Wiederverwendbare UI-Elemente
+   - `data_handlers.py` – Daten-Processing Funktionen
+   - `api_client.py` – API-Kommunikation
+   - `database.py` – Datenbank-Queries
+2. **Schweizer Wetterkarte (5 SP):** Interaktive Leaflet-Karte mit Wetterdaten-Overlay
+3. **UI-Design finalisieren (3 SP):** Konsistentes Farb- und Layout-Schema
+4. **Erweiterte Standortsuche (3 SP):** Unterscheidung nach Kanton und Postleitzahl
+
+**Deliverables:**
+- Modulare Code-Struktur mit 4 Modulen
+- Interaktive Wetterkarte für die Schweiz
+- Finalisiertes, konsistentes UI-Design
+- Erweiterte Suchfunktion mit Kanton/PLZ-Filter
+
+**Status:** In Planung
 
 **Erwartete Verbesserungen:**
-- Bessere Wartbarkeit
-- Einfacheres Testing
-- Schnellere Feature-Entwicklung
+- Bessere Wartbarkeit und Testbarkeit
+- Verbesserte Benutzererfahrung
+- Eindeutige Standort-Identifikation
+- Geografische Wettervisualisierung
 
 ---
 
