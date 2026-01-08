@@ -375,13 +375,13 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
         zoom: 9
       });
 
-      // Hochwertige Basiskarte - Swisstopo Landeskarte (offizielle Schweizer Karte)
+      // Test mit OpenStreetMap (funktioniert zuverlässig)
       var swisstopoLayer = L.tileLayer(
-        'https://tile.maps.verwalt.ch/landeskarte-farbe/{z}/{x}/{y}.png',
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
-          maxZoom: 15,
+          maxZoom: 19,
           minZoom: 7,
-          attribution: '© swisstopo',
+          attribution: '&copy; OpenStreetMap contributors',
           crossOrigin: true
         }
       ).addTo(map);
