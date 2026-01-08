@@ -377,12 +377,12 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
 
       // Hochwertige Basiskarte - Swisstopo Landeskarte (offizielle Schweizer Karte)
       var swisstopoLayer = L.tileLayer(
-        'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe/default/current/3857/{z}/{x}/{y}.png',
+        'https://tile.maps.verwalt.ch/landeskarte-farbe/{z}/{x}/{y}.png',
         {
           maxZoom: 15,
           minZoom: 7,
           attribution: '© swisstopo',
-          crossOrigin: 'anonymous'
+          crossOrigin: true
         }
       ).addTo(map);
 
