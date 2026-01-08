@@ -249,9 +249,9 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     
     markers_code += "];"
     
-    # HTML mit Leaflet-Karte
-    leaflet_html = f"""
-    <div id="map" style="width: 100%; height: {map_height}px;"></div>
+    # HTML mit Leaflet-Karte - NICHT als f-string um Brace-Probleme zu vermeiden
+    leaflet_html = """
+    <div id="map" style="width: 100%; height: MAP_HEIGHT_PX;"></div>
 
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -265,47 +265,51 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
       );
 
       // Karte auf diese Bounds zoomen und begrenzen
-      var map = L.map('map', {{
+      var map = L.map('map', {
         maxBounds: bounds,
         maxBoundsViscosity: 1.0
-      }}).fitBounds(bounds);
+      }).fitBounds(bounds);
 
       // Basiskarte (OSM)
       L.tileLayer(
-        'https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',
-        {{
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
           maxZoom: 14,
           minZoom: 6
-        }}
+        }
       ).addTo(map);
 
       // Rahmen um die Schweiz
-      L.rectangle(bounds, {{
+      L.rectangle(bounds, {
         color: "#00aaff",
         weight: 1,
         fillOpacity: 0.0
-      }}).addTo(map);
+      }).addTo(map);
 
       // Marker-Daten
-      {markers_code}
+      MARKERS_CODE_HERE
       
       // Marker hinzufügen
-      markers.forEach(function(markerData) {{
+      markers.forEach(function(markerData) {
         var markerSize = markerData.type === 'search' ? 30 : 25;
         var borderColor = markerData.type === 'search' ? '#000000' : '#333';
         var borderWeight = markerData.type === 'search' ? 3 : 2;
         
-        L.circleMarker([markerData.lat, markerData.lon], {{
+        L.circleMarker([markerData.lat, markerData.lon], {
           radius: markerSize,
           fillColor: markerData.color,
           color: borderColor,
           weight: borderWeight,
           opacity: 0.95,
           fillOpacity: markerData.type === 'search' ? 0.7 : 0.85
-        }}).bindPopup(markerData.popup).addTo(map);
-      }});
+        }).bindPopup(markerData.popup).addTo(map);
+      });
     </script>
     """
+    
+    # Ersetze Platzhalter mit echten Werten
+    leaflet_html = leaflet_html.replace("MAP_HEIGHT_PX", f"{map_height}px")
+    leaflet_html = leaflet_html.replace("MARKERS_CODE_HERE", markers_code)
     
     return leaflet_html
 
