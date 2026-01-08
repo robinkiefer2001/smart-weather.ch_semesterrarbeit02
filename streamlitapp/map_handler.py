@@ -148,53 +148,42 @@ def create_weather_map(cities_weather: list = None, map_height: int = 500) -> st
                 "humidity": "--",
             })
     
-    # Erstelle JavaScript-Marker-Array
-    markers_js = "["
+    # Erstelle Marker-Daten als JavaScript Array
+    markers_code = "var markers = [\n"
     for i, city in enumerate(cities_weather):
         color = get_weather_color(city["weather_code"])
         temp_str = str(city["temperature"]) if city["temperature"] != "--" else "--"
         emoji = city["weather_emoji"]
         
-        popup_content = f"""<div style="text-align: center; font-family: Arial, sans-serif; padding: 10px; width: 200px;">
-                <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">{city['name']}</div>
-                <div style="font-size: 32px; margin: 10px 0;">{emoji}</div>
-                <div style="font-size: 24px; font-weight: bold; color: #FF6B6B; margin: 8px 0;">
-                    {temp_str}°C
-                </div>
-                <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
-                <div style="font-size: 12px; text-align: left;">
-                    <div>☁️ Bewölkung: {city['cloud_cover']}%</div>
-                    <div>💧 Feuchte: {city['humidity']}%</div>
-                    <div>💨 Wind: {city['wind_speed']} km/h</div>
-                </div>
-            </div>"""
+        # Escape HTML-Zeichen für JavaScript
+        popup_html = f"""<div style="text-align: center; font-family: Arial, sans-serif; padding: 10px;">
+<strong>{city['name']}</strong><br>
+<div style="font-size: 32px;">{emoji}</div>
+<strong style="color: #FF6B6B; font-size: 20px;">{temp_str}°C</strong><br>
+<small>☁️ {city['cloud_cover']}% | 💧 {city['humidity']}% | 💨 {city['wind_speed']} km/h</small>
+</div>"""
         
-        markers_js += f"""
-        {{
-            lat: {city['lat']},
-            lon: {city['lon']},
-            name: '{city['name']}',
-            temp: '{temp_str}',
-            emoji: '{emoji}',
-            color: '{color}',
-            popup: '{popup_content.replace(chr(10), " ").replace(chr(39), "\\\'")}',
-            cloud: {city['cloud_cover'] if isinstance(city['cloud_cover'], int) else 0},
-            humidity: {city['humidity'] if isinstance(city['humidity'], int) else 0},
-            wind: {city['wind_speed'] if isinstance(city['wind_speed'], (int, float)) else 0}
-        }}"""
+        # Escape für JavaScript
+        popup_escaped = popup_html.replace("'", "\\'").replace("\n", " ")
+        
+        markers_code += f"""  {{
+    lat: {city['lat']},
+    lon: {city['lon']},
+    name: '{city['name']}',
+    popup: '{popup_escaped}',
+    color: '{color}'
+  }}"""
         if i < len(cities_weather) - 1:
-            markers_js += ","
-    markers_js += "]"
+            markers_code += ","
+        markers_code += "\n"
+    markers_code += "];"
     
-    # HTML mit Leaflet-Karte basierend auf Original-Template
+    # HTML mit Leaflet-Karte
     leaflet_html = f"""
     <div id="map" style="width: 100%; height: {map_height}px;"></div>
 
     <!-- Leaflet CSS & JS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
@@ -226,18 +215,19 @@ def create_weather_map(cities_weather: list = None, map_height: int = 500) -> st
         fillOpacity: 0.0
       }}).addTo(map);
 
-      // Wetter-Marker hinzufügen
-      var weatherData = {markers_js};
+      // Marker-Daten
+      {markers_code}
       
-      weatherData.forEach(function(marker) {{
-        L.circleMarker([marker.lat, marker.lon], {{
+      // Marker hinzufügen
+      markers.forEach(function(markerData) {{
+        L.circleMarker([markerData.lat, markerData.lon], {{
           radius: 25,
-          fillColor: marker.color,
+          fillColor: markerData.color,
           color: '#333',
           weight: 2,
           opacity: 0.9,
           fillOpacity: 0.85
-        }}).bindPopup(marker.popup).addTo(map);
+        }}).bindPopup(markerData.popup).addTo(map);
       }});
     </script>
     """
