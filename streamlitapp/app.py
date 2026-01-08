@@ -537,10 +537,14 @@ if tab_detail is not None:
                 with metric_col5:
                     sunshine = selected_row.get('sunshine_duration', '--')
                     if isinstance(sunshine, (int, float)):
-                        sunshine = f"{sunshine:.2f}"
+                        # Konvertiere von Sekunden zu Stunden
+                        sunshine_hours = sunshine / 3600
+                        sunshine = f"{sunshine_hours:.1f} h"
+                    else:
+                        sunshine = "--"
                     st.metric(
                         "☀️ Sonnenschein",
-                        f"{sunshine}"
+                        sunshine
                     )
                 
                 st.markdown("---")
