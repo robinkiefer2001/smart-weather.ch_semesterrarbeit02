@@ -227,6 +227,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     lon: {city['lon']},
     name: '{city['name']}',
     emoji: '{emoji}',
+    temp: {city['temperature'] if isinstance(city['temperature'], (int, float)) else 'null'},
     popup: '{popup_escaped}',
     color: '{color}',
     type: 'city'
@@ -245,6 +246,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     lon: {search_location['lon']},
     name: '{search_location['name']} 📍',
     emoji: '📍',
+    temp: null,
     popup: '{search_popup_escaped}',
     color: '#FF0000',
     type: 'search'
@@ -252,143 +254,242 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     
     markers_code += "];"
     
-    # HTML mit Leaflet-Karte - Professionelles Design
+    # HTML mit professioneller Leaflet-Karte - swisstopo inspiriert
     leaflet_html = """
     <style>
-      body, html {
+      * {
         margin: 0;
         padding: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-sizing: border-box;
+      }
+      body, html {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        overflow: hidden;
       }
       #map {
         width: 100%;
         height: MAP_HEIGHT_PX;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        position: relative;
       }
+      
       .leaflet-container {
-        background-color: #e8f1f8 !important;
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8eef5 100%) !important;
+        font-family: inherit;
       }
-      .weather-marker {
-        font-weight: bold;
-        text-align: center;
-        border-radius: 50%;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        backdrop-filter: blur(4px);
+      
+      .leaflet-control-attribution {
+        background: rgba(255, 255, 255, 0.85) !important;
+        border-radius: 6px;
+        padding: 6px 10px !important;
+        font-size: 11px;
       }
-      .weather-marker:hover {
-        transform: scale(1.15);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      }
-      .leaflet-popup-content {
-        font-family: 'Segoe UI', sans-serif;
-        margin: 0;
-      }
-      .leaflet-popup-content-wrapper {
+      
+      .leaflet-control-zoom {
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.98);
-        padding: 0;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        background: white !important;
       }
+      
+      .leaflet-control-zoom a {
+        color: #2c5aa0 !important;
+        font-weight: bold;
+        border-radius: 6px;
+      }
+      
+      .leaflet-control-zoom a:hover {
+        background: #2c5aa0 !important;
+        color: white !important;
+      }
+      
+      .weather-marker-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        border: 3px solid white;
+        position: relative;
+      }
+      
+      .weather-marker-container:hover {
+        transform: scale(1.2);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        filter: brightness(1.1);
+      }
+      
+      .weather-marker-emoji {
+        font-size: 24px;
+        line-height: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      
+      .weather-marker-temp {
+        position: absolute;
+        bottom: -18px;
+        background: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        color: #2c5aa0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        white-space: nowrap;
+      }
+      
+      .leaflet-popup-content-wrapper {
+        border-radius: 10px;
+        background: white !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+        padding: 0 !important;
+        border: none !important;
+      }
+      
+      .leaflet-popup-content {
+        font-size: 13px;
+        padding: 12px 14px !important;
+        margin: 0 !important;
+        line-height: 1.5;
+      }
+      
+      .leaflet-popup-content strong {
+        color: #1a3a52;
+        font-size: 14px;
+      }
+      
       .leaflet-popup-tip {
-        background: rgba(255, 255, 255, 0.98);
+        background: white !important;
+        box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .leaflet-popup-close-button {
+        color: #2c5aa0 !important;
+      }
+      
+      .weather-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        font-size: 12px;
+        color: #666;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #e0e0e0;
+      }
+      
+      .weather-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
     </style>
 
     <div id="map"></div>
 
-    <!-- Leaflet CSS & JS -->
+    <!-- Leaflet & Plugins -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-heat@0.2.0/dist/leaflet-heat.js"></script>
 
     <script>
-      // Bounds für Schweiz-Ausschnitt
-      var bounds = L.latLngBounds(
-        L.latLng(45.3, 5.8),   // Süd-West
-        L.latLng(47.9, 10.6)   // Nord-Ost
+      // Schweiz-Bounds (mit etwas Puffer)
+      var swissBounds = L.latLngBounds(
+        L.latLng(45.6, 5.6),   // Süd-West
+        L.latLng(47.8, 10.5)   // Nord-Ost
       );
-
-      // Karte mit professionellem Styling
+      
+      // Initialisiere Karte mit Schweiz-Focus
       var map = L.map('map', {
-        maxBounds: bounds,
-        maxBoundsViscosity: 1.0,
+        maxBounds: swissBounds,
+        maxBoundsViscosity: 0.8,
         zoomControl: true,
-        attributionControl: false
-      }).fitBounds(bounds);
+        attributionControl: true,
+        center: [46.7, 8.15],
+        zoom: 8
+      });
 
-      // Basiskarte mit hochwertigerem Tile-Layer
+      // Hochwertige Basiskarte - Stamen TonerLite (Schweiz-optimiert)
       L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png',
         {
           maxZoom: 14,
-          minZoom: 6,
-          opacity: 0.85,
-          className: 'map-tiles'
+          minZoom: 7,
+          attribution: '© swisstopo, © OpenStreetMap contributor',
+          className: 'map-base-layer'
         }
       ).addTo(map);
 
-      // Sanfte Rahmen um die Schweiz
-      L.rectangle(bounds, {
-        color: "#2c5aa0",
-        weight: 2,
+      // Sanfte Schweiz-Grenze
+      var swissBox = L.rectangle(swissBounds, {
+        color: '#2c5aa0',
+        weight: 1.5,
         fillOpacity: 0,
-        dashArray: "5, 5"
+        dashArray: '3, 4',
+        lineCap: 'round'
       }).addTo(map);
 
       // Marker-Daten
       MARKERS_CODE_HERE
       
-      // Marker hinzufügen mit modernem Design
+      // Zeichne alle Marker mit optimiertem Design
       markers.forEach(function(markerData) {
         var isSearch = markerData.type === 'search';
-        var markerSize = isSearch ? 45 : 38;
-        var opacity = isSearch ? 0.95 : 0.90;
-        var borderWeight = isSearch ? 4 : 2;
-        var borderColor = isSearch ? '#fff' : '#fff';
+        var markerSize = isSearch ? 50 : 44;
+        var fontSize = isSearch ? '28px' : '24px';
         
-        // Erstelle SVG-basiertes Icon für besseres Rendering
+        // Erstelle Custom Marker mit Temperatur-Badge
+        var tempStr = markerData.temp || '--';
+        var tempDisplay = typeof tempStr === 'number' ? tempStr.toFixed(1) : tempStr;
+        
+        var markerHTML = document.createElement('div');
+        markerHTML.className = 'weather-marker-container';
+        markerHTML.style.width = markerSize + 'px';
+        markerHTML.style.height = markerSize + 'px';
+        markerHTML.style.background = 'linear-gradient(135deg, ' + markerData.color + ', ' + markerData.color + 'dd)';
+        
+        var emojiSpan = document.createElement('span');
+        emojiSpan.className = 'weather-marker-emoji';
+        emojiSpan.style.fontSize = fontSize;
+        emojiSpan.textContent = markerData.emoji || '❓';
+        markerHTML.appendChild(emojiSpan);
+        
+        if (tempDisplay !== '--') {
+          var tempBadge = document.createElement('div');
+          tempBadge.className = 'weather-marker-temp';
+          tempBadge.textContent = tempDisplay + '°';
+          markerHTML.appendChild(tempBadge);
+        }
+        
         var customIcon = L.divIcon({
-          html: `<div style="
-            width: ${markerSize}px;
-            height: ${markerSize}px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, ${markerData.color} 0%, ${markerData.color}dd 100%);
-            border: ${borderWeight}px solid ${borderColor};
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: ${isSearch ? '24px' : '20px'};
-            font-weight: bold;
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(4px);
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            cursor: pointer;
-          " class="weather-marker">
-            <span>${markerData.emoji || '❓'}</span>
-          </div>`,
-          iconSize: [markerSize, markerSize],
-          className: 'custom-marker'
+          html: markerHTML.outerHTML,
+          iconSize: [markerSize, markerSize + 25],
+          iconAnchor: [markerSize/2, markerSize/2],
+          popupAnchor: [0, -markerSize/2 - 15],
+          className: 'custom-weather-marker'
         });
         
-        var marker = L.marker([markerData.lat, markerData.lon], {
+        L.marker([markerData.lat, markerData.lon], {
           icon: customIcon,
           title: markerData.name
         }).bindPopup(markerData.popup, {
-          className: 'custom-popup',
           closeButton: true,
-          offset: [0, -markerSize/2 - 10]
-        }).addTo(map);
-        
-        // Hover-Effekt
-        marker.on('mouseover', function() {
+          offset: L.point(0, -markerSize/2 - 10),
+          maxWidth: 280
+        }).on('click', function() {
           this.openPopup();
-        });
+        }).addTo(map);
+      });
+      
+      // Fit bounds beim Load
+      map.fitBounds(swissBounds, {padding: [40, 40]});
+      
+      // Verhindere Zoom außerhalb der Schweiz
+      map.on('zoom', function() {
+        if (!map.getBounds().intersects(swissBounds)) {
+          map.fitBounds(swissBounds);
+        }
       });
     </script>
     """
