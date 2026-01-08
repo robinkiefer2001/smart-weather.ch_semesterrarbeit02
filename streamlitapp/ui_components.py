@@ -109,9 +109,9 @@ def display_temperature_chart(chart_df: pd.DataFrame, stats: dict):
     with temp_metric_col2:
         st.metric("🥶 Min. Temperatur", f"{stats['min_temp']:.1f} °C")
     with temp_metric_col3:
-        st.metric("📈 Größter Anstieg", f"+{stats['max_increase']:.2f} °C/h")
+        st.metric("📈 Grösster Anstieg", f"+{stats['max_increase']:.2f} °C/h")
     with temp_metric_col4:
-        st.metric("📉 Größter Rückgang", f"{stats['max_decrease']:.2f} °C/h")
+        st.metric("📉 Grösster Rückgang", f"{stats['max_decrease']:.2f} °C/h")
 
 
 def display_precipitation_chart(chart_df: pd.DataFrame, stats: dict):

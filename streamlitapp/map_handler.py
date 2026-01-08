@@ -76,8 +76,8 @@ def get_temperature_color(temperature: float) -> str:
         elif temp < 5: return "#00ff00"  # Grün - mild
         elif temp < 10: return "#ffff00"  # Gelb - warm
         elif temp < 15: return "#ff9900"  # Orange - wärmer
-        elif temp < 20: return "#ff6600"  # Dunkelorange - heiß
-        else: return "#cc0000"  # Rot - sehr heiß
+        elif temp < 20: return "#ff6600"  # Dunkelorange - heiss
+        else: return "#cc0000"  # Rot - sehr heiss
     except:
         return "#999999"
 
@@ -441,7 +441,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
       // Zeichne alle Marker mit optimiertem Design
       markers.forEach(function(markerData) {
         var isSearch = markerData.type === 'search';
-        var markerSize = isSearch ? 60 : 50;  // Größere Marker
+        var markerSize = isSearch ? 60 : 50;  // Grössere Marker
         var fontSize = isSearch ? '32px' : '28px';
         
         // Erstelle Custom Marker mit Temperatur-Badge
@@ -490,7 +490,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
       // Fit bounds beim Load
       map.fitBounds(swissBounds, {padding: [40, 40]});
       
-      // Verhindere Zoom außerhalb der Schweiz
+      // Verhindere Zoom ausserhalb der Schweiz
       map.on('zoom', function() {
         if (!map.getBounds().intersects(swissBounds)) {
           map.fitBounds(swissBounds);
