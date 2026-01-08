@@ -327,7 +327,7 @@ def display_weather_map(show_loading: bool = True, map_height: int = 500):
             cities_weather = fetch_city_weather_data()
         
         # Erstelle HTML und zeige Karte
-        map_html = create_weather_map(cities_weather, map_height)
+        map_html = create_weather_map(cities_weather, search_location=None, map_height=map_height)
         st.html(map_html)
         
     except Exception as e:
@@ -336,7 +336,7 @@ def display_weather_map(show_loading: bool = True, map_height: int = 500):
         st.info("Die Karte wird mit Standarddaten angezeigt...")
         
         try:
-            map_html = create_weather_map(None, map_height)
+            map_html = create_weather_map(None, search_location=None, map_height=map_height)
             st.html(map_html)
         except Exception as e2:
             st.error(f"❌ Fehler beim Laden der Karte: {str(e2)}")
