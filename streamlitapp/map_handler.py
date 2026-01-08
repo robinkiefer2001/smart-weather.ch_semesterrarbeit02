@@ -7,12 +7,9 @@ from api_client import fetch_weather_data
 import time
 
 
-@st.cache_data(ttl=300)  # Cache für 5 Minuten
+@st.cache_data(ttl=300)
 def get_cached_weather_data(lat: float, lon: float) -> dict:
-    """
-    Holt gecachte Wetterdaten für eine Stadt.
-    TTL: 5 Minuten
-    """
+    """Wetterdaten für 5 Minuten cachen um API-Limits zu respektieren."""
     try:
         current_data, _, _ = fetch_weather_data(lat, lon)
         return {
@@ -26,7 +23,7 @@ def get_cached_weather_data(lat: float, lon: float) -> dict:
         }
 
 
-# Hauptstädte und wichtige Orte in der Schweiz - reduziert auf Regionen
+# 12 strategische Städte für regionale Wetter-Übersicht (bessere API-Performance)
 MAJOR_CITIES = [
     {"name": "Zürich", "lat": 47.3769, "lon": 8.5472, "region": "Nordost"},
     {"name": "Bern", "lat": 46.9479, "lon": 7.4474, "region": "Mitte"},
@@ -44,73 +41,44 @@ MAJOR_CITIES = [
 
 
 def get_weather_emoji(weather_code: int) -> str:
-    """
-    Konvertiert Weather Code zu Emoji für Kartendarstellung.
-    """
+    """WMO Wettercodes in visuelle Symbole für schnelle Erfassbarkeit."""
     weather_emojis = {
-        0: "☀️",    # Klar
-        1: "🌤️",   # Teilweise bewölkt
-        2: "⛅",    # Bewölkt
-        3: "☁️",    # Bedeckt
-        45: "🌫️",   # Nebel
-        48: "🌫️",   # Gefrierender Nebel
-        51: "🌦️",   # Leichter Nieselregen
-        53: "🌧️",   # Mäßiger Nieselregen
-        55: "🌧️",   # Starker Nieselregen
-        61: "🌧️",   # Leichter Regen
-        63: "🌧️",   # Mäßiger Regen
-        65: "🌧️",   # Starker Regen
-        71: "❄️",    # Leichter Schneefall
-        73: "❄️",    # Mäßiger Schneefall
-        75: "❄️",    # Starker Schneefall
-        80: "🌦️",   # Leichte Regenschauer
-        81: "🌧️",   # Mäßige Regenschauer
-        82: "🌧️",   # Starke Regenschauer
-        95: "⛈️",   # Gewitter
-        99: "⛈️",   # Schweres Gewitter mit Hagel
+        0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 48: "🌫️",
+        51: "🌦️", 53: "🌧️", 55: "🌧️", 61: "🌧️", 63: "🌧️", 65: "🌧️",
+        71: "❄️", 73: "❄️", 75: "❄️",
+        80: "🌦️", 81: "🌧️", 82: "🌧️",
+        95: "⛈️", 99: "⛈️"
     }
     return weather_emojis.get(weather_code, "❓")
 
 
 def get_weather_color(weather_code: int) -> str:
-    """
-    Gibt eine Farbe basierend auf Wetterbedingung zurück.
-    """
-    if weather_code == 0:
-        return "#FFD700"  # Gold für sonnig
-    elif weather_code in [1, 2]:
-        return "#87CEEB"  # Sky blue für bewölkt
-    elif weather_code in [3]:
-        return "#808080"  # Grau für bedeckt
-    elif weather_code in [45, 48]:
-        return "#A9A9A9"  # Dunkelgrau für Nebel
-    elif weather_code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
-        return "#4169E1"  # Royal blue für Regen
-    elif weather_code in [71, 73, 75]:
-        return "#F0F8FF"  # Alice blue für Schnee
-    elif weather_code in [95, 99]:
-        return "#FF6347"  # Tomato rot für Gewitter
-    else:
-        return "#808080"  # Default grau
+    """Intuitive Farben für schnelle visuelle Erkennung des Wetters."""
+    if weather_code == 0: return "#FFD700"  # Sonne = Gold
+    elif weather_code in [1, 2]: return "#87CEEB"  # Wolken = Blau
+    elif weather_code in [3]: return "#808080"  # Bedeckt = Grau
+    elif weather_code in [45, 48]: return "#A9A9A9"  # Nebel = Dunkelgrau
+    elif weather_code in [51, 53, 55, 61, 63, 65, 80, 81, 82]: return "#4169E1"  # Regen = Königsblau
+    elif weather_code in [71, 73, 75]: return "#F0F8FF"  # Schnee = Hellblau
+    elif weather_code in [95, 99]: return "#FF6347"  # Gewitter = Rot
+    else: return "#808080"
 
 
 def fetch_city_weather_data() -> list:
     """
-    Holt Wetterdaten für alle Hauptstädte mit Rate-Limiting und Fehlerbehandlung.
-    Verwendet Caching um API-Limits zu respektieren.
-    
-    Returns:
-        Liste mit Wetterdaten für jede Stadt
+    Holt Wetterdaten für alle 12 Städte mit Rate-Limiting.
+    Caching verhindert zu häufige API-Calls und respektiert Rate-Limits.
+    Bei Fehler werden Fallback-Daten mit "--" verwendet.
     """
     cities_weather = []
     
     for i, city in enumerate(MAJOR_CITIES):
         try:
-            # Rate-Limiting: Kleine Verzögerung zwischen Anfragen
+            # Rate-Limiting: 200ms Verzögerung zwischen API-Anfragen
             if i > 0:
-                time.sleep(0.2)  # 200ms Verzögerung zwischen Anfragen
+                time.sleep(0.2)
             
-            # Versuche gecachte Daten zu holen
+            # Versuche Daten aus Cache zu laden (max. 5 Min alt)
             weather_result = get_cached_weather_data(city["lat"], city["lon"])
             
             if weather_result["success"]:
@@ -118,7 +86,7 @@ def fetch_city_weather_data() -> list:
                 temp_value = current_data.get("temperature_2m", 0)
                 weather_code = int(current_data.get("weather_code", 0)) if current_data.get("weather_code") is not None else 0
                 
-                # Sichere Umwandlung der Werte
+                # Sichere Umwandlung mit Fehlerbehandlung
                 try:
                     cloud_cover = round(float(current_data.get("cloud_cover") or 0), 0)
                 except (ValueError, TypeError):
@@ -146,7 +114,7 @@ def fetch_city_weather_data() -> list:
                     "humidity": int(humidity),
                 })
             else:
-                # Bei Fehler: Fallback mit Standarddaten
+                # Bei Fehler: Standard-Werte zeigen
                 cities_weather.append({
                     "name": city["name"],
                     "lat": city["lat"],
@@ -160,7 +128,7 @@ def fetch_city_weather_data() -> list:
                 })
                 
         except Exception as e:
-            # Fallback: Zeige Ort ohne Fehlermeldung
+            # Fehler abfangen und mit Dummy-Daten fortfahren
             cities_weather.append({
                 "name": city["name"],
                 "lat": city["lat"],
@@ -178,15 +146,8 @@ def fetch_city_weather_data() -> list:
 
 def create_weather_map(cities_weather: list = None, search_location: dict = None, map_height: int = 500) -> str:
     """
-    Erstellt ein Leaflet-HTML-String mit Wetter-Markern basierend auf dem Original-Template.
-    
-    Args:
-        cities_weather: Liste mit Wetterdaten für Städte
-        search_location: Dict mit {"name": str, "lat": float, "lon": float} der gesuchten Location
-        map_height: Höhe der Karte in Pixeln
-        
-    Returns:
-        HTML-String für Leaflet-Karte
+    Erstellt eine interaktive Leaflet-Karte mit Wetter-Markern.
+    Die Marker zeigen Temperatur und Wetterbedingungen auf der Swisstopo-Basiskarte.
     """
     # Falls keine Daten vorhanden, Standarddaten verwenden
     if not cities_weather or len(cities_weather) == 0:
@@ -404,25 +365,26 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
         L.latLng(47.8, 10.5)   // Nord-Ost
       );
       
-      // Initialisiere Karte mit Schweiz-Focus
+      // Initialisiere Karte mit Schweiz-Focus (bessere Skalierung)
       var map = L.map('map', {
         maxBounds: swissBounds,
         maxBoundsViscosity: 0.8,
         zoomControl: true,
         attributionControl: true,
-        center: [46.7, 8.15],
-        zoom: 8
+        center: [46.8, 8.2],
+        zoom: 9
       });
 
-      // Hochwertige Basiskarte - OpenStreetMap Standard
+      // Hochwertige Basiskarte - Swisstopo Landeskarte (wie MeteoSwiss)
       L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://wmts10.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe/default/current/3857/{z}/{x}/{y}.png',
         {
-          maxZoom: 14,
-          minZoom: 7,
-          attribution: '© OpenStreetMap contributor',
+          maxZoom: 15,
+          minZoom: 8,
+          attribution: '© swisstopo | © OpenStreetMap contributor',
           className: 'map-base-layer',
-          crossOrigin: 'anonymous'
+          crossOrigin: 'anonymous',
+          tms: false
         }
       ).addTo(map);
 
@@ -499,11 +461,8 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
 
 def display_weather_map(show_loading: bool = True, map_height: int = 500):
     """
-    Zeigt die Wetter-Karte in Streamlit an mit oder ohne Loader.
-    
-    Args:
-        show_loading: Zeige Lade-Spinner
-        map_height: Höhe der Karte in Pixeln (default 500)
+    Rendet die interaktive Wetterkarte im Streamlit-Frontend.
+    Mit Fehlerbehandlung und Fallback-Darstellung.
     """
     try:
         # Versuche Wetterdaten zu laden
@@ -518,7 +477,7 @@ def display_weather_map(show_loading: bool = True, map_height: int = 500):
         components.html(map_html, height=map_height)
         
     except Exception as e:
-        # Fallback: Zeige Standard-Karte ohne Daten
+        # Fallback: Zeige Karte ohne Wetterdaten wenn API fehlschlägt
         st.warning(f"⚠️ Konnte Wetterdaten nicht laden: {str(e)}")
         st.info("Die Karte wird mit Standarddaten angezeigt...")
         
