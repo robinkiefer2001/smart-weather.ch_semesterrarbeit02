@@ -17,9 +17,9 @@ def display_current_metrics(current_data: dict):
 
     with metric_col_temp:
         st.metric("🌡️ Lufttemperatur", 
-                 f"{current_data['temperature_2m']:.1f} °C")
+                 f"{current_data['temperature_2m']:.2f} °C")
         st.metric("🥵 Gefühlte Temp.", 
-                 f"{current_data['apparent_temperature']:.1f} °C")
+                 f"{current_data['apparent_temperature']:.2f} °C")
 
     with metric_col_humidity:
         st.metric("💧 rel. Feuchte", 
@@ -29,9 +29,9 @@ def display_current_metrics(current_data: dict):
 
     with metric_col_wind:
         st.metric("🌬️ Wind 10 m", 
-                 f"{current_data['wind_speed_10m']:.1f} km/h")
+                 f"{current_data['wind_speed_10m']:.2f} km/h")
         st.metric("💨 Böen 10 m", 
-                 f"{current_data['wind_gusts_10m']:.1f} km/h")
+                 f"{current_data['wind_gusts_10m']:.2f} km/h")
 
 
 def display_hourly_overview(hourly_df: pd.DataFrame):
@@ -52,9 +52,9 @@ def display_hourly_overview(hourly_df: pd.DataFrame):
             "time": st.column_config.TextColumn("🕐 Uhrzeit", width="small"),
             "short": st.column_config.TextColumn("☁️ Wetter", width="small"),
             "cloud_cover": st.column_config.NumberColumn("☁️ Bewölkung (%)", width="small"),
-            "temperature_2m": st.column_config.NumberColumn("🌡️ Temp. (°C)", width="small", format="%.1f"),
-            "precipitation": st.column_config.NumberColumn("🌧️ Niederschlag (mm)", width="small", format="%.1f"),
-            "wind_speed_10m": st.column_config.NumberColumn("🌬️ Wind (km/h)", width="small", format="%.1f"),
+            "temperature_2m": st.column_config.NumberColumn("🌡️ Temp. (°C)", width="small", format="%.2f"),
+            "precipitation": st.column_config.NumberColumn("🌧️ Niederschlag (mm)", width="small", format="%.2f"),
+            "wind_speed_10m": st.column_config.NumberColumn("🌬️ Wind (km/h)", width="small", format="%.2f"),
         }
     )
 
@@ -105,9 +105,9 @@ def display_temperature_chart(chart_df: pd.DataFrame, stats: dict):
 
     temp_metric_col1, temp_metric_col2, temp_metric_col3, temp_metric_col4 = st.columns(4)
     with temp_metric_col1:
-        st.metric("🌡️ Max. Temperatur", f"{stats['max_temp']:.1f} °C")
+        st.metric("🌡️ Max. Temperatur", f"{stats['max_temp']:.2f} °C")
     with temp_metric_col2:
-        st.metric("🥶 Min. Temperatur", f"{stats['min_temp']:.1f} °C")
+        st.metric("🥶 Min. Temperatur", f"{stats['min_temp']:.2f} °C")
     with temp_metric_col3:
         st.metric("📈 Grösster Anstieg", f"+{stats['max_increase']:.2f} °C/h")
     with temp_metric_col4:
@@ -134,11 +134,11 @@ def display_precipitation_chart(chart_df: pd.DataFrame, stats: dict):
 
     precip_metric_col1, precip_metric_col2, precip_metric_col3 = st.columns(3)
     with precip_metric_col1:
-        st.metric("🌧️ Regen (gesamt)", f"{stats['total_rain']:.1f} mm")
+        st.metric("🌧️ Regen (gesamt)", f"{stats['total_rain']:.2f} mm")
     with precip_metric_col2:
-        st.metric("⛈️ Schauer (gesamt)", f"{stats['total_showers']:.1f} mm")
+        st.metric("⛈️ Schauer (gesamt)", f"{stats['total_showers']:.2f} mm")
     with precip_metric_col3:
-        st.metric("💧 Gesamtniederschlag", f"{stats['total_precipitation']:.1f} mm")
+        st.metric("💧 Gesamtniederschlag", f"{stats['total_precipitation']:.2f} mm")
 
 
 def display_wind_chart(chart_df: pd.DataFrame, stats: dict):
@@ -161,9 +161,9 @@ def display_wind_chart(chart_df: pd.DataFrame, stats: dict):
 
     wind_metric_col1, wind_metric_col2 = st.columns(2)
     with wind_metric_col1:
-        st.metric("🌬️ Max. Wind", f"{stats['max_wind']:.1f} km/h")
+        st.metric("🌬️ Max. Wind", f"{stats['max_wind']:.2f} km/h")
     with wind_metric_col2:
-        st.metric("💨 Max. Böen", f"{stats['max_gusts']:.1f} km/h")
+        st.metric("💨 Max. Böen", f"{stats['max_gusts']:.2f} km/h")
 
 
 def display_cloud_chart(chart_df: pd.DataFrame, stats: dict):
@@ -205,4 +205,4 @@ def display_snow_chart(chart_df: pd.DataFrame, stats: dict):
         use_container_width=True
     )
 
-    st.metric("❄️ Gesamtschneefall", f"{stats['total_snowfall']:.1f} cm")
+    st.metric("❄️ Gesamtschneefall", f"{stats['total_snowfall']:.2f} cm")

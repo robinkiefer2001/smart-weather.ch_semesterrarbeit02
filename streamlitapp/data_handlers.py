@@ -314,10 +314,10 @@ def prepare_hourly_overview(hourly_df: pd.DataFrame, target_date: datetime.date 
     df["short"] = df["icon"] + " " + df["description"]
     
     # Runde numerische Werte konsistent
-    df["temperature_2m"] = df["temperature_2m"].round(1)
-    df["precipitation"] = df["precipitation"].round(1)
+    df["temperature_2m"] = df["temperature_2m"].round(2)
+    df["precipitation"] = df["precipitation"].round(2)
     df["cloud_cover"] = df["cloud_cover"].round(0).astype(int)
-    df["wind_speed_10m"] = df["wind_speed_10m"].round(1)
+    df["wind_speed_10m"] = df["wind_speed_10m"].round(2)
     
     return df
 
@@ -354,17 +354,17 @@ def prepare_table_display(hourly_df: pd.DataFrame, target_date: datetime.date = 
     table_df["🕐 Uhrzeit"] = table_df["🕐 Uhrzeit"].dt.strftime("%H:%M")
     
     # Runde Temperaturwerte auf 1 Dezimalstelle
-    table_df["🌡️ Temp. (°C)"] = table_df["🌡️ Temp. (°C)"].round(1)
-    table_df["🥵 Gefühlt (°C)"] = table_df["🥵 Gefühlt (°C)"].round(1)
+    table_df["🌡️ Temp. (°C)"] = table_df["🌡️ Temp. (°C)"].round(2)
+    table_df["🥵 Gefühlt (°C)"] = table_df["🥵 Gefühlt (°C)"].round(2)
     
     # Runde Prozent-Werte auf ganze Zahlen
     table_df["💧 Feuchte (%)"] = table_df["💧 Feuchte (%)"].round(0).astype(int)
     table_df["☁️ Bewölkung (%)"] = table_df["☁️ Bewölkung (%)"].round(0).astype(int)
     
     # Runde Niederschlag und Wind auf 1 Dezimalstelle
-    table_df["🌧️ Niederschlag (mm)"] = table_df["🌧️ Niederschlag (mm)"].round(1)
-    table_df["🌬️ Wind (km/h)"] = table_df["🌬️ Wind (km/h)"].round(1)
-    table_df["💨 Böen (km/h)"] = table_df["💨 Böen (km/h)"].round(1)
+    table_df["🌧️ Niederschlag (mm)"] = table_df["🌧️ Niederschlag (mm)"].round(2)
+    table_df["🌬️ Wind (km/h)"] = table_df["🌬️ Wind (km/h)"].round(2)
+    table_df["💨 Böen (km/h)"] = table_df["💨 Böen (km/h)"].round(2)
     
     return table_df
 
@@ -389,8 +389,8 @@ def prepare_temperature_chart(hourly_df: pd.DataFrame, target_date: datetime.dat
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Absolute Temperatur (°C)"] = chart_df["temperature_2m"].round(1)
-    chart_df["Temperaturveränderung (°C)"] = chart_df["temp_change"].round(1)
+    chart_df["Absolute Temperatur (°C)"] = chart_df["temperature_2m"].round(2)
+    chart_df["Temperaturveränderung (°C)"] = chart_df["temp_change"].round(2)
     
     return chart_df
 
@@ -437,8 +437,8 @@ def prepare_precipitation_chart(hourly_df: pd.DataFrame, target_date: datetime.d
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Regen (mm)"] = chart_df["rain"].round(1)
-    chart_df["Schauer (mm)"] = chart_df["showers"].round(1)
+    chart_df["Regen (mm)"] = chart_df["rain"].round(2)
+    chart_df["Schauer (mm)"] = chart_df["showers"].round(2)
     
     return chart_df
 
@@ -482,8 +482,8 @@ def prepare_wind_chart(hourly_df: pd.DataFrame, target_date: datetime.date = Non
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Wind (km/h)"] = chart_df["wind_speed_10m"].round(1)
-    chart_df["Böen (km/h)"] = chart_df["wind_gusts_10m"].round(1)
+    chart_df["Wind (km/h)"] = chart_df["wind_speed_10m"].round(2)
+    chart_df["Böen (km/h)"] = chart_df["wind_gusts_10m"].round(2)
     
     return chart_df
 
@@ -568,7 +568,7 @@ def prepare_snow_chart(hourly_df: pd.DataFrame, target_date: datetime.date = Non
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Schneefall (cm)"] = chart_df["snowfall"].round(1)
+    chart_df["Schneefall (cm)"] = chart_df["snowfall"].round(2)
     
     return chart_df
 
