@@ -454,10 +454,16 @@ if tab_forecast is not None:
 # ===== FOOTER =====
 st.markdown("---")
 
+# Links zu anderen Seiten
+col1, col2, col3 = st.columns([1, 2, 1])
+with col1:
+    st.page_link("pages/1_Impressum.py", label="📋 Impressum", icon="📋")
+with col3:
+    st.page_link("pages/2_Datenschutz.py", label="🔒 Datenschutz", icon="🔒")
+
 st.markdown("""
-<div style="text-align: center; color: gray; font-size: 11px; margin-top: 10px;">
+<div style="text-align: center; color: gray; font-size: 11px; margin-top: 20px;">
     <p>🌤️ Schulprojekt | Powered by Open-Meteo API & Streamlit</p>
     <p>Aktualisiert: {}</p>
-    <p>Weitere Seiten: Impressum & Datenschutz in der linken Sidebar</p>
 </div>
 """.format(datetime.now().strftime("%d.%m.%Y %H:%M:%S")), unsafe_allow_html=True)

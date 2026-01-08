@@ -198,15 +198,10 @@ Diese Datenschutzerklärung basiert auf:
 
 ---
 
-*Letzte Aktualisierung: Januar 2026*
-*Version: 1.0*
+*Letzte Aktualisierung: Januar 2026*  
+*Version: 1.0*  
 *Status: Schulprojekt*
 """)
 
 st.markdown("---")
-
-st.markdown("""
-<div style="text-align: center; color: gray; font-size: 12px; margin-top: 20px;">
-    <p>Navigation: Wählen Sie eine Seite in der linken Sidebar oder kehren Sie zur Wetterkarte zurück</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("Navigation: Nutzen Sie die Sidebar oder die Links auf der Startseite")
