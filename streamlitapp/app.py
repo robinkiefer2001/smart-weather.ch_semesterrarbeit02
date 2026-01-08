@@ -335,36 +335,37 @@ if tab_detail is not None:
                 st.write("**📈 Diagramme & Verlauf:**")
                 
                 if hourly_df is not None:
-                    daily_hourly = hourly_df[hourly_df['time'].dt.date == selected_date.date()].copy()
+                    # Prepare chart data für alle Charts (übergebe den gesamten hourly_df)
+                    temp_chart_df = prepare_temperature_chart(hourly_df, selected_date.date())
+                    precip_chart_df = prepare_precipitation_chart(hourly_df, selected_date.date())
+                    wind_chart_df = prepare_wind_chart(hourly_df, selected_date.date())
+                    cloud_chart_df = prepare_cloud_chart(hourly_df, selected_date.date())
                     
-                    if not daily_hourly.empty:
-                        # Berechne Statistiken
-                        temp_stats = calculate_temperature_stats(daily_hourly, selected_date.date())
-                        precip_stats = calculate_precipitation_stats(daily_hourly, selected_date.date())
-                        wind_stats = calculate_wind_stats(daily_hourly, selected_date.date())
-                        cloud_stats = calculate_cloud_stats(daily_hourly, selected_date.date())
-                        
-                        chart_col1, chart_col2 = st.columns(2)
-                        
-                        with chart_col1:
-                            st.subheader("🌡️ Temperaturverlauf")
-                            display_temperature_chart(daily_hourly, temp_stats)
-                        
-                        with chart_col2:
-                            st.subheader("💧 Niederschlag & Feuchte")
-                            display_precipitation_chart(daily_hourly, precip_stats)
-                        
-                        chart_col3, chart_col4 = st.columns(2)
-                        
-                        with chart_col3:
-                            st.subheader("💨 Windgeschwindigkeit")
-                            display_wind_chart(daily_hourly, wind_stats)
-                        
-                        with chart_col4:
-                            st.subheader("☁️ Wolkenbedeckung")
-                            display_cloud_chart(daily_hourly, cloud_stats)
-                    else:
-                        st.info("Keine stündlichen Daten für diesen Tag verfügbar.")
+                    # Berechne Statistiken (übergebe den gesamten hourly_df)
+                    temp_stats = calculate_temperature_stats(hourly_df, selected_date.date())
+                    precip_stats = calculate_precipitation_stats(hourly_df, selected_date.date())
+                    wind_stats = calculate_wind_stats(hourly_df, selected_date.date())
+                    cloud_stats = calculate_cloud_stats(hourly_df, selected_date.date())
+                    
+                    chart_col1, chart_col2 = st.columns(2)
+                    
+                    with chart_col1:
+                        st.subheader("🌡️ Temperaturverlauf")
+                        display_temperature_chart(temp_chart_df, temp_stats)
+                    
+                    with chart_col2:
+                        st.subheader("💧 Niederschlag & Feuchte")
+                        display_precipitation_chart(precip_chart_df, precip_stats)
+                    
+                    chart_col3, chart_col4 = st.columns(2)
+                    
+                    with chart_col3:
+                        st.subheader("💨 Windgeschwindigkeit")
+                        display_wind_chart(wind_chart_df, wind_stats)
+                    
+                    with chart_col4:
+                        st.subheader("☁️ Wolkenbedeckung")
+                        display_cloud_chart(cloud_chart_df, cloud_stats)
                 else:
                     st.warning("Stündliche Daten nicht verfügbar.")
             else:

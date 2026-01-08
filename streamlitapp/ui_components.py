@@ -45,11 +45,11 @@ def display_hourly_overview(hourly_df: pd.DataFrame):
     
     # Zeige ausgewählte Spalten mit konfigurierten Spaltenüberschriften
     st.dataframe(
-        hourly_df[["time", "short", "cloud_cover", "temperature_2m", "precipitation", "wind_speed_10m"]],
+        hourly_df[["time_formatted", "short", "cloud_cover", "temperature_2m", "precipitation", "wind_speed_10m"]],
         use_container_width=True,
         hide_index=True,
         column_config={
-            "time": st.column_config.TextColumn("🕐 Uhrzeit", width="small"),
+            "time_formatted": st.column_config.TextColumn("🕐 Uhrzeit", width="small"),
             "short": st.column_config.TextColumn("☁️ Wetter", width="small"),
             "cloud_cover": st.column_config.NumberColumn("☁️ Bewölkung (%)", width="small"),
             "temperature_2m": st.column_config.NumberColumn("🌡️ Temp. (°C)", width="small", format="%.2f"),

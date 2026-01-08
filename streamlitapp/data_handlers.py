@@ -303,10 +303,10 @@ def prepare_hourly_overview(hourly_df: pd.DataFrame, target_date: datetime.date 
         DataFrame mit zusätzlichen Spalten für Anzeige
     """
     # Filtere Daten für das Zieldatum
-    df = filter_today_data(hourly_df, target_date)
+    df = filter_today_data(hourly_df, target_date).copy()
     
-    # Formatiere Uhrzeit als HH:MM String
-    df["time"] = df["time"].dt.strftime("%H:%M")
+    # Formatiere Uhrzeit als HH:MM String (für Übersicht) - speichere in neuer Spalte
+    df["time_formatted"] = df["time"].dt.strftime("%H:%M")
     
     # Erstelle Wetter-Icons und Beschreibungen
     df["icon"] = df["weather_code"].apply(weather_icon)
