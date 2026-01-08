@@ -126,11 +126,11 @@ def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.Data
     })
     
     # Runde numerische Spalten konsistent
-    daily_df["temperature_2m_max"] = daily_df["temperature_2m_max"].round(2)
-    daily_df["temperature_2m_min"] = daily_df["temperature_2m_min"].round(2)
-    daily_df["apparent_temperature_max"] = daily_df["apparent_temperature_max"].round(2)
-    daily_df["apparent_temperature_min"] = daily_df["apparent_temperature_min"].round(2)
-    daily_df["precipitation_sum"] = daily_df["precipitation_sum"].round(2)
-    daily_df["sunshine_duration"] = daily_df["sunshine_duration"].round(2)
+    daily_df["temperature_2m_max"] = daily_df["temperature_2m_max"].astype(float).round(2)
+    daily_df["temperature_2m_min"] = daily_df["temperature_2m_min"].astype(float).round(2)
+    daily_df["apparent_temperature_max"] = daily_df["apparent_temperature_max"].astype(float).round(2)
+    daily_df["apparent_temperature_min"] = daily_df["apparent_temperature_min"].astype(float).round(2)
+    daily_df["precipitation_sum"] = daily_df["precipitation_sum"].astype(float).round(2)
+    daily_df["sunshine_duration"] = daily_df["sunshine_duration"].astype(float).round(2)
 
     return current_data, hourly_df, daily_df

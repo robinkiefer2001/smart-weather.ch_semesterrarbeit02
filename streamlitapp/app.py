@@ -93,6 +93,10 @@ if 'selected_location' not in st.session_state:
     st.session_state.selected_location = None
 if 'selected_day_offset' not in st.session_state:
     st.session_state.selected_day_offset = 0
+if 'cached_location_coords' not in st.session_state:
+    st.session_state.cached_location_coords = None  # Caching: (latitude, longitude)
+if 'map_data_cache' not in st.session_state:
+    st.session_state.map_data_cache = None
 
 # ===== INITIALIZATION AT START =====
 if st.session_state.weather_data is None:
@@ -137,8 +141,8 @@ with tab_map:
     search_col1, search_col2 = st.columns([3, 1])
     with search_col1:
         search_query = st.text_input(
-            "🔍 Ort suchen (Stadt, Region):",
-            placeholder="z.B. 'Bern', 'Zürich', 'Genf'",
+            label="",
+            placeholder="🔍 Ort suchen (z.B. 'Bern', 'Zürich', 'Genf')",
             key="location_search"
         )
     
@@ -154,16 +158,22 @@ with tab_map:
                 st.success(f"✅ Ort '{search_query}' gefunden!")
                 st.session_state.selected_location = (search_query, latitude, longitude)
                 
-                try:
-                    current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
-                    st.session_state.weather_data = {
-                        'current': current_data,
-                        'hourly_df': hourly_df,
-                        'daily_df': daily_df
-                    }
-                    st.session_state.selected_day_offset = 0  # Zurücksetzen auf Tag 0
-                except Exception as e:
-                    st.error(f"Fehler: {e}")
+                # Prüfe Cache: nur neu laden wenn andere Koordinaten
+                if st.session_state.cached_location_coords != (latitude, longitude):
+                    try:
+                        with st.spinner("📡 Lade Wetterdaten..."):
+                            current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
+                            st.session_state.weather_data = {
+                                'current': current_data,
+                                'hourly_df': hourly_df,
+                                'daily_df': daily_df
+                            }
+                            st.session_state.cached_location_coords = (latitude, longitude)
+                            st.session_state.selected_day_offset = 0
+                    except Exception as e:
+                        st.error(f"Fehler: {e}")
+                else:
+                    st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
             else:
                 st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
     
@@ -432,9 +442,9 @@ if tab_forecast is not None:
                 forecast_display = daily_df.head(14).copy()
                 forecast_display['Datum'] = forecast_display['date'].apply(lambda d: format_date_german(d, 'long'))
                 
-                # Wetter-Beschreibung (aus data_handlers)
+                # Wetter-Symbol und Beschreibung (aus data_handlers)
                 forecast_display['Wetter'] = forecast_display['weather_code'].apply(
-                    lambda code: weather_description(int(code))
+                    lambda code: f"{weather_icon(int(code))} {weather_description(int(code))}"
                 )
                 
                 forecast_display['Max °C'] = forecast_display['temperature_2m_max'].round(2)
