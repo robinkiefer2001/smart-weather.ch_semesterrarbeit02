@@ -64,6 +64,24 @@ def get_weather_color(weather_code: int) -> str:
     else: return "#808080"
 
 
+def get_temperature_color(temperature: float) -> str:
+    """Temperaturbasierte Farbcodierung wie MeteoSwiss."""
+    if isinstance(temperature, str) or temperature is None:
+        return "#999999"  # Grau für keine Daten
+    try:
+        temp = float(temperature)
+        if temp < -20: return "#003399"  # Dunkelblau - sehr kalt
+        elif temp < -10: return "#0066cc"  # Blau - kalt
+        elif temp < 0: return "#0099ff"  # Hellblau - kühl
+        elif temp < 5: return "#00ff00"  # Grün - mild
+        elif temp < 10: return "#ffff00"  # Gelb - warm
+        elif temp < 15: return "#ff9900"  # Orange - wärmer
+        elif temp < 20: return "#ff6600"  # Dunkelorange - heiß
+        else: return "#cc0000"  # Rot - sehr heiß
+    except:
+        return "#999999"
+
+
 def fetch_city_weather_data() -> list:
     """
     Holt Wetterdaten für alle 12 Städte mit Rate-Limiting.
@@ -168,7 +186,8 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     # Erstelle Marker-Daten als JavaScript Array
     markers_code = "var markers = [\n"
     for i, city in enumerate(cities_weather):
-        color = get_weather_color(city["weather_code"])
+        # Nutze temperaturbasierte Farbe statt Wetterkode
+        color = get_temperature_color(city["temperature"])
         temp_str = str(city["temperature"]) if city["temperature"] != "--" else "--"
         emoji = city["weather_emoji"]
         
@@ -382,9 +401,13 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
           maxZoom: 19,
           minZoom: 7,
           attribution: '&copy; OpenStreetMap contributors',
-          crossOrigin: true
+          crossOrigin: true,
+          className: 'map-tiles'
         }
       ).addTo(map);
+
+      // Dunkler Hintergrund für besseren Kontrast
+      map.getPane('mapPane').style.filter = 'brightness(0.95) saturate(1.1)';
 
       // Swiss Meteo Radar Overlay - Live Niederschlagsdaten
       var radarLayer = L.tileLayer(
@@ -418,8 +441,8 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
       // Zeichne alle Marker mit optimiertem Design
       markers.forEach(function(markerData) {
         var isSearch = markerData.type === 'search';
-        var markerSize = isSearch ? 50 : 44;
-        var fontSize = isSearch ? '28px' : '24px';
+        var markerSize = isSearch ? 60 : 50;  // Größere Marker
+        var fontSize = isSearch ? '32px' : '28px';
         
         // Erstelle Custom Marker mit Temperatur-Badge
         var tempStr = markerData.temp || '--';
