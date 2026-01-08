@@ -135,7 +135,7 @@ def weather_icon(weather_code: int) -> str:
         98: "⛈️",    # Gewitter mit Sandsturm
         99: "⛈️",    # Starkes Gewitter mit Hagel
     }
-    return weather_icons.get(weather_code, "❓")
+    return weather_icons.get(weather_code, "🌤️")  # Fallback zu schönem Wetter
 
 
 def weather_description(weather_code: int) -> str:

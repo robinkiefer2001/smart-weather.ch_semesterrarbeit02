@@ -119,6 +119,8 @@ def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.Data
         "weather_code": daily.Variables(0).ValuesAsNumpy(),
         "temperature_2m_max": daily.Variables(1).ValuesAsNumpy(),
         "temperature_2m_min": daily.Variables(2).ValuesAsNumpy(),
+        "apparent_temperature_max": daily.Variables(3).ValuesAsNumpy(),
+        "apparent_temperature_min": daily.Variables(4).ValuesAsNumpy(),
         "precipitation_sum": daily.Variables(14).ValuesAsNumpy(),
         "sunshine_duration": daily.Variables(8).ValuesAsNumpy(),
     })
@@ -126,6 +128,8 @@ def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.Data
     # Runde numerische Spalten konsistent
     daily_df["temperature_2m_max"] = daily_df["temperature_2m_max"].round(2)
     daily_df["temperature_2m_min"] = daily_df["temperature_2m_min"].round(2)
+    daily_df["apparent_temperature_max"] = daily_df["apparent_temperature_max"].round(2)
+    daily_df["apparent_temperature_min"] = daily_df["apparent_temperature_min"].round(2)
     daily_df["precipitation_sum"] = daily_df["precipitation_sum"].round(2)
     daily_df["sunshine_duration"] = daily_df["sunshine_duration"].round(2)
 

@@ -39,7 +39,7 @@ from data_handlers import (
     prepare_hourly_overview, prepare_temperature_chart, prepare_precipitation_chart,
     prepare_wind_chart, prepare_cloud_chart, prepare_snow_chart,
     calculate_temperature_stats, calculate_precipitation_stats,
-    calculate_wind_stats, calculate_cloud_stats, weather_description, weather_icon
+    calculate_wind_stats, calculate_cloud_stats, calculate_snow_stats, weather_description, weather_icon
 )
 from ui_components import (
     display_current_metrics, display_hourly_overview, display_temperature_chart,
@@ -246,6 +246,10 @@ if tab_calendar is not None:
                         weather_code = int(row.get('weather_code', 0))
                         emoji = weather_icon(weather_code)
                         
+                        # Fallback wenn emoji leer ist
+                        if not emoji:
+                            emoji = "🌤️"
+                        
                         # Hintergrundfarbe je nach Temperatur (Blau-Weiss-Gelb Schema)
                         if isinstance(temp_max, (int, float)):
                             if temp_max < 0:
@@ -280,7 +284,7 @@ if tab_calendar is not None:
                             transition: all 0.3s ease;
                         ">
                             <small style="font-weight: bold;">{date_str}</small><br>
-                            <h2 style="margin: 8px 0;">{emoji}</h2>
+                            <div style="font-size: 32px; margin: 8px 0;">{emoji}</div>
                             <small><strong>↑ {temp_max_str}°</strong></small><br>
                             <small>↓ {temp_min_str}°</small><br>
                             <small>💧 {precip_str}mm</small>
@@ -313,7 +317,7 @@ if tab_detail is not None:
                 st.markdown(f"### {format_date_german(selected_date, 'long_full')}")
                 
                 # Detaillierte Metriken
-                metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+                metric_col1, metric_col2, metric_col3, metric_col4, metric_col5 = st.columns(5)
                 
                 with metric_col1:
                     max_temp = selected_row.get('temperature_2m_max', '--')
@@ -328,12 +332,18 @@ if tab_detail is not None:
                     st.metric("❄️ Min Temperatur", f"{min_temp}°C")
                 
                 with metric_col3:
-                    st.metric(
-                        "💧 Niederschlag",
-                        f"{selected_row.get('precipitation_sum', 0):.2f} mm"
-                    )
+                    app_max_temp = selected_row.get('apparent_temperature_max', '--')
+                    if isinstance(app_max_temp, (int, float)):
+                        app_max_temp = f"{app_max_temp:.2f}"
+                    st.metric("🌡️ Gefühlte Max", f"{app_max_temp}°C")
                 
                 with metric_col4:
+                    app_min_temp = selected_row.get('apparent_temperature_min', '--')
+                    if isinstance(app_min_temp, (int, float)):
+                        app_min_temp = f"{app_min_temp:.2f}"
+                    st.metric("❄️ Gefühlte Min", f"{app_min_temp}°C")
+                
+                with metric_col5:
                     st.metric(
                         "☀️ Sonnenschein",
                         f"{selected_row.get('sunshine_duration', '--')}"
@@ -353,7 +363,7 @@ if tab_detail is not None:
                 
                 st.markdown("---")
                 
-                # Grafiken
+                # Grafiken in Tabs
                 st.write("**📈 Diagramme & Verlauf:**")
                 
                 if hourly_df is not None:
@@ -362,32 +372,43 @@ if tab_detail is not None:
                     precip_chart_df = prepare_precipitation_chart(hourly_df, selected_date.date())
                     wind_chart_df = prepare_wind_chart(hourly_df, selected_date.date())
                     cloud_chart_df = prepare_cloud_chart(hourly_df, selected_date.date())
+                    snow_chart_df = prepare_snow_chart(hourly_df, selected_date.date())
                     
                     # Berechne Statistiken (übergebe den gesamten hourly_df)
                     temp_stats = calculate_temperature_stats(hourly_df, selected_date.date())
                     precip_stats = calculate_precipitation_stats(hourly_df, selected_date.date())
                     wind_stats = calculate_wind_stats(hourly_df, selected_date.date())
                     cloud_stats = calculate_cloud_stats(hourly_df, selected_date.date())
+                    snow_stats = calculate_snow_stats(hourly_df, selected_date.date())
                     
-                    chart_col1, chart_col2 = st.columns(2)
+                    # Tabs für Diagramme
+                    tab_temp, tab_precip, tab_wind, tab_cloud, tab_snow = st.tabs([
+                        "🌡️ Temperatur",
+                        "💧 Niederschlag",
+                        "💨 Wind",
+                        "☁️ Bewölkung",
+                        "❄️ Schnee"
+                    ])
                     
-                    with chart_col1:
+                    with tab_temp:
                         st.subheader("🌡️ Temperaturverlauf")
                         display_temperature_chart(temp_chart_df, temp_stats)
                     
-                    with chart_col2:
+                    with tab_precip:
                         st.subheader("💧 Niederschlag & Feuchte")
                         display_precipitation_chart(precip_chart_df, precip_stats)
                     
-                    chart_col3, chart_col4 = st.columns(2)
-                    
-                    with chart_col3:
+                    with tab_wind:
                         st.subheader("💨 Windgeschwindigkeit")
                         display_wind_chart(wind_chart_df, wind_stats)
                     
-                    with chart_col4:
+                    with tab_cloud:
                         st.subheader("☁️ Wolkenbedeckung")
                         display_cloud_chart(cloud_chart_df, cloud_stats)
+                    
+                    with tab_snow:
+                        st.subheader("❄️ Schneefall")
+                        display_snow_chart(snow_chart_df, snow_stats)
                 else:
                     st.warning("Stündliche Daten nicht verfügbar.")
             else:
@@ -437,9 +458,6 @@ st.markdown("""
 <div style="text-align: center; color: gray; font-size: 11px; margin-top: 10px;">
     <p>🌤️ Schulprojekt | Powered by Open-Meteo API & Streamlit</p>
     <p>Aktualisiert: {}</p>
-    <p>
-        <a href="pages/1_Impressum" style="color: #3b82f6; text-decoration: none;">📋 Impressum</a> • 
-        <a href="pages/2_Datenschutz" style="color: #3b82f6; text-decoration: none;">🔒 Datenschutz</a>
-    </p>
+    <p>Weitere Seiten: Impressum & Datenschutz in der linken Sidebar</p>
 </div>
 """.format(datetime.now().strftime("%d.%m.%Y %H:%M:%S")), unsafe_allow_html=True)

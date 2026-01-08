@@ -3,88 +3,210 @@ import streamlit as st
 st.set_page_config(
     page_title="Datenschutz - Smart Weather Switzerland",
     page_icon="🔒",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
-st.title("🔒 Datenschutz")
+st.title("🔒 Datenschutzerklärung")
 
 st.markdown("""
-## Datenschutzerklärung
+## Datenschutzerklärung für Smart Weather Switzerland
 
-### 1. Verantwortliche Person
-**Robin Kiefer**
-Schulprojekt für Wettervorhersage
+### 1. Verantwortliche Person und Kontakt
 
----
+**Verantwortliche Person für Datenschutz:**
+- Name: Robin Kiefer
+- Funktion: Projektleiter
+- Projekttyp: Schulprojekt / Semesterarbeit
+- Zweck: Bildungszwecke
 
-### 2. Allgemeine Informationen zur Datenschutz
-
-Diese Webseite ist ein Schulprojekt und sammelt **keine persönlichen Daten** von Besuchern.
-
----
-
-### 3. Was wir NICHT sammeln
-
-- ❌ Keine IP-Adressen
-- ❌ Keine Cookies
-- ❌ Keine Nutzer-IDs
-- ❌ Keine Standortdaten von Geräten
-- ❌ Keine Browserdaten
-- ❌ Keine Suchverlauf
-- ❌ Keine E-Mail-Adressen
+**Hinweis:** Dieses Projekt ist ein Schulprojekt ohne kommerzielle Absicht. Es unterliegt den geltenden Datenschutzbestimmungen der Schweiz.
 
 ---
 
-### 4. Verwendete externe Dienste
+### 2. Allgemeine Datenschutzpolitik
 
-#### Open-Meteo API
-- **Zweck**: Wetterdaten abrufen
-- **Datenschutz**: [open-meteo.com/en/privacy](https://open-meteo.com/en/privacy)
+**Kernprinzip:** Diese Webseite sammelt **KEINE persönlichen Daten** von Besuchern.
+
+Das Projekt wurde mit **Datenschutz-by-Design** entwickelt:
+- ✅ Keine Registrierung erforderlich
+- ✅ Keine Benutzerkonten
+- ✅ Keine Datensammlung
+- ✅ Keine Überwachung
+
+---
+
+### 3. Was wir NICHT sammeln und speichern
+
+Wir sammeln **aktiv NICHT**:
+
+| Datentyp | Status |
+|----------|--------|
+| IP-Adressen | ❌ Nicht gesammelt |
+| Browser-Cookies | ❌ Nicht gesetzt |
+| Nutzer-IDs / Session-IDs | ❌ Nicht erstellt |
+| Gerätestandort | ❌ Nicht abgefragt |
+| Browserdaten/User-Agent | ❌ Nicht erfasst |
+| Suchverlauf | ❌ Nicht protokolliert |
+| E-Mail-Adressen | ❌ Nicht gesammelt |
+| Telefonnummern | ❌ Nicht gesammelt |
+| Namen oder persönliche Daten | ❌ Nicht erfasst |
+| Klickverhalten / Analytics | ❌ Nicht verfolgt |
+| Nutzerprofile | ❌ Nicht erstellt |
+
+---
+
+### 4. Verwendete externe Services und deren Datenschutz
+
+Diese Anwendung nutzt folgende externe Services. Hier finden Sie Informationen zu deren Datenschutzpraktiken:
+
+#### 4.1 Open-Meteo API
+- **Zweck**: Abruf von Wetterdaten und Prognosen
 - **Datenübertragung**: Nur geografische Koordinaten (Breitengrad/Längengrad)
+- **Speicherung**: Open-Meteo speichert Anfrageinformationen ggf. für Analysezwecke
+- **Datenschutzrichtlinie**: [open-meteo.com/en/privacy](https://open-meteo.com/en/privacy)
+- **GDPR-Konformität**: Ja
+- **Hinweis**: Das Projekt speichert keine API-Anfragen lokal
 
-#### OpenStreetMap & Leaflet
-- **Zweck**: Kartendarstellung
-- **Datenschutz**: [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright)
-- **Datenübertragung**: Nur sichtbare Kartenausschnitte
+#### 4.2 OpenStreetMap (OSM)
+- **Zweck**: Kartendaten und Darstellung von Geographiedaten
+- **Datenübertragung**: Kartenausschnitt-Koordinaten für Kartentiles
+- **Speicherung**: OSM kann Anfragemuster für Statistiken erfassen
+- **Datenschutzrichtlinie**: [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright)
+- **GDPR-Konformität**: Ja (Community-betrieben, kein Tracking)
 
-#### Swiss Meteo Radar
-- **Zweck**: Wetter-Radarschichten
-- **Datenübertragung**: Anonyme Abfragen
+#### 4.3 Leaflet.js
+- **Zweck**: JavaScript-Bibliothek für Kartenvisualisierung
+- **Datenübertragung**: Keine direkten Datenübertragungen
+- **Speicherung**: Lokal im Browser
+- **Lizenz**: BSD 2-Clause Open Source
+- **Datenschutz**: Keine Datensammlung durch Leaflet
+
+#### 4.4 Streamlit (Hosting-Framework)
+- **Zweck**: Webapplikation-Framework
+- **Datenübertragung**: Abhängig von Deployment-Konfiguration
+- **Speicherung**: Abhängig vom Server (wenn auf Streamlit Cloud gehostet)
+- **Datenschutzrichtlinie**: [streamlit.io/privacy](https://streamlit.io/privacy)
+
+#### 4.5 MeteoSchweiz Radarbilder
+- **Zweck**: Wetter-Radardarstellung
+- **Datenübertragung**: Radarbildabfragen (keine Personendaten)
+- **Speicherung**: Keine Speicherung auf unserem Server
+- **Datenschutz**: [meteo.admin.ch](https://www.meteo.admin.ch)
 
 ---
 
-### 5. Lokale Datenspeicherung
+### 5. Lokale Datenspeicherung (Browser-seitig)
 
-Die Anwendung speichert **lokal auf Ihrem Gerät**:
-- 📍 Zuletzt gesuchte Orte (temporär)
-- 🌡️ Angezeigte Wetterdaten (temporär)
+Die Anwendung speichert **temporär auf Ihrem lokalen Gerät**:
 
-Diese Daten werden:
-- Nicht auf Server übertragen
-- Nicht dauerhaft gespeichert
-- Bei Schliessen der Seite gelöscht
+**Was wird gespeichert:**
+- 📍 Zuletzt gesuchte Orte (im Browser Session Storage)
+- 🌡️ Angezeigte Wetterdaten (im RAM während der Session)
+- 🗺️ Kartenzoom-Level und -Position (Streamlit Session State)
 
----
-
-### 6. Ihre Rechte
-
-Da wir keine persönlichen Daten sammeln, gelten die Datenschutzrechte eingeschränkt. Bei Fragen kontaktieren Sie bitte direkt die verantwortliche Person.
+**Wichtig:**
+- ✅ Diese Daten werden **NICHT auf Server übertragen**
+- ✅ Sie werden **NICHT dauerhaft gespeichert**
+- ✅ Sie werden **beim Schliessen des Browsers gelöscht**
+- ✅ Sie befinden sich in **Ihrem lokalen Speicher**
 
 ---
 
-### 7. Änderungen dieser Datenschutzerklärung
+### 6. Cookies und Tracking
 
-Wir behalten uns das Recht vor, diese Datenschutzerklärung jederzeit zu aktualisieren. Die aktuelle Version ist immer auf dieser Seite verfügbar.
+**Cookies:** ❌ Diese Seite setzt **keine Cookies**.
+
+**Tracking-Technologien:**
+- ❌ Keine Google Analytics
+- ❌ Keine Facebook Pixel
+- ❌ Keine Hotjar oder ähnliche Session-Recording-Tools
+- ❌ Keine Werbenetze oder Tracking-Pixel
+- ❌ Keine Retargeting-Codes
+
+---
+
+### 7. Ihre Rechte bezüglich Datenschutz
+
+Da wir keine persönlichen Daten sammeln, sind klassische Datenschutzrechte (DSGVO Artikel 15-22) teilweise nicht anwendbar. Jedoch haben Sie das Recht:
+
+- **Auskunftsrecht**: Sie können anfragen, welche Daten wir über Sie haben (Antwort: keine)
+- **Recht auf Löschung**: Nicht anwendbar (da keine Daten gespeichert)
+- **Recht auf Berichtigung**: Nicht anwendbar (da keine Daten gespeichert)
+- **Recht auf Datenportabilität**: Nicht anwendbar (da keine Daten gespeichert)
+
+**Bei Fragen zu Ihren Rechten:**
+Kontaktieren Sie bitte direkt die verantwortliche Person: Robin Kiefer
+
+---
+
+### 8. Sicherheit
+
+**Datensicherheit auf Anwendungsebene:**
+- Keine Speicherung von Benutzerdaten auf Servern
+- Keine Datenbanken mit persönlichen Informationen
+- HTTPS-Verschlüsselung (wenn bereitgestellt)
+- Minimale externe API-Abhängigkeiten
+
+**Externe Service-Sicherheit:**
+- Open-Meteo: SSL/TLS-verschlüsselt
+- OpenStreetMap: SSL/TLS-verschlüsselt
+- Streamlit: Abhängig vom Hosting-Provider
+
+---
+
+### 9. Änderungen dieser Datenschutzerklärung
+
+Wir behalten uns das Recht vor, diese Datenschutzerklärung jederzeit zu aktualisieren, um:
+- Neue Features oder Services zu dokumentieren
+- Änderungen in externen Services zu berücksichtigen
+- Gesetzliche Anforderungen zu erfüllen
+
+**Benachrichtigung:** Wichtige Änderungen werden auf dieser Seite angekündigt.
+
+---
+
+### 10. Kontakt und Fragen zum Datenschutz
+
+**Bei Fragen zu dieser Datenschutzerklärung oder zum Datenschutz allgemein:**
+
+- Verantwortliche Person: Robin Kiefer
+- Projekttyp: Schulprojekt
+- Art der Anfrage: Bitte geben Sie an, ob Sie Fragen zum Datenschutz, technische Fragen oder Feedback haben
+
+---
+
+### 11. Rechtliche Grundlagen
+
+Diese Datenschutzerklärung basiert auf:
+- **Bundesgesetz über den Datenschutz (DSG)** - Schweiz
+- **DSGVO** - Europäische Union (für EU-Zugriffe)
+- **Industrielle Best Practices** für Webapplikationen
+
+---
+
+### 12. Zusammenfassung
+
+| Punkt | Antwort |
+|-------|--------|
+| **Sammeln wir Daten?** | ❌ Nein |
+| **Speichern wir Daten?** | ❌ Nein |
+| **Geben wir Daten an Dritte?** | ❌ Nein |
+| **Nutzen wir Cookies?** | ❌ Nein |
+| **Nutzen wir Tracking?** | ❌ Nein |
+| **Ist die App GDPR-konform?** | ✅ Ja |
+| **Ist die App sicher?** | ✅ Ja (keine Datenspeicherung) |
 
 ---
 
 *Letzte Aktualisierung: Januar 2026*
+*Version: 1.0*
+*Status: Schulprojekt*
 """)
 
 st.markdown("---")
+
 st.markdown("""
-<div style="text-align: center; color: gray; font-size: 12px;">
-    <a href="/" style="color: #3b82f6; text-decoration: none;">← Zurück zur Wetterkarte</a>
+<div style="text-align: center; color: gray; font-size: 12px; margin-top: 20px;">
+    <p>Navigation: Wählen Sie eine Seite in der linken Sidebar oder kehren Sie zur Wetterkarte zurück</p>
 </div>
 """, unsafe_allow_html=True)
