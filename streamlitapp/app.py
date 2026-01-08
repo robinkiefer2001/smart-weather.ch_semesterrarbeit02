@@ -241,13 +241,14 @@ if tab_calendar is not None:
                 
                 st.markdown("---")
                 
-                # 7-Tage Kalender mit Wetter-Symbolen
-                st.write("**📅 Nächste 7 Tage:**")
+                # 14-Tage Kalender mit Wetter-Symbolen
+                st.write("**📅 Nächste 14 Tage:**")
                 
-                week_cols = st.columns(7)
-                
-                for idx, (col, (_, row)) in enumerate(zip(week_cols, daily_df.head(7).iterrows())):
-                    with col:
+                for day_row in range(2):
+                    week_cols = st.columns(7)
+                    
+                    for idx, (col, (_, row)) in enumerate(zip(week_cols, daily_df.iloc[day_row*7:(day_row+1)*7].iterrows())):
+                        with col:
                         date = row['date']
                         date_str = format_date_german(date, 'short')
                         temp_max = row.get('temperature_2m_max', '--')
@@ -275,8 +276,9 @@ if tab_calendar is not None:
                         else:
                             bg_color = "#f5f5f5"
                         
-                        # Markiere ausgewählten Tag
-                        border = "2px solid #3b82f6" if idx == st.session_state.selected_day_offset else "1px solid #e5e7eb"
+                        # Markiere ausgewählten Tag (berechne absolute Position)
+                        absolute_idx = day_row * 7 + idx
+                        border = "2px solid #3b82f6" if absolute_idx == st.session_state.selected_day_offset else "1px solid #e5e7eb"
                         
                         # Klickbare Karte für Tag
                         temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
@@ -438,8 +440,23 @@ if tab_forecast is not None:
             daily_df = st.session_state.weather_data.get('daily_df')
             
             if daily_df is not None and not daily_df.empty:
-                # Prognose-Tabelle
-                forecast_display = daily_df.head(14).copy()
+                # Prognose-Tabelle: 7 Tage zurück + 14 Tage nach vorne
+                daily_df_temp = daily_df.copy()
+                daily_df_temp['date'] = pd.to_datetime(daily_df_temp['date']).dt.normalize()
+                
+                # Finde Index des heutigen Tages
+                today = pd.Timestamp.now().normalize()
+                today_idx = 0
+                for idx, row in daily_df_temp.iterrows():
+                    if row['date'] == today:
+                        today_idx = idx
+                        break
+                
+                # 7 Tage zurück bis 14 Tage nach vorne
+                start_idx = max(0, today_idx - 7)
+                end_idx = min(len(daily_df_temp), today_idx + 15)
+                
+                forecast_display = daily_df_temp.iloc[start_idx:end_idx].copy()
                 forecast_display['Datum'] = forecast_display['date'].apply(lambda d: format_date_german(d, 'long'))
                 
                 # Wetter-Symbol und Beschreibung (aus data_handlers)
