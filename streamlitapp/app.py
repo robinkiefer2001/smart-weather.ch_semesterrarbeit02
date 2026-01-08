@@ -213,4 +213,3 @@ if st.session_state.weather_data is not None:
         )
         display_snow_chart(snow_chart_df, snow_stats)
 
-
