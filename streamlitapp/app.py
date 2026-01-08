@@ -344,9 +344,12 @@ if tab_detail is not None:
                     st.metric("❄️ Gefühlte Min", f"{app_min_temp}°C")
                 
                 with metric_col5:
+                    sunshine = selected_row.get('sunshine_duration', '--')
+                    if isinstance(sunshine, (int, float)):
+                        sunshine = f"{sunshine:.2f}"
                     st.metric(
                         "☀️ Sonnenschein",
-                        f"{selected_row.get('sunshine_duration', '--')}"
+                        f"{sunshine}"
                     )
                 
                 st.markdown("---")
@@ -459,8 +462,8 @@ st.markdown("""
     <p>🌤️ Schulprojekt | Powered by Open-Meteo API & Streamlit</p>
     <p>Aktualisiert: {}</p>
     <p style="margin-top: 10px;">
-        📋 <strong>Impressum</strong> | 🔒 <strong>Datenschutz</strong> | 
-        <em>(In der Sidebar verfügbar)</em>
+        <a href="?page=1_Impressum" style="color: #3b82f6; text-decoration: none; cursor: pointer;">📋 Impressum</a> | 
+        <a href="?page=2_Datenschutz" style="color: #3b82f6; text-decoration: none; cursor: pointer;">🔒 Datenschutz</a>
     </p>
 </div>
 """.format(datetime.now().strftime("%d.%m.%Y %H:%M:%S")), unsafe_allow_html=True)
