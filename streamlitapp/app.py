@@ -249,63 +249,63 @@ if tab_calendar is not None:
                     
                     for idx, (col, (_, row)) in enumerate(zip(week_cols, daily_df.iloc[day_row*7:(day_row+1)*7].iterrows())):
                         with col:
-                        date = row['date']
-                        date_str = format_date_german(date, 'short')
-                        temp_max = row.get('temperature_2m_max', '--')
-                        temp_min = row.get('temperature_2m_min', '--')
-                        precip = row.get('precipitation_sum', 0)
-                        weather_code = int(row.get('weather_code', 0))
-                        emoji = weather_icon(weather_code)
-                        
-                        # Fallback wenn emoji leer ist
-                        if not emoji:
-                            emoji = "🌤️"
-                        
-                        # Hintergrundfarbe je nach Temperatur (Blau-Weiss-Gelb Schema)
-                        if isinstance(temp_max, (int, float)):
-                            if temp_max < 0:
-                                bg_color = "#eff6ff"  # Sehr helles Blau
-                            elif temp_max < 5:
-                                bg_color = "#f9fafb"  # Weiss-Grau
-                            elif temp_max < 10:
-                                bg_color = "#fffbeb"  # Sehr helles Gelb
-                            elif temp_max < 15:
-                                bg_color = "#fef9e7"  # Helles Gelb
+                            date = row['date']
+                            date_str = format_date_german(date, 'short')
+                            temp_max = row.get('temperature_2m_max', '--')
+                            temp_min = row.get('temperature_2m_min', '--')
+                            precip = row.get('precipitation_sum', 0)
+                            weather_code = int(row.get('weather_code', 0))
+                            emoji = weather_icon(weather_code)
+                            
+                            # Fallback wenn emoji leer ist
+                            if not emoji:
+                                emoji = "🌤️"
+                            
+                            # Hintergrundfarbe je nach Temperatur (Blau-Weiss-Gelb Schema)
+                            if isinstance(temp_max, (int, float)):
+                                if temp_max < 0:
+                                    bg_color = "#eff6ff"  # Sehr helles Blau
+                                elif temp_max < 5:
+                                    bg_color = "#f9fafb"  # Weiss-Grau
+                                elif temp_max < 10:
+                                    bg_color = "#fffbeb"  # Sehr helles Gelb
+                                elif temp_max < 15:
+                                    bg_color = "#fef9e7"  # Helles Gelb
+                                else:
+                                    bg_color = "#fef3c7"  # Sanftes Gelb
                             else:
-                                bg_color = "#fef3c7"  # Sanftes Gelb
-                        else:
-                            bg_color = "#f5f5f5"
-                        
-                        # Markiere ausgewählten Tag (berechne absolute Position)
-                        absolute_idx = day_row * 7 + idx
-                        border = "2px solid #3b82f6" if absolute_idx == st.session_state.selected_day_offset else "1px solid #e5e7eb"
-                        
-                        # Klickbare Karte für Tag
-                        temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
-                        temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.2f}'
-                        precip_str = f'{precip:.2f}'
-                        
-                        st.markdown(f"""
-                        <div style="
-                            background: {bg_color};
-                            border: {border};
-                            padding: 12px;
-                            border-radius: 8px;
-                            text-align: center;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        ">
-                            <small style="font-weight: bold;">{date_str}</small><br>
-                            <div style="font-size: 32px; margin: 8px 0;">{emoji}</div>
-                            <small><strong>↑ {temp_max_str}°</strong></small><br>
-                            <small>↓ {temp_min_str}°</small><br>
-                            <small>💧 {precip_str}mm</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        if st.button("📌 Wählen", key=f"day_select_{idx}", use_container_width=True):
-                            st.session_state.selected_day_offset = idx
-                            st.rerun()
+                                bg_color = "#f5f5f5"
+                            
+                            # Markiere ausgewählten Tag (berechne absolute Position)
+                            absolute_idx = day_row * 7 + idx
+                            border = "2px solid #3b82f6" if absolute_idx == st.session_state.selected_day_offset else "1px solid #e5e7eb"
+                            
+                            # Klickbare Karte für Tag
+                            temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
+                            temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.2f}'
+                            precip_str = f'{precip:.2f}'
+                            
+                            st.markdown(f"""
+                            <div style="
+                                background: {bg_color};
+                                border: {border};
+                                padding: 12px;
+                                border-radius: 8px;
+                                text-align: center;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">
+                                <small style="font-weight: bold;">{date_str}</small><br>
+                                <div style="font-size: 32px; margin: 8px 0;">{emoji}</div>
+                                <small><strong>↑ {temp_max_str}°</strong></small><br>
+                                <small>↓ {temp_min_str}°</small><br>
+                                <small>💧 {precip_str}mm</small>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            if st.button("📌 Wählen", key=f"day_select_{day_row}_{idx}", use_container_width=True):
+                                st.session_state.selected_day_offset = absolute_idx
+                                st.rerun()
             else:
                 st.warning("⚠️ Keine Wetterdaten für Kalender verfügbar.")
         else:
