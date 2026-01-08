@@ -101,6 +101,48 @@ with metrics_col_right:
         key="smartweather_calendar",
     )
 
+# ===== WETTER-KARTE MIT HAUPTSTÄDTEN =====
+st.divider()
+st.subheader("🗺️ Wetter-Übersicht der Schweiz")
+st.write("Interaktive Karte mit aktuellen Temperaturen und Wetterbedingungen in den wichtigsten Schweizer Städten")
+
+# Kartenlegende in einer ausziehbaren Spalte
+with st.expander("📋 Kartenlegende anzeigen"):
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.write("""
+        **Farbcodierung:**
+        - ☀️ **Gold** = Sonnig
+        - 🔵 **Blau** = Bewölkt
+        - ⛅ **Grau** = Bedeckt
+        """)
+    
+    with col2:
+        st.write("""
+        - 🌫️ **Dunkelgrau** = Nebel
+        - 💧 **Royal Blau** = Regen
+        - ❄️ **Hellblau** = Schnee
+        """)
+    
+    with col3:
+        st.write("""
+        - 🔴 **Rot** = Gewitter
+        
+        **Interaktion:**
+        - Klicke auf einen Ort für Details
+        - Zoom und Pan mit Maus
+        """)
+
+# Karte in voller Breite
+display_weather_map(show_loading=True, map_height=500)
+
+# Refresh Button
+col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 8])
+with col_btn1:
+    if st.button("🔄 Karte aktualisieren", key="map_refresh"):
+        st.rerun()
+
 # ===== TABELLE + TEMPERATUR CHART =====
 table_col, temp_chart_col = st.columns([1, 1], gap="small")
 
@@ -171,99 +213,4 @@ if st.session_state.weather_data is not None:
         )
         display_snow_chart(snow_chart_df, snow_stats)
 
-
-# ===== WETTER-KARTE MIT HAUPTSTÄDTEN =====
-st.divider()
-st.subheader("🗺️ Wetter-Übersicht der Schweiz")
-st.write("Interaktive Karte mit aktuellen Temperaturen und Wetterbedingungen in den wichtigsten Schweizer Städten")
-
-# Erstelle zwei Spalten - Text links, Karte rechts
-map_desc_col, map_display_col = st.columns([1, 2], gap="small")
-
-with map_desc_col:
-    st.write("""
-    **Kartenlegende:**
-    
-    🔵 **Farbcodierung:**
-    - ☀️ **Gold** = Sonnig
-    - 🔵 **Blau** = Bewölkt
-    - ⛅ **Grau** = Bedeckt
-    - 🌫️ **Dunkelgrau** = Nebel
-    - 💧 **Royal Blau** = Regen
-    - ❄️ **Hellblau** = Schnee
-    - 🔴 **Rot** = Gewitter
-    
-    **Interaktion:**
-    - Klicke auf einen Ort für Details
-    - Zoom und Pan mit Maus
-    - Scrollen zum vergrössern/verkleinern
-    """)
-    
-    # Refresh Button
-    if st.button("🔄 Karte aktualisieren", key="map_refresh"):
-        st.rerun()
-
-with map_display_col:
-    display_weather_map(show_loading=True, map_height=450)
-
-
-#col1, col2 = st.columns([1, 2], border=True, gap="small")
-#with col1:
-#    st.write(
-#        "Am Morgen in den Niederungen gebietsweise Nebel oder "
-#        "Tieflagenbewölkung, lokal auch Hochnebel. Im Laufe des "
-#        "Vormittags allmähliche Auflösung. Tagsüber meist sonnig mit "
-#        "einzelnen hohen Wolkenfeldern. In den Alpen stellenweise "
-#        "Föhnwolken. Am Nachmittag im Westen und Süden vermehrt "
-#        "hochreichende Wolkenfelder. Temperatur am Nachmittag um 20 "
-#        "Grad im Flachland, in den Bergen auf 2000 Metern um 8 Grad. "
-#        "In den Alpen mässiger bis starker Föhnwind, sonst meist "
-#        "leichter bis mässiger Wind aus Südwest bis West."
-#    )
-#with col2:
-#    leaflet_html = """
-#    <div id="map" style="width: 100%; height: 650px;"></div>
-#
-#    <!-- Leaflet CSS & JS -->
-#    <link
-#      rel="stylesheet"
-#      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-#    />
-#    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-#
-#    <script>
-#      // Bounds für Schweiz‑Ausschnitt
-#      var bounds = L.latLngBounds(
-#        L.latLng(45.5, 5.5),   // Süd‑West
-#        L.latLng(48.0, 11.0)   // Nord‑Ost
-#      );
-#
-#      // Karte auf diese Bounds zoomen und begrenzen
-#      var map = L.map('map', {
-#        maxBounds: bounds,
-#        maxBoundsViscosity: 1.0
-#      }).fitBounds(bounds);
-#
-#      // Basiskarte (OSM)
-#      L.tileLayer(
-#        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-#        {
-#          maxZoom: 14,
-#          minZoom: 6
-#        }
-#      ).addTo(map);
-#
-#      // Optional: nur Rahmen statt blauem Overlay
-#      L.rectangle(bounds, {
-#        color: "#00aaff",
-#        weight: 1,
-#        fillOpacity: 0.0     // 0 = kein Blau, nur Linie
-#      }).addTo(map);
-#
-#      // Später kannst du hier deine Meteo‑Daten als Layer hinzufügen,
-#      // z.B. L.imageOverlay(imageUrl, bounds, {opacity: 0.6}).addTo(map);
-#    </script>
-#    """
-#
-#    components.html(leaflet_html, height=700)
 

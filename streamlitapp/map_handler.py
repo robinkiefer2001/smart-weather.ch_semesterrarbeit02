@@ -123,8 +123,7 @@ def fetch_city_weather_data() -> list:
 
 def create_weather_map(cities_weather: list = None, map_height: int = 500) -> str:
     """
-    Erstellt ein Leaflet-HTML-String mit Wetter-Markern.
-    Vereinfachte Version ohne GeoJSON für bessere Performance.
+    Erstellt ein Leaflet-HTML-String mit Wetter-Markern basierend auf dem Original-Template.
     
     Args:
         cities_weather: Liste mit Wetterdaten für Städte
@@ -149,15 +148,14 @@ def create_weather_map(cities_weather: list = None, map_height: int = 500) -> st
                 "humidity": "--",
             })
     
-    # Erstelle JavaScript-Marker direkt
-    markers_js = ""
-    for city in cities_weather:
+    # Erstelle JavaScript-Marker-Array
+    markers_js = "["
+    for i, city in enumerate(cities_weather):
         color = get_weather_color(city["weather_code"])
         temp_str = str(city["temperature"]) if city["temperature"] != "--" else "--"
         emoji = city["weather_emoji"]
         
-        popup_content = f"""
-            <div style="text-align: center; font-family: Arial, sans-serif; padding: 10px; width: 200px;">
+        popup_content = f"""<div style="text-align: center; font-family: Arial, sans-serif; padding: 10px; width: 200px;">
                 <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">{city['name']}</div>
                 <div style="font-size: 32px; margin: 10px 0;">{emoji}</div>
                 <div style="font-size: 24px; font-weight: bold; color: #FF6B6B; margin: 8px 0;">
@@ -169,60 +167,78 @@ def create_weather_map(cities_weather: list = None, map_height: int = 500) -> st
                     <div>💧 Feuchte: {city['humidity']}%</div>
                     <div>💨 Wind: {city['wind_speed']} km/h</div>
                 </div>
-            </div>
-        """
+            </div>"""
         
         markers_js += f"""
-        L.circleMarker([{city['lat']}, {city['lon']}], {{
-            radius: 25,
-            fillColor: '{color}',
-            color: '#333',
-            weight: 2,
-            opacity: 0.9,
-            fillOpacity: 0.85
-        }}).bindPopup('{popup_content.replace(chr(10), " ").replace(chr(39), "\\'")}').addTo(map);
-        """
+        {{
+            lat: {city['lat']},
+            lon: {city['lon']},
+            name: '{city['name']}',
+            temp: '{temp_str}',
+            emoji: '{emoji}',
+            color: '{color}',
+            popup: '{popup_content.replace(chr(10), " ").replace(chr(39), "\\\'")}',
+            cloud: {city['cloud_cover'] if isinstance(city['cloud_cover'], int) else 0},
+            humidity: {city['humidity'] if isinstance(city['humidity'], int) else 0},
+            wind: {city['wind_speed'] if isinstance(city['wind_speed'], (int, float)) else 0}
+        }}"""
+        if i < len(cities_weather) - 1:
+            markers_js += ","
+    markers_js += "]"
     
-    # HTML mit Leaflet-Karte
+    # HTML mit Leaflet-Karte basierend auf Original-Template
     leaflet_html = f"""
-    <div id="map" style="width: 100%; height: {map_height}px; position: relative;"></div>
-    
+    <div id="map" style="width: 100%; height: {map_height}px;"></div>
+
     <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+
     <script>
-        // Bounds für Schweiz-Ausschnitt
-        var bounds = L.latLngBounds(
-            L.latLng(45.5, 5.5),
-            L.latLng(48.0, 11.0)
-        );
-        
-        // Karte initialisieren
-        var map = L.map('map', {{
-            maxBounds: bounds,
-            maxBoundsViscosity: 1.0
-        }}).fitBounds(bounds);
-        
-        // OpenStreetMap Layer
-        L.tileLayer(
-            'https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',
-            {{
-                maxZoom: 14,
-                minZoom: 6,
-                attribution: '© OpenStreetMap contributors'
-            }}
-        ).addTo(map);
-        
-        // Marker hinzufügen
-        {markers_js}
-        
-        // Rahmen-Rechteck
-        L.rectangle(bounds, {{
-            color: "#00aaff",
-            weight: 2,
-            fillOpacity: 0.0
-        }}).addTo(map);
+      // Bounds für Schweiz-Ausschnitt
+      var bounds = L.latLngBounds(
+        L.latLng(45.5, 5.5),   // Süd-West
+        L.latLng(48.0, 11.0)   // Nord-Ost
+      );
+
+      // Karte auf diese Bounds zoomen und begrenzen
+      var map = L.map('map', {{
+        maxBounds: bounds,
+        maxBoundsViscosity: 1.0
+      }}).fitBounds(bounds);
+
+      // Basiskarte (OSM)
+      L.tileLayer(
+        'https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',
+        {{
+          maxZoom: 14,
+          minZoom: 6
+        }}
+      ).addTo(map);
+
+      // Rahmen um die Schweiz
+      L.rectangle(bounds, {{
+        color: "#00aaff",
+        weight: 1,
+        fillOpacity: 0.0
+      }}).addTo(map);
+
+      // Wetter-Marker hinzufügen
+      var weatherData = {markers_js};
+      
+      weatherData.forEach(function(marker) {{
+        L.circleMarker([marker.lat, marker.lon], {{
+          radius: 25,
+          fillColor: marker.color,
+          color: '#333',
+          weight: 2,
+          opacity: 0.9,
+          fillOpacity: 0.85
+        }}).bindPopup(marker.popup).addTo(map);
+      }});
     </script>
     """
     
