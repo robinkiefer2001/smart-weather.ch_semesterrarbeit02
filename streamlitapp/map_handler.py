@@ -3,25 +3,42 @@ Kartenfunktionen und Wetter-Overlay für Leaflet
 """
 import streamlit as st
 from api_client import fetch_weather_data
+import time
 
 
-# Hauptstädte und wichtige Orte in der Schweiz
+@st.cache_data(ttl=300)  # Cache für 5 Minuten
+def get_cached_weather_data(lat: float, lon: float) -> dict:
+    """
+    Holt gecachte Wetterdaten für eine Stadt.
+    TTL: 5 Minuten
+    """
+    try:
+        current_data, _, _ = fetch_weather_data(lat, lon)
+        return {
+            "success": True,
+            "data": current_data
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# Hauptstädte und wichtige Orte in der Schweiz - reduziert auf Regionen
 MAJOR_CITIES = [
-    {"name": "Zürich", "lat": 47.3769, "lon": 8.5472},
-    {"name": "Bern", "lat": 46.9479, "lon": 7.4474},
-    {"name": "Basel", "lat": 47.5596, "lon": 7.5886},
-    {"name": "Genf", "lat": 46.2044, "lon": 6.1432},
-    {"name": "Lausanne", "lat": 46.5197, "lon": 6.6323},
-    {"name": "Luzern", "lat": 47.0502, "lon": 8.3093},
-    {"name": "St. Gallen", "lat": 47.4229, "lon": 9.3767},
-    {"name": "Lugano", "lat": 46.0051, "lon": 8.9511},
-    {"name": "Winterthur", "lat": 47.5034, "lon": 8.7519},
-    {"name": "Biel", "lat": 47.1390, "lon": 7.2458},
-    {"name": "Neuenburg", "lat": 46.9920, "lon": 6.9282},
-    {"name": "Montreux", "lat": 46.4335, "lon": 6.9148},
-    {"name": "Sion", "lat": 46.2206, "lon": 7.5605},
-    {"name": "Interlaken", "lat": 46.6863, "lon": 8.1659},
-    {"name": "Appenzell", "lat": 47.3310, "lon": 9.4151},
+    {"name": "Zürich", "lat": 47.3769, "lon": 8.5472, "region": "Nordost"},
+    {"name": "Bern", "lat": 46.9479, "lon": 7.4474, "region": "Mitte"},
+    {"name": "Basel", "lat": 47.5596, "lon": 7.5886, "region": "Nordwest"},
+    {"name": "Genf", "lat": 46.2044, "lon": 6.1432, "region": "Westen"},
+    {"name": "Lausanne", "lat": 46.5197, "lon": 6.6323, "region": "Westen"},
+    {"name": "Luzern", "lat": 47.0502, "lon": 8.3093, "region": "Zentralschweiz"},
+    {"name": "Lugano", "lat": 46.0051, "lon": 8.9511, "region": "Tessin"},
+    {"name": "Chur", "lat": 46.8519, "lon": 9.5322, "region": "Graubünden"},
+    {"name": "Schaffhausen", "lat": 47.6965, "lon": 8.6361, "region": "Nordost"},
+    {"name": "Sitten", "lat": 46.2906, "lon": 7.6050, "region": "Süden"},
+    {"name": "Zug", "lat": 47.1645, "lon": 8.5169, "region": "Zentralschweiz"},
+    {"name": "St. Gallen", "lat": 47.4229, "lon": 9.3767, "region": "Ostschweiz"},
 ]
 
 
@@ -78,31 +95,53 @@ def get_weather_color(weather_code: int) -> str:
 
 def fetch_city_weather_data() -> list:
     """
-    Holt Wetterdaten für alle Hauptstädte.
+    Holt Wetterdaten für alle Hauptstädte mit Rate-Limiting und Fehlerbehandlung.
+    Verwendet Caching um API-Limits zu respektieren.
     
     Returns:
         Liste mit Wetterdaten für jede Stadt
     """
     cities_weather = []
     
-    for city in MAJOR_CITIES:
+    for i, city in enumerate(MAJOR_CITIES):
         try:
-            current_data, _, _ = fetch_weather_data(city["lat"], city["lon"])
+            # Rate-Limiting: Kleine Verzögerung zwischen Anfragen
+            if i > 0:
+                time.sleep(0.2)  # 200ms Verzögerung zwischen Anfragen
             
-            temp_value = current_data.get("temperature_2m", 0)
-            weather_code = int(current_data.get("weather_code", 0))
+            # Versuche gecachte Daten zu holen
+            weather_result = get_cached_weather_data(city["lat"], city["lon"])
             
-            cities_weather.append({
-                "name": city["name"],
-                "lat": city["lat"],
-                "lon": city["lon"],
-                "temperature": round(float(temp_value), 1),
-                "weather_code": weather_code,
-                "weather_emoji": get_weather_emoji(weather_code),
-                "cloud_cover": round(float(current_data.get("cloud_cover", 0)), 0),
-                "wind_speed": round(float(current_data.get("wind_speed_10m", 0)), 1),
-                "humidity": round(float(current_data.get("relative_humidity_2m", 0)), 0),
-            })
+            if weather_result["success"]:
+                current_data = weather_result["data"]
+                temp_value = current_data.get("temperature_2m", 0)
+                weather_code = int(current_data.get("weather_code", 0))
+                
+                cities_weather.append({
+                    "name": city["name"],
+                    "lat": city["lat"],
+                    "lon": city["lon"],
+                    "temperature": round(float(temp_value), 1),
+                    "weather_code": weather_code,
+                    "weather_emoji": get_weather_emoji(weather_code),
+                    "cloud_cover": round(float(current_data.get("cloud_cover", 0)), 0),
+                    "wind_speed": round(float(current_data.get("wind_speed_10m", 0)), 1),
+                    "humidity": round(float(current_data.get("relative_humidity_2m", 0)), 0),
+                })
+            else:
+                # Bei Fehler: Fallback mit Standarddaten
+                cities_weather.append({
+                    "name": city["name"],
+                    "lat": city["lat"],
+                    "lon": city["lon"],
+                    "temperature": "--",
+                    "weather_code": 0,
+                    "weather_emoji": "❓",
+                    "cloud_cover": "--",
+                    "wind_speed": "--",
+                    "humidity": "--",
+                })
+                
         except Exception as e:
             # Fallback: Zeige Ort ohne Fehlermeldung
             cities_weather.append({
@@ -120,12 +159,13 @@ def fetch_city_weather_data() -> list:
     return cities_weather
 
 
-def create_weather_map(cities_weather: list = None, map_height: int = 500) -> str:
+def create_weather_map(cities_weather: list = None, search_location: dict = None, map_height: int = 500) -> str:
     """
     Erstellt ein Leaflet-HTML-String mit Wetter-Markern basierend auf dem Original-Template.
     
     Args:
         cities_weather: Liste mit Wetterdaten für Städte
+        search_location: Dict mit {"name": str, "lat": float, "lon": float} der gesuchten Location
         map_height: Höhe der Karte in Pixeln
         
     Returns:
@@ -170,11 +210,25 @@ def create_weather_map(cities_weather: list = None, map_height: int = 500) -> st
     lon: {city['lon']},
     name: '{city['name']}',
     popup: '{popup_escaped}',
-    color: '{color}'
+    color: '{color}',
+    type: 'city'
   }}"""
         if i < len(cities_weather) - 1:
             markers_code += ","
         markers_code += "\n"
+    
+    # Füge gesuchte Location hinzu, wenn vorhanden
+    if search_location:
+        markers_code += f""",
+  {{
+    lat: {search_location['lat']},
+    lon: {search_location['lon']},
+    name: '{search_location['name']} 📍',
+    popup: '<div style="text-align: center; font-family: Arial, sans-serif; padding: 10px;"><strong style="color: #FF6B6B; font-size: 18px;">📍 {search_location['name']}</strong><br><small>Gesuchter Ort</small></div>',
+    color: '#FF0000',
+    type: 'search'
+  }}"""
+    
     markers_code += "];"
     
     # HTML mit Leaflet-Karte
@@ -219,13 +273,17 @@ def create_weather_map(cities_weather: list = None, map_height: int = 500) -> st
       
       // Marker hinzufügen
       markers.forEach(function(markerData) {{
-        L.circleMarker([markerData.lat, markerData.lon], {{
-          radius: 25,
+        var markerSize = markerData.type === 'search' ? 30 : 25;
+        var borderColor = markerData.type === 'search' ? '#000000' : '#333';
+        var borderWeight = markerData.type === 'search' ? 3 : 2;
+        
+        L.circleMarker([markerData.lat, markerData.lon], {
+          radius: markerSize,
           fillColor: markerData.color,
-          color: '#333',
-          weight: 2,
-          opacity: 0.9,
-          fillOpacity: 0.85
+          color: borderColor,
+          weight: borderWeight,
+          opacity: 0.95,
+          fillOpacity: markerData.type === 'search' ? 0.7 : 0.85
         }}).bindPopup(markerData.popup).addTo(map);
       }});
     </script>
