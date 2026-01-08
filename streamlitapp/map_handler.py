@@ -279,7 +279,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
         var borderColor = markerData.type === 'search' ? '#000000' : '#333';
         var borderWeight = markerData.type === 'search' ? 3 : 2;
         
-        L.circleMarker([markerData.lat, markerData.lon], {
+        L.circleMarker([markerData.lat, markerData.lon], {{
           radius: markerSize,
           fillColor: markerData.color,
           color: borderColor,
