@@ -198,13 +198,13 @@ with map_desc_col:
     - Zoom und Pan mit Maus
     - Scrollen zum vergrössern/verkleinern
     """)
+    
+    # Refresh Button
+    if st.button("🔄 Karte aktualisieren", key="map_refresh"):
+        st.rerun()
 
 with map_display_col:
-    try:
-        display_weather_map()
-    except Exception as e:
-        st.error(f"Fehler beim Laden der Karte: {str(e)}")
-        st.info("Die Kartenfunktion konnte nicht geladen werden. Bitte versuchen Sie es später erneut.")
+    display_weather_map()
 
 
 #col1, col2 = st.columns([1, 2], border=True, gap="small")

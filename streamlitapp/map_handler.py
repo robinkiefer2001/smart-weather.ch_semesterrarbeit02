@@ -3,10 +3,7 @@ Kartenfunktionen und Wetter-Overlay für Leaflet
 """
 import streamlit as st
 import streamlit.components.v1 as components
-import pandas as pd
 from api_client import fetch_weather_data
-from database import search_location
-import json
 
 
 # Hauptstädte und wichtige Orte in der Schweiz
@@ -93,30 +90,32 @@ def fetch_city_weather_data() -> list:
         try:
             current_data, _, _ = fetch_weather_data(city["lat"], city["lon"])
             
+            temp_value = current_data.get("temperature_2m", 0)
+            weather_code = int(current_data.get("weather_code", 0))
+            
             cities_weather.append({
                 "name": city["name"],
                 "lat": city["lat"],
                 "lon": city["lon"],
-                "temperature": current_data["temperature_2m"],
-                "weather_code": int(current_data["weather_code"]),
-                "weather_emoji": get_weather_emoji(int(current_data["weather_code"])),
-                "cloud_cover": current_data["cloud_cover"],
-                "wind_speed": current_data["wind_speed_10m"],
-                "humidity": current_data["relative_humidity_2m"],
+                "temperature": round(float(temp_value), 1),
+                "weather_code": weather_code,
+                "weather_emoji": get_weather_emoji(weather_code),
+                "cloud_cover": round(float(current_data.get("cloud_cover", 0)), 0),
+                "wind_speed": round(float(current_data.get("wind_speed_10m", 0)), 1),
+                "humidity": round(float(current_data.get("relative_humidity_2m", 0)), 0),
             })
         except Exception as e:
-            st.warning(f"Fehler beim Abrufen von Daten für {city['name']}: {str(e)}")
-            # Fallback mit leeren Daten
+            # Fallback: Zeige Ort ohne Fehlermeldung
             cities_weather.append({
                 "name": city["name"],
                 "lat": city["lat"],
                 "lon": city["lon"],
-                "temperature": "N/A",
+                "temperature": "--",
                 "weather_code": 0,
                 "weather_emoji": "❓",
-                "cloud_cover": "N/A",
-                "wind_speed": "N/A",
-                "humidity": "N/A",
+                "cloud_cover": "--",
+                "wind_speed": "--",
+                "humidity": "--",
             })
     
     return cities_weather
@@ -125,6 +124,7 @@ def fetch_city_weather_data() -> list:
 def create_weather_map(cities_weather: list = None) -> str:
     """
     Erstellt ein Leaflet-HTML-String mit Wetter-Markern.
+    Vereinfachte Version ohne GeoJSON für bessere Performance.
     
     Args:
         cities_weather: Liste mit Wetterdaten für Städte
@@ -133,7 +133,7 @@ def create_weather_map(cities_weather: list = None) -> str:
         HTML-String für Leaflet-Karte
     """
     # Falls keine Daten vorhanden, Standarddaten verwenden
-    if cities_weather is None:
+    if not cities_weather or len(cities_weather) == 0:
         cities_weather = []
         for city in MAJOR_CITIES:
             cities_weather.append({
@@ -148,33 +148,39 @@ def create_weather_map(cities_weather: list = None) -> str:
                 "humidity": "--",
             })
     
-    # Erstelle GeoJSON-Feature für jeden Ort
-    features = []
+    # Erstelle JavaScript-Marker direkt
+    markers_js = ""
     for city in cities_weather:
         color = get_weather_color(city["weather_code"])
+        temp_str = str(city["temperature"]) if city["temperature"] != "--" else "--"
+        emoji = city["weather_emoji"]
         
-        feature = {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [city["lon"], city["lat"]]
-            },
-            "properties": {
-                "name": city["name"],
-                "temperature": city["temperature"],
-                "weather_emoji": city["weather_emoji"],
-                "cloud_cover": city["cloud_cover"],
-                "wind_speed": city["wind_speed"],
-                "humidity": city["humidity"],
-                "color": color
-            }
-        }
-        features.append(feature)
-    
-    geojson_data = json.dumps({
-        "type": "FeatureCollection",
-        "features": features
-    })
+        popup_content = f"""
+            <div style="text-align: center; font-family: Arial, sans-serif; padding: 10px; width: 200px;">
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">{city['name']}</div>
+                <div style="font-size: 32px; margin: 10px 0;">{emoji}</div>
+                <div style="font-size: 24px; font-weight: bold; color: #FF6B6B; margin: 8px 0;">
+                    {temp_str}°C
+                </div>
+                <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
+                <div style="font-size: 12px; text-align: left;">
+                    <div>☁️ Bewölkung: {city['cloud_cover']}%</div>
+                    <div>💧 Feuchte: {city['humidity']}%</div>
+                    <div>💨 Wind: {city['wind_speed']} km/h</div>
+                </div>
+            </div>
+        """
+        
+        markers_js += f"""
+        L.circleMarker([{city['lat']}, {city['lon']}], {{
+            radius: 25,
+            fillColor: '{color}',
+            color: '#333',
+            weight: 2,
+            opacity: 0.9,
+            fillOpacity: 0.85
+        }}).bindPopup('{popup_content.replace(chr(10), " ").replace(chr(39), "\\'")}').addTo(map);
+        """
     
     # HTML mit Leaflet-Karte
     leaflet_html = f"""
@@ -184,14 +190,11 @@ def create_weather_map(cities_weather: list = None) -> str:
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Font Awesome für bessere Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
     <script>
         // Bounds für Schweiz-Ausschnitt
         var bounds = L.latLngBounds(
-            L.latLng(45.5, 5.5),   // Süd-West
-            L.latLng(48.0, 11.0)   // Nord-Ost
+            L.latLng(45.5, 5.5),
+            L.latLng(48.0, 11.0)
         );
         
         // Karte initialisieren
@@ -210,68 +213,16 @@ def create_weather_map(cities_weather: list = None) -> str:
             }}
         ).addTo(map);
         
-        // GeoJSON Daten
-        var geojsonData = {geojson_data};
+        // Marker hinzufügen
+        {markers_js}
         
-        // Custom CircleMarker mit Wetter-Info
-        L.geoJSON(geojsonData, {{
-            pointToLayer: function(feature, latlng) {{
-                var props = feature.properties;
-                
-                // Bestimme Icon-Größe basierend auf Temperatur
-                var size = 50;
-                
-                // Erstelle einen Container für die Anzeige
-                var popupContent = `
-                    <div style="text-align: center; font-family: Arial, sans-serif; padding: 10px;">
-                        <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">${{props.name}}</div>
-                        <div style="font-size: 32px; margin: 10px 0;">${{props.weather_emoji}}</div>
-                        <div style="font-size: 24px; font-weight: bold; color: #FF6B6B; margin: 8px 0;">
-                            ${{props.temperature}}°C
-                        </div>
-                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
-                        <div style="font-size: 12px; text-align: left;">
-                            <div>☁️ Bewölkung: ${{props.cloud_cover}}%</div>
-                            <div>💧 Feuchte: ${{props.humidity}}%</div>
-                            <div>💨 Wind: ${{props.wind_speed}} km/h</div>
-                        </div>
-                    </div>
-                `;
-                
-                // Erstelle einen farbigen Kreis mit Emoji
-                return L.circleMarker(latlng, {{
-                    radius: 25,
-                    fillColor: props.color,
-                    color: '#333',
-                    weight: 2,
-                    opacity: 0.9,
-                    fillOpacity: 0.85
-                }}).bindPopup(popupContent, {{
-                    maxWidth: 250,
-                    className: 'weather-popup'
-                }});
-            }}
-        }}).addTo(map);
-        
-        // Rechteck-Rahmen um die Schweiz
+        // Rahmen-Rechteck
         L.rectangle(bounds, {{
             color: "#00aaff",
             weight: 2,
             fillOpacity: 0.0
         }}).addTo(map);
     </script>
-    
-    <style>
-        .weather-popup .leaflet-popup-content-wrapper {{
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }}
-        
-        .weather-popup .leaflet-popup-tip {{
-            background-color: #f9f9f9;
-        }}
-    </style>
     """
     
     return leaflet_html
@@ -284,11 +235,28 @@ def display_weather_map(show_loading: bool = True):
     Args:
         show_loading: Zeige Lade-Spinner
     """
-    if show_loading:
-        with st.spinner("⏳ Lade Wetterdaten für alle Städte..."):
-            cities_weather = fetch_city_weather_data()
-    else:
-        cities_weather = fetch_city_weather_data()
+    map_placeholder = st.empty()
     
-    map_html = create_weather_map(cities_weather)
-    components.html(map_html, height=750, scrolling=False)
+    try:
+        # Versuche Wetterdaten zu laden
+        if show_loading:
+            with st.spinner("⏳ Lade Wetterdaten für alle Städte..."):
+                cities_weather = fetch_city_weather_data()
+        else:
+            cities_weather = fetch_city_weather_data()
+        
+        # Erstelle HTML und zeige Karte
+        map_html = create_weather_map(cities_weather)
+        components.html(map_html, height=750, scrolling=False)
+        
+    except Exception as e:
+        # Fallback: Zeige Standard-Karte ohne Daten
+        st.warning(f"⚠️ Konnte Wetterdaten nicht laden: {str(e)}")
+        st.info("Die Karte wird mit Standarddaten angezeigt...")
+        
+        try:
+            map_html = create_weather_map(None)
+            components.html(map_html, height=750, scrolling=False)
+        except Exception as e2:
+            st.error(f"❌ Fehler beim Laden der Karte: {str(e2)}")
+
