@@ -2,6 +2,7 @@
 Kartenfunktionen und Wetter-Overlay für Leaflet
 """
 import streamlit as st
+import streamlit.components.v1 as components
 from api_client import fetch_weather_data
 import time
 
@@ -332,7 +333,7 @@ def display_weather_map(show_loading: bool = True, map_height: int = 500):
         
         # Erstelle HTML und zeige Karte
         map_html = create_weather_map(cities_weather, search_location=None, map_height=map_height)
-        st.html(map_html)
+        components.html(map_html, height=map_height)
         
     except Exception as e:
         # Fallback: Zeige Standard-Karte ohne Daten
@@ -341,7 +342,7 @@ def display_weather_map(show_loading: bool = True, map_height: int = 500):
         
         try:
             map_html = create_weather_map(None, search_location=None, map_height=map_height)
-            st.html(map_html)
+            components.html(map_html, height=map_height)
         except Exception as e2:
             st.error(f"❌ Fehler beim Laden der Karte: {str(e2)}")
 
