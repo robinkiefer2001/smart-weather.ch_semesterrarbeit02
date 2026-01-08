@@ -93,8 +93,6 @@ def display_temperature_chart(chart_df: pd.DataFrame, stats: dict):
         chart_df: DataFrame mit Temperaturdaten für Chart
         stats: Dictionary mit Temperaturstatistiken
     """
-    st.subheader("📈 Temperaturverlauf")
-    
     st.line_chart(
         data=chart_df.set_index("Uhrzeit")[
             ["Absolute Temperatur (°C)", "Temperaturveränderung (°C)"]
@@ -122,8 +120,6 @@ def display_precipitation_chart(chart_df: pd.DataFrame, stats: dict):
         chart_df: DataFrame mit Niederschlagsdaten für Chart
         stats: Dictionary mit Niederschlagsstatistiken
     """
-    st.subheader("🌧️ Niederschlag")
-    
     st.line_chart(
         data=chart_df.set_index("Uhrzeit")[
             ["Regen (mm)", "Schauer (mm)"]
@@ -149,8 +145,6 @@ def display_wind_chart(chart_df: pd.DataFrame, stats: dict):
         chart_df: DataFrame mit Winddaten für Chart
         stats: Dictionary mit Windstatistiken
     """
-    st.subheader("🌬️ Wind")
-    
     st.line_chart(
         data=chart_df.set_index("Uhrzeit")[
             ["Wind (km/h)", "Böen (km/h)"]
@@ -174,8 +168,6 @@ def display_cloud_chart(chart_df: pd.DataFrame, stats: dict):
         chart_df: DataFrame mit Bewölkungsdaten für Chart
         stats: Dictionary mit Bewölkungsstatistiken
     """
-    st.subheader("☁️ Bewölkung")
-    
     st.line_chart(
         data=chart_df.set_index("Uhrzeit")[
             ["Bewölkung (%)"]
@@ -195,8 +187,6 @@ def display_snow_chart(chart_df: pd.DataFrame, stats: dict):
         chart_df: DataFrame mit Schneefallsdaten für Chart
         stats: Dictionary mit Schneefallsstatistiken
     """
-    st.subheader("❄️ Schneefall")
-    
     st.line_chart(
         data=chart_df.set_index("Uhrzeit")[
             ["Schneefall (cm)"]

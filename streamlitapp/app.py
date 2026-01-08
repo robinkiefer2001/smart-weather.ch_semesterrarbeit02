@@ -4,11 +4,42 @@ import pandas as pd
 from api_client import fetch_weather_data
 from map_handler import display_weather_map, fetch_city_weather_data
 from database import search_location
+
+# ===== DEUTSCHE TAGE UND MONATE =====
+DEUTSCH_TAGE = {
+    0: 'Montag', 1: 'Dienstag', 2: 'Mittwoch', 3: 'Donnerstag',
+    4: 'Freitag', 5: 'Samstag', 6: 'Sonntag'
+}
+DEUTSCH_TAGE_KURZ = {
+    0: 'Mo', 1: 'Di', 2: 'Mi', 3: 'Do',
+    4: 'Fr', 5: 'Sa', 6: 'So'
+}
+DEUTSCH_MONATE = {
+    1: 'Januar', 2: 'Februar', 3: 'März', 4: 'April',
+    5: 'Mai', 6: 'Juni', 7: 'Juli', 8: 'August',
+    9: 'September', 10: 'Oktober', 11: 'November', 12: 'Dezember'
+}
+
+def format_date_german(date_obj, format_type='long'):
+    """Formatiere Datum auf Deutsch.
+    format_type: 'long' (Montag, 05.01.2026), 'short' (Mo, 05.01), 'long_full' (Montag, 05. Januar 2026)
+    """
+    weekday = DEUTSCH_TAGE if format_type != 'short' else DEUTSCH_TAGE_KURZ
+    day_name = weekday[date_obj.weekday()]
+    
+    if format_type == 'long':
+        return f"{day_name}, {date_obj.strftime('%d.%m.%Y')}"
+    elif format_type == 'short':
+        return f"{day_name}\n{date_obj.strftime('%d.%m')}"
+    elif format_type == 'long_full':
+        month_name = DEUTSCH_MONATE[date_obj.month]
+        return f"{day_name}, {date_obj.day}. {month_name} {date_obj.year}"
+    return str(date_obj)
 from data_handlers import (
     prepare_hourly_overview, prepare_temperature_chart, prepare_precipitation_chart,
     prepare_wind_chart, prepare_cloud_chart, prepare_snow_chart,
     calculate_temperature_stats, calculate_precipitation_stats,
-    calculate_wind_stats, calculate_cloud_stats
+    calculate_wind_stats, calculate_cloud_stats, weather_description, weather_icon
 )
 from ui_components import (
     display_current_metrics, display_hourly_overview, display_temperature_chart,
@@ -18,7 +49,7 @@ from ui_components import (
 
 # ===== PAGE CONFIG =====
 st.set_page_config(
-    page_title="🌤️ Smart Weather Switzerland",
+    page_title="Smart Weather Switzerland",
     page_icon="🌤️",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -190,7 +221,7 @@ if tab_calendar is not None:
                     selected_idx = st.session_state.selected_day_offset
                     if selected_idx < len(daily_df):
                         selected_date = daily_df.iloc[selected_idx]['date']
-                        st.info(f"📍 Ausgewählter Tag: **{selected_date.strftime('%A, %d.%m.%Y')}**", icon="📌")
+                        st.info(f"📍 Ausgewählter Tag: **{format_date_german(selected_date, 'long')}**", icon="📌")
                 
                 with nav_col3:
                     if st.button("Nächster Tag ➡️", use_container_width=True):
@@ -208,21 +239,12 @@ if tab_calendar is not None:
                 for idx, (col, (_, row)) in enumerate(zip(week_cols, daily_df.head(7).iterrows())):
                     with col:
                         date = row['date']
-                        date_str = date.strftime('%a\n%d.%m')
+                        date_str = format_date_german(date, 'short')
                         temp_max = row.get('temperature_2m_max', '--')
                         temp_min = row.get('temperature_2m_min', '--')
                         precip = row.get('precipitation_sum', 0)
                         weather_code = int(row.get('weather_code', 0))
-                        
-                        # Wetter-Emoji Mapping
-                        emoji_map = {
-                            0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️",
-                            45: "🌫️", 48: "🌫️", 51: "🌦️", 53: "🌧️", 55: "🌧️",
-                            61: "🌧️", 63: "🌧️", 65: "🌧️",
-                            71: "❄️", 73: "❄️", 75: "❄️",
-                            95: "⛈️", 96: "⛈️", 99: "⛈️"
-                        }
-                        emoji = emoji_map.get(weather_code, "❓")
+                        emoji = weather_icon(weather_code)
                         
                         # Hintergrundfarbe je nach Temperatur (Blau-Weiss-Gelb Schema)
                         if isinstance(temp_max, (int, float)):
@@ -288,7 +310,7 @@ if tab_detail is not None:
                 selected_row = daily_df.iloc[selected_idx]
                 selected_date = selected_row['date']
                 
-                st.markdown(f"### {selected_date.strftime('%A, %d. %B %Y')}")
+                st.markdown(f"### {format_date_german(selected_date, 'long_full')}")
                 
                 # Detaillierte Metriken
                 metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
@@ -384,19 +406,11 @@ if tab_forecast is not None:
             if daily_df is not None and not daily_df.empty:
                 # Prognose-Tabelle
                 forecast_display = daily_df.head(14).copy()
-                forecast_display['Datum'] = forecast_display['date'].dt.strftime('%a, %d.%m')
+                forecast_display['Datum'] = forecast_display['date'].apply(lambda d: format_date_german(d, 'long'))
                 
-                # Wetter-Beschreibung
-                weather_descriptions = {
-                    0: "☀️ Sonnig", 1: "🌤️ Teilweise bewölkt", 2: "⛅ Bewölkt",
-                    3: "☁️ Stark bewölkt", 45: "🌫️ Nebel", 48: "🌫️ Nebel",
-                    51: "🌦️ Leicht Regen", 53: "🌧️ Regen", 55: "🌧️ Intensiv Regen",
-                    61: "🌧️ Regen", 63: "🌧️ Intensiv Regen", 65: "🌧️ Sehr intensiv Regen",
-                    71: "❄️ Schnee", 73: "❄️ Schnee", 75: "❄️ Schnee",
-                    95: "⛈️ Gewitter", 96: "⛈️ Hagel-Gewitter", 99: "⛈️ Hagel-Gewitter"
-                }
+                # Wetter-Beschreibung (aus data_handlers)
                 forecast_display['Wetter'] = forecast_display['weather_code'].apply(
-                    lambda code: weather_descriptions.get(int(code), "❓ Unbekannt")
+                    lambda code: weather_description(int(code))
                 )
                 
                 forecast_display['Max °C'] = forecast_display['temperature_2m_max'].round(2)
@@ -419,21 +433,13 @@ if tab_forecast is not None:
 # ===== FOOTER =====
 st.markdown("---")
 
-footer_col1, footer_col2, footer_col3 = st.columns(3)
-with footer_col1:
-    st.page_link("pages/impressum.py", label="📋 Impressum", icon="📋")
-with footer_col2:
-    st.page_link("pages/datenschutz.py", label="🔒 Datenschutz", icon="🔒")
-with footer_col3:
-    st.markdown("""
-    <div style="text-align: center; color: gray; font-size: 12px;">
-    Smart Weather Switzerland
-    </div>
-    """, unsafe_allow_html=True)
-
 st.markdown("""
 <div style="text-align: center; color: gray; font-size: 11px; margin-top: 10px;">
     <p>🌤️ Schulprojekt | Powered by Open-Meteo API & Streamlit</p>
     <p>Aktualisiert: {}</p>
+    <p>
+        <a href="pages/1_Impressum" style="color: #3b82f6; text-decoration: none;">📋 Impressum</a> • 
+        <a href="pages/2_Datenschutz" style="color: #3b82f6; text-decoration: none;">🔒 Datenschutz</a>
+    </p>
 </div>
 """.format(datetime.now().strftime("%d.%m.%Y %H:%M:%S")), unsafe_allow_html=True)
