@@ -204,7 +204,7 @@ with map_desc_col:
         st.rerun()
 
 with map_display_col:
-    display_weather_map()
+    display_weather_map(show_loading=True, map_height=450)
 
 
 #col1, col2 = st.columns([1, 2], border=True, gap="small")

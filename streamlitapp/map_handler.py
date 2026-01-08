@@ -121,13 +121,14 @@ def fetch_city_weather_data() -> list:
     return cities_weather
 
 
-def create_weather_map(cities_weather: list = None) -> str:
+def create_weather_map(cities_weather: list = None, map_height: int = 500) -> str:
     """
     Erstellt ein Leaflet-HTML-String mit Wetter-Markern.
     Vereinfachte Version ohne GeoJSON für bessere Performance.
     
     Args:
         cities_weather: Liste mit Wetterdaten für Städte
+        map_height: Höhe der Karte in Pixeln
         
     Returns:
         HTML-String für Leaflet-Karte
@@ -184,7 +185,7 @@ def create_weather_map(cities_weather: list = None) -> str:
     
     # HTML mit Leaflet-Karte
     leaflet_html = f"""
-    <div id="map" style="width: 100%; height: 700px; position: relative;"></div>
+    <div id="map" style="width: 100%; height: {map_height}px; position: relative;"></div>
     
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -228,15 +229,14 @@ def create_weather_map(cities_weather: list = None) -> str:
     return leaflet_html
 
 
-def display_weather_map(show_loading: bool = True):
+def display_weather_map(show_loading: bool = True, map_height: int = 500):
     """
     Zeigt die Wetter-Karte in Streamlit an mit oder ohne Loader.
     
     Args:
         show_loading: Zeige Lade-Spinner
+        map_height: Höhe der Karte in Pixeln (default 500)
     """
-    map_placeholder = st.empty()
-    
     try:
         # Versuche Wetterdaten zu laden
         if show_loading:
@@ -246,8 +246,8 @@ def display_weather_map(show_loading: bool = True):
             cities_weather = fetch_city_weather_data()
         
         # Erstelle HTML und zeige Karte
-        map_html = create_weather_map(cities_weather)
-        components.html(map_html, height=750, scrolling=False)
+        map_html = create_weather_map(cities_weather, map_height)
+        components.html(map_html, height=map_height + 50, scrolling=False)
         
     except Exception as e:
         # Fallback: Zeige Standard-Karte ohne Daten
@@ -255,8 +255,8 @@ def display_weather_map(show_loading: bool = True):
         st.info("Die Karte wird mit Standarddaten angezeigt...")
         
         try:
-            map_html = create_weather_map(None)
-            components.html(map_html, height=750, scrolling=False)
+            map_html = create_weather_map(None, map_height)
+            components.html(map_html, height=map_height + 50, scrolling=False)
         except Exception as e2:
             st.error(f"❌ Fehler beim Laden der Karte: {str(e2)}")
 
