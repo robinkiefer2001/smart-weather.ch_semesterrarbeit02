@@ -219,12 +219,14 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     
     # Füge gesuchte Location hinzu, wenn vorhanden
     if search_location:
+        search_popup = f'<div style="text-align: center; font-family: Arial, sans-serif; padding: 10px;"><strong style="color: #FF6B6B; font-size: 18px;">📍 {search_location["name"]}</strong><br><small>Gesuchter Ort</small></div>'
+        search_popup_escaped = search_popup.replace("'", "\\'").replace("\n", " ")
         markers_code += f""",
   {{
     lat: {search_location['lat']},
     lon: {search_location['lon']},
     name: '{search_location['name']} 📍',
-    popup: '<div style="text-align: center; font-family: Arial, sans-serif; padding: 10px;"><strong style="color: #FF6B6B; font-size: 18px;">📍 {search_location['name']}</strong><br><small>Gesuchter Ort</small></div>',
+    popup: '{search_popup_escaped}',
     color: '#FF0000',
     type: 'search'
   }}"""
