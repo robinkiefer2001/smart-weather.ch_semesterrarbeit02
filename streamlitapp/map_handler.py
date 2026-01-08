@@ -410,14 +410,15 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
         zoom: 8
       });
 
-      // Hochwertige Basiskarte - Stamen TonerLite (Schweiz-optimiert)
+      // Hochwertige Basiskarte - Swisstopo Pixelkarte
       L.tileLayer(
-        'https://tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png',
+        'https://wmts10.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default//3857/{z}/{x}/{y}.jpeg',
         {
           maxZoom: 14,
           minZoom: 7,
-          attribution: '© swisstopo, © OpenStreetMap contributor',
-          className: 'map-base-layer'
+          attribution: '© swisstopo | © OpenStreetMap contributor',
+          className: 'map-base-layer',
+          crossOrigin: 'anonymous'
         }
       ).addTo(map);
 
