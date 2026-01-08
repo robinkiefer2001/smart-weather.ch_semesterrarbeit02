@@ -15,7 +15,6 @@ from ui_components import (
     display_precipitation_chart, display_wind_chart, display_cloud_chart, display_snow_chart,
     display_detailed_table, prepare_table_display
 )
-from streamlit_calendar import calendar
 
 # ===== PAGE CONFIG =====
 st.set_page_config(
@@ -112,7 +111,7 @@ with tab_map:
     st.markdown("---")
     with st.container():
         with st.spinner("🗺️ Lade Wetterkarte..."):
-            display_weather_map(show_loading=True, map_height=600)
+            display_weather_map(show_loading=False, map_height=600)
     
     # Legende
     st.markdown("---")
@@ -214,6 +213,10 @@ with tab_calendar:
                     border = "3px solid #1f77b4" if idx == st.session_state.selected_day_offset else "1px solid #ccc"
                     
                     # Klickbare Karte für Tag
+                    temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.0f}'
+                    temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.0f}'
+                    precip_str = f'{precip:.1f}'
+                    
                     st.markdown(f"""
                     <div style="
                         background: {bg_color};
@@ -226,9 +229,9 @@ with tab_calendar:
                     ">
                         <small style="font-weight: bold;">{date_str}</small><br>
                         <h2 style="margin: 8px 0;">{emoji}</h2>
-                        <small><strong>↑ {temp_max if isinstance(temp_max, str) else f'{temp_max:.0f}'}°</strong></small><br>
-                        <small>↓ {temp_min if isinstance(temp_min, str) else f'{temp_min:.0f}°}</small><br>
-                        <small>💧 {precip:.1f}mm</small>
+                        <small><strong>↑ {temp_max_str}°</strong></small><br>
+                        <small>↓ {temp_min_str}°</small><br>
+                        <small>💧 {precip_str}mm</small>
                     </div>
                     """, unsafe_allow_html=True)
                     
