@@ -338,6 +338,114 @@ if tab_calendar is not None:
                         if st.button("📌 Wählen", key=f"day_select_{current_date}", use_container_width=True):
                             st.session_state.selected_day_offset = len(daily_df[pd.to_datetime(daily_df['date']).dt.date <= current_date]) - 1
                             st.rerun()
+                
+                st.markdown("---")
+                
+                # Wochengrafiken
+                st.write("**📈 Entwicklung in der Woche:**")
+                
+                # Hole die Daten für die aktuelle Woche
+                week_start_date = monday_of_week + pd.Timedelta(days=st.session_state.calendar_week_offset * 7)
+                week_end_date = week_start_date + pd.Timedelta(days=6)
+                
+                week_data = daily_df[
+                    (pd.to_datetime(daily_df['date']).dt.date >= week_start_date.date()) &
+                    (pd.to_datetime(daily_df['date']).dt.date <= week_end_date.date())
+                ].copy().reset_index(drop=True)
+                
+                if not week_data.empty:
+                    # Vorbereitung der Wochendaten für Charts
+                    week_data['date_str'] = pd.to_datetime(week_data['date']).apply(lambda d: format_date_german(d, 'short').split('\n')[0])
+                    
+                    # Tabs für Diagramme
+                    tab_week_temp, tab_week_precip, tab_week_wind, tab_week_cloud, tab_week_snow = st.tabs([
+                        "🌡️ Temperatur",
+                        "💧 Niederschlag",
+                        "💨 Wind",
+                        "☁️ Bewölkung",
+                        "❄️ Schnee"
+                    ])
+                    
+                    with tab_week_temp:
+                        st.subheader("🌡️ Temperaturverlauf über die Woche")
+                        temp_week = week_data[['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']].copy()
+                        temp_week.columns = ['Tag', 'Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min']
+                        
+                        import altair as alt
+                        
+                        # Line Chart für Temperaturen
+                        base = alt.Chart(temp_week).encode(x=alt.X('Tag', sort=None))
+                        
+                        line_max = base.mark_line(color='#dc2626', point=True, size=2).encode(y=alt.Y('Max Temp', scale=alt.Scale(zero=False)))
+                        line_min = base.mark_line(color='#3b82f6', point=True, size=2).encode(y=alt.Y('Min Temp', scale=alt.Scale(zero=False)))
+                        line_feel_max = base.mark_line(color='#f97316', point=True, size=2, strokeDash=[5,5]).encode(y=alt.Y('Gefühlte Max', scale=alt.Scale(zero=False)))
+                        line_feel_min = base.mark_line(color='#06b6d4', point=True, size=2, strokeDash=[5,5]).encode(y=alt.Y('Gefühlte Min', scale=alt.Scale(zero=False)))
+                        
+                        chart = (line_max + line_min + line_feel_max + line_feel_min).properties(height=400).interactive()
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(temp_week, use_container_width=True, hide_index=True)
+                    
+                    with tab_week_precip:
+                        st.subheader("💧 Niederschlag über die Woche")
+                        precip_week = week_data[['date_str', 'precipitation_sum', 'precipitation_probability_max']].copy()
+                        precip_week.columns = ['Tag', 'Niederschlag (mm)', 'Regenwahrscheinlichkeit (%)']
+                        
+                        base = alt.Chart(precip_week).encode(x=alt.X('Tag', sort=None))
+                        
+                        bar_precip = base.mark_bar(color='#06b6d4').encode(y=alt.Y('Niederschlag (mm)'))
+                        line_prob = base.mark_line(color='#8b5cf6', point=True, size=2).encode(y=alt.Y('Regenwahrscheinlichkeit (%)', scale=alt.Scale(domain=[0, 100])))
+                        
+                        chart = (bar_precip + line_prob).properties(height=400).interactive()
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(precip_week, use_container_width=True, hide_index=True)
+                    
+                    with tab_week_wind:
+                        st.subheader("💨 Windgeschwindigkeit über die Woche")
+                        wind_week = week_data[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
+                        wind_week.columns = ['Tag', 'Max Windspeed (km/h)', 'Max Windböen (km/h)']
+                        
+                        base = alt.Chart(wind_week).encode(x=alt.X('Tag', sort=None))
+                        
+                        line_speed = base.mark_line(color='#10b981', point=True, size=2).encode(y=alt.Y('Max Windspeed (km/h)', scale=alt.Scale(zero=False)))
+                        line_gusts = base.mark_line(color='#ef4444', point=True, size=2, strokeDash=[5,5]).encode(y=alt.Y('Max Windböen (km/h)', scale=alt.Scale(zero=False)))
+                        
+                        chart = (line_speed + line_gusts).properties(height=400).interactive()
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(wind_week, use_container_width=True, hide_index=True)
+                    
+                    with tab_week_cloud:
+                        st.subheader("☁️ Wolkenbedeckung über die Woche")
+                        cloud_week = week_data[['date_str', 'cloud_cover']].copy() if 'cloud_cover' in week_data.columns else pd.DataFrame()
+                        
+                        if not cloud_week.empty:
+                            cloud_week.columns = ['Tag', 'Wolkenbedeckung (%)']
+                            
+                            chart = alt.Chart(cloud_week).mark_bar(color='#94a3b8').encode(
+                                x=alt.X('Tag', sort=None),
+                                y=alt.Y('Wolkenbedeckung (%)', scale=alt.Scale(domain=[0, 100]))
+                            ).properties(height=400)
+                            
+                            st.altair_chart(chart, use_container_width=True)
+                            st.dataframe(cloud_week, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("Keine Wolkendaten verfügbar")
+                    
+                    with tab_week_snow:
+                        st.subheader("❄️ Schneefall über die Woche")
+                        snow_week = week_data[['date_str', 'snowfall_sum']].copy() if 'snowfall_sum' in week_data.columns else pd.DataFrame()
+                        
+                        if not snow_week.empty:
+                            snow_week.columns = ['Tag', 'Schneefall (cm)']
+                            
+                            chart = alt.Chart(snow_week).mark_bar(color='#7dd3fc').encode(
+                                x=alt.X('Tag', sort=None),
+                                y=alt.Y('Schneefall (cm)')
+                            ).properties(height=400)
+                            
+                            st.altair_chart(chart, use_container_width=True)
+                            st.dataframe(snow_week, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("Keine Schneefalldaten verfügbar")
             else:
                 st.warning("⚠️ Keine Wetterdaten für Kalender verfügbar.")
         else:
@@ -508,6 +616,104 @@ if tab_forecast is not None:
                     hide_index=True,
                     height=500
                 )
+                
+                st.markdown("---")
+                
+                # 14-Tage Grafiken
+                st.write("**📈 Entwicklung über 14 Tage:**")
+                
+                # Vorbereitung der Prognosedaten für Charts
+                forecast_display['date_str'] = forecast_display['date'].apply(lambda d: format_date_german(d, 'short').split('\n')[0])
+                
+                # Tabs für Diagramme
+                tab_14_temp, tab_14_precip, tab_14_wind, tab_14_cloud, tab_14_snow = st.tabs([
+                    "🌡️ Temperatur",
+                    "💧 Niederschlag",
+                    "💨 Wind",
+                    "☁️ Bewölkung",
+                    "❄️ Schnee"
+                ])
+                
+                import altair as alt
+                
+                with tab_14_temp:
+                    st.subheader("🌡️ Temperaturverlauf über 14 Tage")
+                    temp_14 = forecast_display[['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']].copy()
+                    temp_14.columns = ['Tag', 'Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min']
+                    
+                    # Line Chart für Temperaturen
+                    base = alt.Chart(temp_14).encode(x=alt.X('Tag', sort=None))
+                    
+                    line_max = base.mark_line(color='#dc2626', point=True, size=2).encode(y=alt.Y('Max Temp', scale=alt.Scale(zero=False)))
+                    line_min = base.mark_line(color='#3b82f6', point=True, size=2).encode(y=alt.Y('Min Temp', scale=alt.Scale(zero=False)))
+                    line_feel_max = base.mark_line(color='#f97316', point=True, size=2, strokeDash=[5,5]).encode(y=alt.Y('Gefühlte Max', scale=alt.Scale(zero=False)))
+                    line_feel_min = base.mark_line(color='#06b6d4', point=True, size=2, strokeDash=[5,5]).encode(y=alt.Y('Gefühlte Min', scale=alt.Scale(zero=False)))
+                    
+                    chart = (line_max + line_min + line_feel_max + line_feel_min).properties(height=400).interactive()
+                    st.altair_chart(chart, use_container_width=True)
+                    st.dataframe(temp_14, use_container_width=True, hide_index=True)
+                
+                with tab_14_precip:
+                    st.subheader("💧 Niederschlag über 14 Tage")
+                    precip_14 = forecast_display[['date_str', 'precipitation_sum', 'precipitation_probability_max']].copy()
+                    precip_14.columns = ['Tag', 'Niederschlag (mm)', 'Regenwahrscheinlichkeit (%)']
+                    
+                    base = alt.Chart(precip_14).encode(x=alt.X('Tag', sort=None))
+                    
+                    bar_precip = base.mark_bar(color='#06b6d4').encode(y=alt.Y('Niederschlag (mm)'))
+                    line_prob = base.mark_line(color='#8b5cf6', point=True, size=2).encode(y=alt.Y('Regenwahrscheinlichkeit (%)', scale=alt.Scale(domain=[0, 100])))
+                    
+                    chart = (bar_precip + line_prob).properties(height=400).interactive()
+                    st.altair_chart(chart, use_container_width=True)
+                    st.dataframe(precip_14, use_container_width=True, hide_index=True)
+                
+                with tab_14_wind:
+                    st.subheader("💨 Windgeschwindigkeit über 14 Tage")
+                    wind_14 = forecast_display[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
+                    wind_14.columns = ['Tag', 'Max Windspeed (km/h)', 'Max Windböen (km/h)']
+                    
+                    base = alt.Chart(wind_14).encode(x=alt.X('Tag', sort=None))
+                    
+                    line_speed = base.mark_line(color='#10b981', point=True, size=2).encode(y=alt.Y('Max Windspeed (km/h)', scale=alt.Scale(zero=False)))
+                    line_gusts = base.mark_line(color='#ef4444', point=True, size=2, strokeDash=[5,5]).encode(y=alt.Y('Max Windböen (km/h)', scale=alt.Scale(zero=False)))
+                    
+                    chart = (line_speed + line_gusts).properties(height=400).interactive()
+                    st.altair_chart(chart, use_container_width=True)
+                    st.dataframe(wind_14, use_container_width=True, hide_index=True)
+                
+                with tab_14_cloud:
+                    st.subheader("☁️ Wolkenbedeckung über 14 Tage")
+                    cloud_14 = forecast_display[['date_str', 'cloud_cover']].copy() if 'cloud_cover' in forecast_display.columns else pd.DataFrame()
+                    
+                    if not cloud_14.empty:
+                        cloud_14.columns = ['Tag', 'Wolkenbedeckung (%)']
+                        
+                        chart = alt.Chart(cloud_14).mark_bar(color='#94a3b8').encode(
+                            x=alt.X('Tag', sort=None),
+                            y=alt.Y('Wolkenbedeckung (%)', scale=alt.Scale(domain=[0, 100]))
+                        ).properties(height=400)
+                        
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(cloud_14, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("Keine Wolkendaten verfügbar")
+                
+                with tab_14_snow:
+                    st.subheader("❄️ Schneefall über 14 Tage")
+                    snow_14 = forecast_display[['date_str', 'snowfall_sum']].copy() if 'snowfall_sum' in forecast_display.columns else pd.DataFrame()
+                    
+                    if not snow_14.empty:
+                        snow_14.columns = ['Tag', 'Schneefall (cm)']
+                        
+                        chart = alt.Chart(snow_14).mark_bar(color='#7dd3fc').encode(
+                            x=alt.X('Tag', sort=None),
+                            y=alt.Y('Schneefall (cm)')
+                        ).properties(height=400)
+                        
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(snow_14, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("Keine Schneefalldaten verfügbar")
             else:
                 st.warning("⚠️ Keine Prognosedaten verfügbar.")
         else:
