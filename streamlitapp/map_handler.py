@@ -212,15 +212,19 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
         emoji = city["weather_emoji"]
         
         # Escape HTML-Zeichen für JavaScript
+        cloud_str = str(city['cloud_cover']) if city['cloud_cover'] != "--" else "--"
+        humidity_str = str(city['humidity']) if city['humidity'] != "--" else "--"
+        wind_str = str(city['wind_speed']) if city['wind_speed'] != "--" else "--"
+        
         popup_html = f"""<div style="text-align: center; font-family: Arial, sans-serif; padding: 10px;">
 <strong>{city['name']}</strong><br>
 <div style="font-size: 32px;">{emoji}</div>
 <strong style="color: #FF6B6B; font-size: 20px;">{temp_str}°C</strong><br>
-<small>☁️ {city['cloud_cover']}% | 💧 {city['humidity']}% | 💨 {city['wind_speed']} km/h</small>
+<small>☁️ {cloud_str}% | 💧 {humidity_str}% | 💨 {wind_str} km/h</small>
 </div>"""
         
-        # Escape für JavaScript
-        popup_escaped = popup_html.replace("'", "\\'").replace("\n", " ")
+        # Escape für JavaScript - besonders wichtig für Prozentzeichen
+        popup_escaped = popup_html.replace("'", "\\'").replace("\n", " ").replace("%", "%%")
         
         markers_code += f"""  {{
     lat: {city['lat']},
@@ -410,26 +414,17 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
         zoom: 8
       });
 
-      // Hochwertige Basiskarte - Swisstopo Pixelkarte
+      // Hochwertige Basiskarte - OpenStreetMap Standard
       L.tileLayer(
-        'https://wmts10.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default//3857/{z}/{x}/{y}.jpeg',
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
           maxZoom: 14,
           minZoom: 7,
-          attribution: '© swisstopo | © OpenStreetMap contributor',
+          attribution: '© OpenStreetMap contributor',
           className: 'map-base-layer',
           crossOrigin: 'anonymous'
         }
       ).addTo(map);
-
-      // Sanfte Schweiz-Grenze
-      var swissBox = L.rectangle(swissBounds, {
-        color: '#2c5aa0',
-        weight: 1.5,
-        fillOpacity: 0,
-        dashArray: '3, 4',
-        lineCap: 'round'
-      }).addTo(map);
 
       // Marker-Daten
       MARKERS_CODE_HERE
