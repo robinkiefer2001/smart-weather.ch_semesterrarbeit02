@@ -213,12 +213,15 @@ with tab_map:
 # ==================== TAB 2: KALENDER & WOCHENÜBERSICHT ====================
 if tab_calendar is not None:
     with tab_calendar:
-        st.subheader("📅 7-Tage Kalender & Wochenübersicht")
+        st.subheader("📅 Kalender & Wochenübersicht")
         
         if st.session_state.weather_data is not None:
             daily_df = st.session_state.weather_data.get('daily_df')
             
             if daily_df is not None and not daily_df.empty:
+                # Nur die nächsten 14 Tage (von heute an)
+                daily_df_14 = daily_df.head(14).copy()
+                
                 # Tage-Navigation
                 nav_col1, nav_col2, nav_col3 = st.columns([1, 3, 1])
                 
@@ -229,13 +232,13 @@ if tab_calendar is not None:
                 
                 with nav_col2:
                     selected_idx = st.session_state.selected_day_offset
-                    if selected_idx < len(daily_df):
-                        selected_date = daily_df.iloc[selected_idx]['date']
+                    if selected_idx < len(daily_df_14):
+                        selected_date = daily_df_14.iloc[selected_idx]['date']
                         st.info(f"📍 Ausgewählter Tag: **{format_date_german(selected_date, 'long')}**", icon="📌")
                 
                 with nav_col3:
                     if st.button("Nächster Tag ➡️", use_container_width=True):
-                        if st.session_state.selected_day_offset < len(daily_df) - 1:
+                        if st.session_state.selected_day_offset < len(daily_df_14) - 1:
                             st.session_state.selected_day_offset += 1
                             st.rerun()
                 
@@ -247,7 +250,7 @@ if tab_calendar is not None:
                 for day_row in range(2):
                     week_cols = st.columns(7)
                     
-                    for idx, (col, (_, row)) in enumerate(zip(week_cols, daily_df.iloc[day_row*7:(day_row+1)*7].iterrows())):
+                    for idx, (col, (_, row)) in enumerate(zip(week_cols, daily_df_14.iloc[day_row*7:(day_row+1)*7].iterrows())):
                         with col:
                             date = row['date']
                             date_str = format_date_german(date, 'short')
