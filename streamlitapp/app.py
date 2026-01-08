@@ -20,6 +20,7 @@ from ui_components import (
     display_precipitation_chart, display_wind_chart,
     display_cloud_chart, display_snow_chart
 )
+from map_handler import display_weather_map
 
 # ===== VARIABLEN =====
 heute = datetime.date.today()
@@ -169,6 +170,41 @@ if st.session_state.weather_data is not None:
             st.session_state.weather_data['hourly_df'], heute
         )
         display_snow_chart(snow_chart_df, snow_stats)
+
+
+# ===== WETTER-KARTE MIT HAUPTSTÄDTEN =====
+st.divider()
+st.subheader("🗺️ Wetter-Übersicht der Schweiz")
+st.write("Interaktive Karte mit aktuellen Temperaturen und Wetterbedingungen in den wichtigsten Schweizer Städten")
+
+# Erstelle zwei Spalten - Text links, Karte rechts
+map_desc_col, map_display_col = st.columns([1, 2], gap="small")
+
+with map_desc_col:
+    st.write("""
+    **Kartenlegende:**
+    
+    🔵 **Farbcodierung:**
+    - ☀️ **Gold** = Sonnig
+    - 🔵 **Blau** = Bewölkt
+    - ⛅ **Grau** = Bedeckt
+    - 🌫️ **Dunkelgrau** = Nebel
+    - 💧 **Royal Blau** = Regen
+    - ❄️ **Hellblau** = Schnee
+    - 🔴 **Rot** = Gewitter
+    
+    **Interaktion:**
+    - Klicke auf einen Ort für Details
+    - Zoom und Pan mit Maus
+    - Scrollen zum vergrössern/verkleinern
+    """)
+
+with map_display_col:
+    try:
+        display_weather_map()
+    except Exception as e:
+        st.error(f"Fehler beim Laden der Karte: {str(e)}")
+        st.info("Die Kartenfunktion konnte nicht geladen werden. Bitte versuchen Sie es später erneut.")
 
 
 #col1, col2 = st.columns([1, 2], border=True, gap="small")
