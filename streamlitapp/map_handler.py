@@ -115,18 +115,34 @@ def fetch_city_weather_data() -> list:
             if weather_result["success"]:
                 current_data = weather_result["data"]
                 temp_value = current_data.get("temperature_2m", 0)
-                weather_code = int(current_data.get("weather_code", 0))
+                weather_code = int(current_data.get("weather_code", 0)) if current_data.get("weather_code") is not None else 0
+                
+                # Sichere Umwandlung der Werte
+                try:
+                    cloud_cover = round(float(current_data.get("cloud_cover") or 0), 0)
+                except (ValueError, TypeError):
+                    cloud_cover = 0
+                    
+                try:
+                    wind_speed = round(float(current_data.get("wind_speed_10m") or 0), 1)
+                except (ValueError, TypeError):
+                    wind_speed = 0
+                    
+                try:
+                    humidity = round(float(current_data.get("relative_humidity_2m") or 0), 0)
+                except (ValueError, TypeError):
+                    humidity = 0
                 
                 cities_weather.append({
                     "name": city["name"],
                     "lat": city["lat"],
                     "lon": city["lon"],
-                    "temperature": round(float(temp_value), 1),
+                    "temperature": round(float(temp_value), 1) if temp_value else 0,
                     "weather_code": weather_code,
                     "weather_emoji": get_weather_emoji(weather_code),
-                    "cloud_cover": round(float(current_data.get("cloud_cover", 0)), 0),
-                    "wind_speed": round(float(current_data.get("wind_speed_10m", 0)), 1),
-                    "humidity": round(float(current_data.get("relative_humidity_2m", 0)), 0),
+                    "cloud_cover": int(cloud_cover),
+                    "wind_speed": wind_speed,
+                    "humidity": int(humidity),
                 })
             else:
                 # Bei Fehler: Fallback mit Standarddaten
