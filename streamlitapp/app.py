@@ -93,6 +93,8 @@ if 'selected_location' not in st.session_state:
     st.session_state.selected_location = None
 if 'selected_day_offset' not in st.session_state:
     st.session_state.selected_day_offset = 0
+if 'calendar_week_offset' not in st.session_state:
+    st.session_state.calendar_week_offset = 0  # Wochennavigation
 if 'cached_location_coords' not in st.session_state:
     st.session_state.cached_location_coords = None  # Caching: (latitude, longitude)
 if 'map_data_cache' not in st.session_state:
@@ -219,96 +221,123 @@ if tab_calendar is not None:
             daily_df = st.session_state.weather_data.get('daily_df')
             
             if daily_df is not None and not daily_df.empty:
-                # Nur die nächsten 14 Tage (von heute an)
-                daily_df_14 = daily_df.head(14).copy()
+                # Aktuelles Datum bestimmen
+                today = pd.Timestamp.now().date()
                 
-                # Tage-Navigation
+                # Finde Montag der aktuellen Woche
+                today_pd = pd.Timestamp(today)
+                monday_of_week = today_pd - pd.Timedelta(days=today_pd.weekday())
+                
+                # Berechne Startdatum für Anzeige (7 Tage vor Montag der aktuellen Woche)
+                # Damit die aktuelle Woche vollständig in historischen Daten vorhanden ist
+                display_start_date = monday_of_week - pd.Timedelta(days=7)
+                
+                # Kalender-Navigation
                 nav_col1, nav_col2, nav_col3 = st.columns([1, 3, 1])
                 
                 with nav_col1:
-                    if st.button("⬅️ Vorheriger Tag", use_container_width=True):
-                        st.session_state.selected_day_offset = max(0, st.session_state.selected_day_offset - 1)
+                    if st.button("⬅️ Vorherige Woche", use_container_width=True):
+                        st.session_state.calendar_week_offset = max(-2, st.session_state.calendar_week_offset - 1)
                         st.rerun()
                 
                 with nav_col2:
-                    selected_idx = st.session_state.selected_day_offset
-                    if selected_idx < len(daily_df_14):
-                        selected_date = daily_df_14.iloc[selected_idx]['date']
-                        st.info(f"📍 Ausgewählter Tag: **{format_date_german(selected_date, 'long')}**", icon="📌")
+                    # Zeige welche Woche aktuell angezeigt wird
+                    week_start = monday_of_week + pd.Timedelta(days=st.session_state.calendar_week_offset * 7)
+                    week_end = week_start + pd.Timedelta(days=6)
+                    st.info(f"📍 Woche: **{format_date_german(week_start.to_pydatetime().date(), 'short').split(chr(10))[1]}** - **{format_date_german(week_end.to_pydatetime().date(), 'short').split(chr(10))[1]}**", icon="📌")
                 
                 with nav_col3:
-                    if st.button("Nächster Tag ➡️", use_container_width=True):
-                        if st.session_state.selected_day_offset < len(daily_df_14) - 1:
-                            st.session_state.selected_day_offset += 1
-                            st.rerun()
+                    if st.button("Nächste Woche ➡️", use_container_width=True):
+                        st.session_state.calendar_week_offset = min(2, st.session_state.calendar_week_offset + 1)
+                        st.rerun()
                 
                 st.markdown("---")
                 
-                # 14-Tage Kalender mit Wetter-Symbolen
-                st.write("**📅 Nächste 14 Tage:**")
+                # 7-Tage Kalender (Montag bis Sonntag)
+                st.write("**📅 Woche:**")
                 
-                for day_row in range(2):
-                    week_cols = st.columns(7)
+                week_start_date = monday_of_week + pd.Timedelta(days=st.session_state.calendar_week_offset * 7)
+                week_cols = st.columns(7)
+                
+                for day_offset in range(7):
+                    current_date = (week_start_date + pd.Timedelta(days=day_offset)).to_pydatetime().date()
+                    col = week_cols[day_offset]
                     
-                    for idx, (col, (_, row)) in enumerate(zip(week_cols, daily_df_14.iloc[day_row*7:(day_row+1)*7].iterrows())):
+                    # Suche Daten für diesen Tag
+                    matching_rows = daily_df[pd.to_datetime(daily_df['date']).dt.date == current_date]
+                    
+                    if not matching_rows.empty:
+                        row = matching_rows.iloc[0]
+                    else:
+                        # Wenn keine Daten, skip
                         with col:
-                            date = row['date']
-                            date_str = format_date_german(date, 'short')
-                            temp_max = row.get('temperature_2m_max', '--')
-                            temp_min = row.get('temperature_2m_min', '--')
-                            precip = row.get('precipitation_sum', 0)
-                            weather_code = int(row.get('weather_code', 0))
-                            emoji = weather_icon(weather_code)
-                            
-                            # Fallback wenn emoji leer ist
-                            if not emoji:
-                                emoji = "🌤️"
-                            
-                            # Hintergrundfarbe je nach Temperatur (Blau-Weiss-Gelb Schema)
-                            if isinstance(temp_max, (int, float)):
-                                if temp_max < 0:
-                                    bg_color = "#eff6ff"  # Sehr helles Blau
-                                elif temp_max < 5:
-                                    bg_color = "#f9fafb"  # Weiss-Grau
-                                elif temp_max < 10:
-                                    bg_color = "#fffbeb"  # Sehr helles Gelb
-                                elif temp_max < 15:
-                                    bg_color = "#fef9e7"  # Helles Gelb
-                                else:
-                                    bg_color = "#fef3c7"  # Sanftes Gelb
+                            st.markdown(f"<div style='text-align: center; padding: 12px; color: #999;'>{format_date_german(current_date, 'short')}<br>Keine Daten</div>", unsafe_allow_html=True)
+                        continue
+                    
+                    with col:
+                        date_str = format_date_german(current_date, 'short')
+                        temp_max = row.get('temperature_2m_max', '--')
+                        temp_min = row.get('temperature_2m_min', '--')
+                        precip = row.get('precipitation_sum', 0)
+                        weather_code = int(row.get('weather_code', 0))
+                        emoji = weather_icon(weather_code)
+                        
+                        if not emoji:
+                            emoji = "🌤️"
+                        
+                        # Hintergrundfarbe
+                        if isinstance(temp_max, (int, float)):
+                            if temp_max < 0:
+                                bg_color = "#eff6ff"
+                            elif temp_max < 5:
+                                bg_color = "#f9fafb"
+                            elif temp_max < 10:
+                                bg_color = "#fffbeb"
+                            elif temp_max < 15:
+                                bg_color = "#fef9e7"
                             else:
-                                bg_color = "#f5f5f5"
-                            
-                            # Markiere ausgewählten Tag (berechne absolute Position)
-                            absolute_idx = day_row * 7 + idx
-                            border = "2px solid #3b82f6" if absolute_idx == st.session_state.selected_day_offset else "1px solid #e5e7eb"
-                            
-                            # Klickbare Karte für Tag
-                            temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
-                            temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.2f}'
-                            precip_str = f'{precip:.2f}'
-                            
-                            st.markdown(f"""
-                            <div style="
-                                background: {bg_color};
-                                border: {border};
-                                padding: 12px;
-                                border-radius: 8px;
-                                text-align: center;
-                                cursor: pointer;
-                                transition: all 0.3s ease;
-                            ">
-                                <small style="font-weight: bold;">{date_str}</small><br>
-                                <div style="font-size: 32px; margin: 8px 0;">{emoji}</div>
-                                <small><strong>↑ {temp_max_str}°</strong></small><br>
-                                <small>↓ {temp_min_str}°</small><br>
-                                <small>💧 {precip_str}mm</small>
-                            </div>
-                            """, unsafe_allow_html=True)
-                            
-                            if st.button("📌 Wählen", key=f"day_select_{day_row}_{idx}", use_container_width=True):
-                                st.session_state.selected_day_offset = absolute_idx
-                                st.rerun()
+                                bg_color = "#fef3c7"
+                        else:
+                            bg_color = "#f5f5f5"
+                        
+                        # Markiere heutigen Tag und mache ihn größer
+                        is_today = current_date == today
+                        if is_today:
+                            border = "3px solid #dc2626"
+                            font_size = "36px"
+                            padding = "16px"
+                            font_weight_emoji = "bold"
+                        else:
+                            border = "1px solid #e5e7eb"
+                            font_size = "28px"
+                            padding = "12px"
+                            font_weight_emoji = "normal"
+                        
+                        temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
+                        temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.2f}'
+                        precip_str = f'{precip:.2f}'
+                        
+                        st.markdown(f"""
+                        <div style="
+                            background: {bg_color};
+                            border: {border};
+                            padding: {padding};
+                            border-radius: 8px;
+                            text-align: center;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        ">
+                            <small style="font-weight: bold;">{date_str}</small><br>
+                            <div style="font-size: {font_size}; margin: 8px 0; font-weight: {font_weight_emoji};">{emoji}</div>
+                            <small><strong>↑ {temp_max_str}°</strong></small><br>
+                            <small>↓ {temp_min_str}°</small><br>
+                            <small>💧 {precip_str}mm</small>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        if st.button("📌 Wählen", key=f"day_select_{current_date}", use_container_width=True):
+                            st.session_state.selected_day_offset = len(daily_df[pd.to_datetime(daily_df['date']).dt.date <= current_date]) - 1
+                            st.rerun()
             else:
                 st.warning("⚠️ Keine Wetterdaten für Kalender verfügbar.")
         else:
