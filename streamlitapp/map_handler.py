@@ -67,19 +67,19 @@ def get_weather_color(weather_code: int) -> str:
 def get_temperature_color(temperature: float) -> str:
     """Temperaturbasierte Farbcodierung wie MeteoSwiss."""
     if isinstance(temperature, str) or temperature is None:
-        return "#999999"  # Grau für keine Daten
+        return "#c0c0c0"  # Grau für keine Daten
     try:
         temp = float(temperature)
-        if temp < -20: return "#003399"  # Dunkelblau - sehr kalt
-        elif temp < -10: return "#0066cc"  # Blau - kalt
-        elif temp < 0: return "#0099ff"  # Hellblau - kühl
-        elif temp < 5: return "#00ff00"  # Grün - mild
-        elif temp < 10: return "#ffff00"  # Gelb - warm
-        elif temp < 15: return "#ff9900"  # Orange - wärmer
-        elif temp < 20: return "#ff6600"  # Dunkelorange - heiss
-        else: return "#cc0000"  # Rot - sehr heiss
+        if temp < -20: return "#1e3a8a"  # Dunkles Blau - sehr kalt
+        elif temp < -10: return "#3b82f6"  # Kräftiges Blau - kalt
+        elif temp < 0: return "#60a5fa"  # Helles Blau - kühl
+        elif temp < 5: return "#f5f5f5"  # Weiss - mild
+        elif temp < 10: return "#fef3c7"  # Sanftes Hellgelb - warm
+        elif temp < 15: return "#fcd34d"  # Helles Gelb - wärmer
+        elif temp < 20: return "#fbbf24"  # Kräftiges Gelb - heiss
+        else: return "#f59e0b"  # Dunkles Gelb - sehr heiss
     except:
-        return "#999999"
+        return "#c0c0c0"
 
 
 def fetch_city_weather_data() -> list:

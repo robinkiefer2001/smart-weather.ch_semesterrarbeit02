@@ -29,25 +29,28 @@ st.markdown("""
 <style>
     .metric-card {
         padding: 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 8px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+        border-radius: 12px;
         color: white;
         text-align: center;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.15);
     }
     .day-card {
         padding: 12px;
-        border-radius: 8px;
+        border-radius: 10px;
         text-align: center;
         transition: all 0.3s ease;
         cursor: pointer;
+        border: 1px solid #d0d0d0;
     }
     .day-card:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
     }
     .day-selected {
-        border: 3px solid #1f77b4;
-        background: #e3f2fd !important;
+        border: 2px solid #3b82f6;
+        background: #eff6ff !important;
+
     }
 </style>
 """, unsafe_allow_html=True)
@@ -210,28 +213,28 @@ with tab_calendar:
                     }
                     emoji = emoji_map.get(weather_code, "❓")
                     
-                    # Hintergrundfarbe je nach Temperatur
+                    # Hintergrundfarbe je nach Temperatur (Blau-Weiss-Gelb Schema)
                     if isinstance(temp_max, (int, float)):
                         if temp_max < 0:
-                            bg_color = "#e3f2fd"  # Hellblau
+                            bg_color = "#eff6ff"  # Sehr helles Blau
+                        elif temp_max < 5:
+                            bg_color = "#f9fafb"  # Weiss-Grau
                         elif temp_max < 10:
-                            bg_color = "#e8f5e9"  # Hellgrün
+                            bg_color = "#fffbeb"  # Sehr helles Gelb
                         elif temp_max < 15:
-                            bg_color = "#fffde7"  # Hellgelb
-                        elif temp_max < 20:
-                            bg_color = "#fff3e0"  # Hellbeige
+                            bg_color = "#fef9e7"  # Helles Gelb
                         else:
-                            bg_color = "#ffebee"  # Hellrot
+                            bg_color = "#fef3c7"  # Sanftes Gelb
                     else:
                         bg_color = "#f5f5f5"
                     
                     # Markiere ausgewählten Tag
-                    border = "3px solid #1f77b4" if idx == st.session_state.selected_day_offset else "1px solid #ccc"
+                    border = "2px solid #3b82f6" if idx == st.session_state.selected_day_offset else "1px solid #e5e7eb"
                     
                     # Klickbare Karte für Tag
-                    temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.0f}'
-                    temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.0f}'
-                    precip_str = f'{precip:.1f}'
+                    temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.1f}'
+                    temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.1f}'
+                    precip_str = f'{precip:.2f}'
                     
                     st.markdown(f"""
                     <div style="
@@ -279,20 +282,23 @@ with tab_detail:
             metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
             
             with metric_col1:
-                st.metric(
-                    "🌡️ Max Temperatur",
-                    f"{selected_row.get('temperature_2m_max', '--')}°C"
-                )
+                max_temp = selected_row.get('temperature_2m_max', '--')
+                if isinstance(max_temp, (int, float)):
+                    max_temp = f"{max_temp:.2f}"
+                st.metric("🌡️ Max Temperatur", f"{max_temp}°C")
+            
             with metric_col2:
-                st.metric(
-                    "❄️ Min Temperatur",
-                    f"{selected_row.get('temperature_2m_min', '--')}°C"
-                )
+                min_temp = selected_row.get('temperature_2m_min', '--')
+                if isinstance(min_temp, (int, float)):
+                    min_temp = f"{min_temp:.2f}"
+                st.metric("❄️ Min Temperatur", f"{min_temp}°C")
+            
             with metric_col3:
                 st.metric(
                     "💧 Niederschlag",
-                    f"{selected_row.get('precipitation_sum', 0):.1f} mm"
+                    f"{selected_row.get('precipitation_sum', 0):.2f} mm"
                 )
+            
             with metric_col4:
                 st.metric(
                     "☀️ Sonnenschein",
@@ -308,7 +314,8 @@ with tab_detail:
                 
                 if not daily_hourly.empty:
                     st.write("**⏰ Stündliche Vorhersage:**")
-                    display_hourly_overview(daily_hourly)
+                    prepared_hourly = prepare_hourly_overview(daily_hourly, selected_date.date())
+                    display_hourly_overview(prepared_hourly)
             
             st.markdown("---")
             
@@ -378,9 +385,9 @@ with tab_forecast:
                 lambda code: weather_descriptions.get(int(code), "❓ Unbekannt")
             )
             
-            forecast_display['Max °C'] = forecast_display['temperature_2m_max'].round(1)
-            forecast_display['Min °C'] = forecast_display['temperature_2m_min'].round(1)
-            forecast_display['Niederschlag'] = forecast_display['precipitation_sum'].round(1).astype(str) + " mm"
+            forecast_display['Max °C'] = forecast_display['temperature_2m_max'].round(2)
+            forecast_display['Min °C'] = forecast_display['temperature_2m_min'].round(2)
+            forecast_display['Niederschlag'] = forecast_display['precipitation_sum'].round(2).astype(str) + " mm"
             
             display_cols = ['Datum', 'Wetter', 'Max °C', 'Min °C', 'Niederschlag']
             
