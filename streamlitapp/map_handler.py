@@ -226,6 +226,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     lat: {city['lat']},
     lon: {city['lon']},
     name: '{city['name']}',
+    emoji: '{emoji}',
     popup: '{popup_escaped}',
     color: '{color}',
     type: 'city'
@@ -243,6 +244,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     lat: {search_location['lat']},
     lon: {search_location['lon']},
     name: '{search_location['name']} 📍',
+    emoji: '📍',
     popup: '{search_popup_escaped}',
     color: '#FF0000',
     type: 'search'
@@ -250,60 +252,143 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
     
     markers_code += "];"
     
-    # HTML mit Leaflet-Karte - NICHT als f-string um Brace-Probleme zu vermeiden
+    # HTML mit Leaflet-Karte - Professionelles Design
     leaflet_html = """
-    <div id="map" style="width: 100%; height: MAP_HEIGHT_PX;"></div>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      #map {
+        width: 100%;
+        height: MAP_HEIGHT_PX;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+      }
+      .leaflet-container {
+        background-color: #e8f1f8 !important;
+      }
+      .weather-marker {
+        font-weight: bold;
+        text-align: center;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+      }
+      .weather-marker:hover {
+        transform: scale(1.15);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+      .leaflet-popup-content {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+      }
+      .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.98);
+        padding: 0;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      }
+      .leaflet-popup-tip {
+        background: rgba(255, 255, 255, 0.98);
+      }
+    </style>
+
+    <div id="map"></div>
 
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-heat@0.2.0/dist/leaflet-heat.js"></script>
 
     <script>
       // Bounds für Schweiz-Ausschnitt
       var bounds = L.latLngBounds(
-        L.latLng(45.5, 5.5),   // Süd-West
-        L.latLng(48.0, 11.0)   // Nord-Ost
+        L.latLng(45.3, 5.8),   // Süd-West
+        L.latLng(47.9, 10.6)   // Nord-Ost
       );
 
-      // Karte auf diese Bounds zoomen und begrenzen
+      // Karte mit professionellem Styling
       var map = L.map('map', {
         maxBounds: bounds,
-        maxBoundsViscosity: 1.0
+        maxBoundsViscosity: 1.0,
+        zoomControl: true,
+        attributionControl: false
       }).fitBounds(bounds);
 
-      // Basiskarte (OSM)
+      // Basiskarte mit hochwertigerem Tile-Layer
       L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
           maxZoom: 14,
-          minZoom: 6
+          minZoom: 6,
+          opacity: 0.85,
+          className: 'map-tiles'
         }
       ).addTo(map);
 
-      // Rahmen um die Schweiz
+      // Sanfte Rahmen um die Schweiz
       L.rectangle(bounds, {
-        color: "#00aaff",
-        weight: 1,
-        fillOpacity: 0.0
+        color: "#2c5aa0",
+        weight: 2,
+        fillOpacity: 0,
+        dashArray: "5, 5"
       }).addTo(map);
 
       // Marker-Daten
       MARKERS_CODE_HERE
       
-      // Marker hinzufügen
+      // Marker hinzufügen mit modernem Design
       markers.forEach(function(markerData) {
-        var markerSize = markerData.type === 'search' ? 30 : 25;
-        var borderColor = markerData.type === 'search' ? '#000000' : '#333';
-        var borderWeight = markerData.type === 'search' ? 3 : 2;
+        var isSearch = markerData.type === 'search';
+        var markerSize = isSearch ? 45 : 38;
+        var opacity = isSearch ? 0.95 : 0.90;
+        var borderWeight = isSearch ? 4 : 2;
+        var borderColor = isSearch ? '#fff' : '#fff';
         
-        L.circleMarker([markerData.lat, markerData.lon], {
-          radius: markerSize,
-          fillColor: markerData.color,
-          color: borderColor,
-          weight: borderWeight,
-          opacity: 0.95,
-          fillOpacity: markerData.type === 'search' ? 0.7 : 0.85
-        }).bindPopup(markerData.popup).addTo(map);
+        // Erstelle SVG-basiertes Icon für besseres Rendering
+        var customIcon = L.divIcon({
+          html: `<div style="
+            width: ${markerSize}px;
+            height: ${markerSize}px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, ${markerData.color} 0%, ${markerData.color}dd 100%);
+            border: ${borderWeight}px solid ${borderColor};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${isSearch ? '24px' : '20px'};
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(4px);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+          " class="weather-marker">
+            <span>${markerData.emoji || '❓'}</span>
+          </div>`,
+          iconSize: [markerSize, markerSize],
+          className: 'custom-marker'
+        });
+        
+        var marker = L.marker([markerData.lat, markerData.lon], {
+          icon: customIcon,
+          title: markerData.name
+        }).bindPopup(markerData.popup, {
+          className: 'custom-popup',
+          closeButton: true,
+          offset: [0, -markerSize/2 - 10]
+        }).addTo(map);
+        
+        // Hover-Effekt
+        marker.on('mouseover', function() {
+          this.openPopup();
+        });
       });
     </script>
     """
