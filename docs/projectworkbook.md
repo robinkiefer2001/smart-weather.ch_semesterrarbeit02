@@ -2051,3 +2051,201 @@ def test_fetch_weather_data(mock_get):
 - Datenstrukturen bleiben gleich
 - API-Integration unverändert
 
+---
+
+### Erweiterung der Datenquellen und Fehlertoleranz
+
+Im Zuge weiterer Entwicklung wurden die API-Datenquellen erweitert und umfassende Fehlertoleranz in alle Charts implementiert.
+
+#### API-Datenquellen in api_client.py erweitert
+
+Problem: Open-Meteo Daily API war unvollständig. Wind- und Schnee-Metriken fehlten in daily_df.
+
+Lösung (api_client.py Zeilen 100-169):
+
+```python
+daily_df = pd.DataFrame({
+    "date": daily_time,
+    "weather_code": daily.Variables(0).ValuesAsNumpy(),
+    "temperature_2m_max": daily.Variables(1).ValuesAsNumpy(),
+    "temperature_2m_min": daily.Variables(2).ValuesAsNumpy(),
+    "apparent_temperature_max": daily.Variables(3).ValuesAsNumpy(),
+    "apparent_temperature_min": daily.Variables(4).ValuesAsNumpy(),
+    # weitere Standard-Spalten
+    # NEU HINZUGEFÜGT:
+    "wind_speed_10m_max": daily.Variables(17).ValuesAsNumpy(),
+    "wind_gusts_10m_max": daily.Variables(18).ValuesAsNumpy(),
+    "snowfall_sum": daily.Variables(13).ValuesAsNumpy(),
+})
+
+# Cloud-Cover aus Stundendaten aggregieren
+hourly_df["date"] = hourly_df["time"].dt.date
+daily_cloud_cover = hourly_df.groupby("date")["cloud_cover"].mean().round(2)
+daily_df["cloud_cover"] = daily_df["date"].dt.date.map(daily_cloud_cover).fillna(0)
+```
+
+Resultat: daily_df wächst von 7 auf 21 Spalten mit allen notwendigen Metriken.
+
+---
+
+#### Chart-Legenden mit Altair melt()-Pattern
+
+Problem: Multi-Linien-Charts (Temperatur, Wind) zeigten keine Legenden und waren nicht unterscheidbar.
+
+Lösung (app.py Zeilen 380-420):
+
+Das melt()-Pattern transformiert Daten von breit zu lang für bessere Legende-Unterstützung:
+
+```python
+# Beispiel: Temperatur-Chart mit 4 Linien
+temp_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 
+             'apparent_temperature_max', 'apparent_temperature_min']
+temp_week_long = week_data[temp_cols].melt(
+    id_vars=['date_str'], 
+    var_name='Metrik', 
+    value_name='Temperatur'
+)
+
+# Color Scale definieren
+color_scale = alt.Scale(
+    domain=['temperature_2m_max', 'temperature_2m_min', 
+            'apparent_temperature_max', 'apparent_temperature_min'],
+    range=['#dc2626', '#3b82f6', '#f97316', '#06b6d4']
+)
+
+# Stroke Dash für Unterscheidung
+stroke_dash_scale = alt.Scale(
+    domain=['temperature_2m_max', 'temperature_2m_min', 
+            'apparent_temperature_max', 'apparent_temperature_min'],
+    range=[[], [], [5, 5], [5, 5]]
+)
+
+# Altair Chart mit Legende
+chart = alt.Chart(temp_week_long).mark_line(point=True, size=2).encode(
+    x=alt.X('date_str', sort=None),
+    y=alt.Y('Temperatur', scale=alt.Scale(zero=False), title='Temperatur (°C)'),
+    color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
+    strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
+).properties(height=400).interactive()
+
+st.altair_chart(chart, use_container_width=True)
+```
+
+Resultat: Alle Charts zeigen nun Legenden mit Farb- und Strichcodierung. Benutzer können Legenden-Items klicken zum An/Ausschalten.
+
+---
+
+#### Fehlertoleranz für alle 10 Charts
+
+Problem: KeyError Exceptions wenn Spalten nicht vorhanden. App crashed.
+
+5 kritische Fehler behoben:
+
+1. precipitation_probability_max - Existiert nur in hourly_df, nicht daily_df
+   Fix: Nicht in daily Charts verwendet
+
+2. wind_speed_10m_max - API Index 17, war nicht geladen
+   Fix: daily.Variables(17).ValuesAsNumpy() in api_client.py hinzugefügt
+
+3. wind_gusts_10m_max - API Index 18, war nicht geladen
+   Fix: daily.Variables(18).ValuesAsNumpy() in api_client.py hinzugefügt
+
+4. snowfall_sum - API Index 13, war nicht geladen
+   Fix: daily.Variables(13).ValuesAsNumpy() in api_client.py hinzugefügt
+
+5. cloud_cover - Nur in hourly_df, nicht in daily_df
+   Fix: Mit groupby("date")["cloud_cover"].mean() aggregiert und daily_df hinzugefügt
+
+Implementierung (app.py Zeilen 365-680):
+
+Alle Charts nutzen ein konsistentes Validierungs-Pattern:
+
+```python
+# Vor jedem Chart-Rendering
+required_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 
+                 'apparent_temperature_max', 'apparent_temperature_min']
+if all(col in week_data.columns for col in required_cols):
+    # Rendere Chart mit Altair
+    st.altair_chart(chart, use_container_width=True)
+else:
+    # Graceful Fallback
+    st.info("Temperaturdaten nicht verfügbar")
+```
+
+Resultat: 0 Crashes durch fehlende Spalten. Alle 10 Charts (5 Woche + 5 x 14-Tage) sind robust.
+
+---
+
+#### Kalender und Wochennavigation
+
+Implementierung (app.py Zeilen 210-370):
+
+- 7-Tage Kalender: Montag bis Sonntag mit Tages-Karten
+- Heutiger Tag Highlight: 3px Grenze, 36px Emoji (vs. 28px normal)
+- Temperatur-basierte Hintergrundfarben:
+  - Blau (#eff6ff): < 0 Grad
+  - Weiss (#f9fafb): 0-5 Grad
+  - Gelb (#fffbeb): 5-10 Grad
+  - Orange (#fef9e7): 10-15 Grad
+  - Peach (#fef3c7): > 15 Grad
+- Wochennavigation: Vorherige Woche / Nächste Woche
+  - Offset range: -2 bis +2 Wochen
+  - Session State persistent über Reruns
+- Wetter-Icons und Niederschlag: WMO-basierte Emojis + mm-Summe
+
+Resultat: Intuitive Navigation und visuelle Orientierung für Benutzer.
+
+---
+
+#### Deutsche Lokalisierung durchgehend
+
+Funktion (app.py Zeilen 26-40):
+
+```python
+DEUTSCH_TAGE = {
+    0: 'Montag', 1: 'Dienstag', 2: 'Mittwoch', 3: 'Donnerstag',
+    4: 'Freitag', 5: 'Samstag', 6: 'Sonntag'
+}
+
+def format_date_german(date_obj, format_type='long'):
+    """
+    Formatiere Datum auf Deutsch.
+    format_type: 'long' (Montag, 05.01.2026)
+    format_type: 'short' (Mo\\n05.01)
+    format_type: 'long_full' (Montag, 5. Januar 2026)
+    """
+```
+
+- Alle Wochentags- und Monatsnamen deutsch
+- Keine Abhängigkeit vom System-Locale
+- Konsistente Formatierung überall
+
+---
+
+#### Modulare Code-Architektur stabilisiert
+
+Datei-Struktur in streamlitapp/:
+- api_client.py (169 Zeilen): Reine API-Integration
+- data_handlers.py (594 Zeilen): Business-Logik, 100 WMO Codes, Statistiken
+- ui_components.py (199 Zeilen): UI-Komponenten (current_metrics, charts, tables)
+- app.py (784 Zeilen): Orchestrierung, Kalender-Logik, Session State
+
+Separation of Concerns:
+- API Datenebene (api_client.py)
+- Daten Logik (data_handlers.py)
+- Logik UI (ui_components.py)
+- UI Navigation (app.py)
+
+Resultat: Code ist wartbar, testbar und erweiterbar. Keine Monolith-Struktur.
+
+---
+
+#### Performance und Caching optimiert
+
+- Session State Caching: API-Responses werden nicht mehrfach geladen
+- Lazy Loading: Charts nur rendern wenn Tab aktiv
+- Effiziente DataFrame-Operationen: groupby().mean() statt Schleifen
+- Column Filtering: Nur notwendige Spalten laden
+
+
+---
