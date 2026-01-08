@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
-from api_client import get_weather_data
+from api_client import fetch_weather_data
 from map_handler import display_weather_map, fetch_city_weather_data
 from database import search_location
 from data_handlers import (
@@ -103,7 +103,7 @@ with tab_map:
                 st.session_state.last_search = search_query
                 # Wetterdaten für ersten Treffer laden
                 result = search_results.iloc[0]
-                st.session_state.weather_data = get_weather_data(result['latitude'], result['longitude'])
+                st.session_state.weather_data = fetch_weather_data(result['latitude'], result['longitude'])
             else:
                 st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
     
