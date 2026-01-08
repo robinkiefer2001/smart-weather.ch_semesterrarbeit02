@@ -376,7 +376,7 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
       });
 
       // Hochwertige Basiskarte - Swisstopo Landeskarte (offizielle Schweizer Karte)
-      L.tileLayer(
+      var swisstopoLayer = L.tileLayer(
         'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe/default/current/3857/{z}/{x}/{y}.png',
         {
           maxZoom: 15,
@@ -385,6 +385,32 @@ def create_weather_map(cities_weather: list = None, search_location: dict = None
           crossOrigin: 'anonymous'
         }
       ).addTo(map);
+
+      // Swiss Meteo Radar Overlay - Live Niederschlagsdaten
+      var radarLayer = L.tileLayer(
+        'https://tile.maps.verwalt.ch/radar/{z}/{x}/{y}.png',
+        {
+          opacity: 0.5,
+          attribution: '© MeteoSwiss',
+          maxZoom: 15,
+          minZoom: 7,
+          crossOrigin: 'anonymous'
+        }
+      ).addTo(map);
+
+      // Layer-Control für Benutzer zum An-/Ausschalten
+      var baseMaps = {
+        'Landeskarte': swisstopoLayer
+      };
+      
+      var overlayMaps = {
+        'Radar (Live)': radarLayer
+      };
+      
+      L.control.layers(baseMaps, overlayMaps, {
+        position: 'topright',
+        collapsed: true
+      }).addTo(map);
 
       // Marker-Daten
       MARKERS_CODE_HERE
