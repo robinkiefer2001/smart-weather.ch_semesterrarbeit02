@@ -121,16 +121,48 @@ def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.Data
         "temperature_2m_min": daily.Variables(2).ValuesAsNumpy(),
         "apparent_temperature_max": daily.Variables(3).ValuesAsNumpy(),
         "apparent_temperature_min": daily.Variables(4).ValuesAsNumpy(),
-        "precipitation_sum": daily.Variables(14).ValuesAsNumpy(),
+        "sunrise": daily.Variables(5).ValuesAsNumpy(),
+        "sunset": daily.Variables(6).ValuesAsNumpy(),
+        "daylight_duration": daily.Variables(7).ValuesAsNumpy(),
         "sunshine_duration": daily.Variables(8).ValuesAsNumpy(),
+        "uv_index_max": daily.Variables(9).ValuesAsNumpy(),
+        "uv_index_clear_sky_max": daily.Variables(10).ValuesAsNumpy(),
+        "rain_sum": daily.Variables(11).ValuesAsNumpy(),
+        "showers_sum": daily.Variables(12).ValuesAsNumpy(),
+        "snowfall_sum": daily.Variables(13).ValuesAsNumpy(),
+        "precipitation_sum": daily.Variables(14).ValuesAsNumpy(),
+        "precipitation_hours": daily.Variables(15).ValuesAsNumpy(),
+        "precipitation_probability_max": daily.Variables(16).ValuesAsNumpy(),
+        "wind_speed_10m_max": daily.Variables(17).ValuesAsNumpy() if daily.VariablesLength() > 17 else None,
+        "wind_gusts_10m_max": daily.Variables(18).ValuesAsNumpy() if daily.VariablesLength() > 18 else None,
+        "shortwave_radiation_sum": daily.Variables(19).ValuesAsNumpy() if daily.VariablesLength() > 19 else None,
+        "wind_direction_10m_dominant": daily.Variables(20).ValuesAsNumpy() if daily.VariablesLength() > 20 else None,
     })
+    
+    # Entferne None-Spalten
+    daily_df = daily_df.dropna(axis=1, how='all')
+    daily_df = daily_df.drop(columns=[col for col in daily_df.columns if daily_df[col].isnull().all()], errors='ignore')
     
     # Runde numerische Spalten konsistent
     daily_df["temperature_2m_max"] = daily_df["temperature_2m_max"].astype(float).round(2)
     daily_df["temperature_2m_min"] = daily_df["temperature_2m_min"].astype(float).round(2)
     daily_df["apparent_temperature_max"] = daily_df["apparent_temperature_max"].astype(float).round(2)
     daily_df["apparent_temperature_min"] = daily_df["apparent_temperature_min"].astype(float).round(2)
-    daily_df["precipitation_sum"] = daily_df["precipitation_sum"].astype(float).round(2)
     daily_df["sunshine_duration"] = daily_df["sunshine_duration"].astype(float).round(2)
+    daily_df["rain_sum"] = daily_df["rain_sum"].astype(float).round(2)
+    daily_df["showers_sum"] = daily_df["showers_sum"].astype(float).round(2)
+    daily_df["snowfall_sum"] = daily_df["snowfall_sum"].astype(float).round(2)
+    daily_df["precipitation_sum"] = daily_df["precipitation_sum"].astype(float).round(2)
+    daily_df["precipitation_hours"] = daily_df["precipitation_hours"].astype(float).round(2)
+    daily_df["precipitation_probability_max"] = daily_df["precipitation_probability_max"].astype(float).round(2)
+    daily_df["wind_speed_10m_max"] = daily_df["wind_speed_10m_max"].astype(float).round(2)
+    daily_df["wind_gusts_10m_max"] = daily_df["wind_gusts_10m_max"].astype(float).round(2)
+    daily_df["uv_index_max"] = daily_df["uv_index_max"].astype(float).round(2)
+    daily_df["uv_index_clear_sky_max"] = daily_df["uv_index_clear_sky_max"].astype(float).round(2)
+    
+    # Berechne durchschnittliche cloud_cover pro Tag aus hourly_df
+    hourly_df["date"] = hourly_df["time"].dt.date
+    daily_cloud_cover = hourly_df.groupby("date")["cloud_cover"].mean().round(2)
+    daily_df["cloud_cover"] = daily_df["date"].dt.date.map(daily_cloud_cover).fillna(0)
 
     return current_data, hourly_df, daily_df

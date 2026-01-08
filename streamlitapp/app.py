@@ -368,65 +368,76 @@ if tab_calendar is not None:
                     
                     with tab_week_temp:
                         st.subheader("🌡️ Temperaturverlauf über die Woche")
-                        temp_week = week_data[['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']].copy()
-                        temp_week.columns = ['Tag', 'Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min']
-                        
-                        import altair as alt
-                        
-                        # Umwandle in long format für Legende
-                        temp_week_long = temp_week.melt(id_vars=['Tag'], var_name='Metrik', value_name='Temperatur')
-                        
-                        # Color und Dash-Mapping
-                        color_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
-                                                range=['#dc2626', '#3b82f6', '#f97316', '#06b6d4'])
-                        
-                        # Dash-Pattern für gefühlte Temperaturen
-                        stroke_dash_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
-                                                      range=[[], [], [5, 5], [5, 5]])
-                        
-                        chart = alt.Chart(temp_week_long).mark_line(point=True, size=2).encode(
-                            x=alt.X('Tag', sort=None),
-                            y=alt.Y('Temperatur', scale=alt.Scale(zero=False), title='Temperatur (°C)'),
-                            color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
-                            strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
-                        ).properties(height=400).interactive()
-                        st.altair_chart(chart, use_container_width=True)
-                        st.dataframe(temp_week, use_container_width=True, hide_index=True)
+                        temp_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']
+                        if all(col in week_data.columns for col in temp_cols):
+                            temp_week = week_data[temp_cols].copy()
+                            temp_week.columns = ['Tag', 'Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min']
+                            
+                            import altair as alt
+                            
+                            # Umwandle in long format für Legende
+                            temp_week_long = temp_week.melt(id_vars=['Tag'], var_name='Metrik', value_name='Temperatur')
+                            
+                            # Color und Dash-Mapping
+                            color_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
+                                                    range=['#dc2626', '#3b82f6', '#f97316', '#06b6d4'])
+                            
+                            # Dash-Pattern für gefühlte Temperaturen
+                            stroke_dash_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
+                                                          range=[[], [], [5, 5], [5, 5]])
+                            
+                            chart = alt.Chart(temp_week_long).mark_line(point=True, size=2).encode(
+                                x=alt.X('Tag', sort=None),
+                                y=alt.Y('Temperatur', scale=alt.Scale(zero=False), title='Temperatur (°C)'),
+                                color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
+                                strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
+                            ).properties(height=400).interactive()
+                            st.altair_chart(chart, use_container_width=True)
+                            st.dataframe(temp_week, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("⚠️ Temperaturdaten nicht verfügbar")
                     
                     with tab_week_precip:
                         st.subheader("💧 Niederschlag über die Woche")
-                        precip_week = week_data[['date_str', 'precipitation_sum']].copy()
-                        precip_week.columns = ['Tag', 'Niederschlag (mm)']
-                        
-                        chart = alt.Chart(precip_week).mark_bar(color='#06b6d4').encode(
-                            x=alt.X('Tag', sort=None),
-                            y=alt.Y('Niederschlag (mm)')
-                        ).properties(height=400).interactive()
-                        
-                        st.altair_chart(chart, use_container_width=True)
-                        st.dataframe(precip_week, use_container_width=True, hide_index=True)
+                        if 'precipitation_sum' in week_data.columns:
+                            precip_week = week_data[['date_str', 'precipitation_sum']].copy()
+                            precip_week.columns = ['Tag', 'Niederschlag (mm)']
+                            
+                            chart = alt.Chart(precip_week).mark_bar(color='#06b6d4').encode(
+                                x=alt.X('Tag', sort=None),
+                                y=alt.Y('Niederschlag (mm)')
+                            ).properties(height=400).interactive()
+                            
+                            st.altair_chart(chart, use_container_width=True)
+                            st.dataframe(precip_week, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("⚠️ Niederschlagsdaten nicht verfügbar")
                     
                     with tab_week_wind:
                         st.subheader("💨 Windgeschwindigkeit über die Woche")
-                        wind_week = week_data[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
-                        wind_week.columns = ['Tag', 'Max Windspeed (km/h)', 'Max Windböen (km/h)']
-                        
-                        # Umwandle in long format für Legende
-                        wind_week_long = wind_week.melt(id_vars=['Tag'], var_name='Metrik', value_name='Windgeschwindigkeit')
-                        
-                        color_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
-                                                range=['#10b981', '#ef4444'])
-                        stroke_dash_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
-                                                      range=[[], [5, 5]])
-                        
-                        chart = alt.Chart(wind_week_long).mark_line(point=True, size=2).encode(
-                            x=alt.X('Tag', sort=None),
-                            y=alt.Y('Windgeschwindigkeit', scale=alt.Scale(zero=False), title='Windgeschwindigkeit (km/h)'),
-                            color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
-                            strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
-                        ).properties(height=400).interactive()
-                        st.altair_chart(chart, use_container_width=True)
-                        st.dataframe(wind_week, use_container_width=True, hide_index=True)
+                        # Prüfe ob wind-Spalten existieren
+                        if 'wind_speed_10m_max' in week_data.columns and 'wind_gusts_10m_max' in week_data.columns:
+                            wind_week = week_data[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
+                            wind_week.columns = ['Tag', 'Max Windspeed (km/h)', 'Max Windböen (km/h)']
+                            
+                            # Umwandle in long format für Legende
+                            wind_week_long = wind_week.melt(id_vars=['Tag'], var_name='Metrik', value_name='Windgeschwindigkeit')
+                            
+                            color_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
+                                                    range=['#10b981', '#ef4444'])
+                            stroke_dash_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
+                                                          range=[[], [5, 5]])
+                            
+                            chart = alt.Chart(wind_week_long).mark_line(point=True, size=2).encode(
+                                x=alt.X('Tag', sort=None),
+                                y=alt.Y('Windgeschwindigkeit', scale=alt.Scale(zero=False), title='Windgeschwindigkeit (km/h)'),
+                                color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
+                                strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
+                            ).properties(height=400).interactive()
+                            st.altair_chart(chart, use_container_width=True)
+                            st.dataframe(wind_week, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("⚠️ Windgeschwindigkeitsdaten nicht verfügbar")
                     
                     with tab_week_cloud:
                         st.subheader("☁️ Wolkenbedeckung über die Woche")
@@ -653,60 +664,71 @@ if tab_forecast is not None:
                 
                 with tab_14_temp:
                     st.subheader("🌡️ Temperaturverlauf über 14 Tage")
-                    temp_14 = forecast_display[['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']].copy()
-                    temp_14.columns = ['Tag', 'Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min']
-                    
-                    # Umwandle in long format für Legende
-                    temp_14_long = temp_14.melt(id_vars=['Tag'], var_name='Metrik', value_name='Temperatur')
-                    
-                    color_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
-                                            range=['#dc2626', '#3b82f6', '#f97316', '#06b6d4'])
-                    stroke_dash_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
-                                                  range=[[], [], [5, 5], [5, 5]])
-                    
-                    chart = alt.Chart(temp_14_long).mark_line(point=True, size=2).encode(
-                        x=alt.X('Tag', sort=None),
-                        y=alt.Y('Temperatur', scale=alt.Scale(zero=False), title='Temperatur (°C)'),
-                        color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
-                        strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
-                    ).properties(height=400).interactive()
-                    st.altair_chart(chart, use_container_width=True)
-                    st.dataframe(temp_14, use_container_width=True, hide_index=True)
+                    temp_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']
+                    if all(col in forecast_display.columns for col in temp_cols):
+                        temp_14 = forecast_display[temp_cols].copy()
+                        temp_14.columns = ['Tag', 'Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min']
+                        
+                        # Umwandle in long format für Legende
+                        temp_14_long = temp_14.melt(id_vars=['Tag'], var_name='Metrik', value_name='Temperatur')
+                        
+                        color_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
+                                                range=['#dc2626', '#3b82f6', '#f97316', '#06b6d4'])
+                        stroke_dash_scale = alt.Scale(domain=['Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min'],
+                                                      range=[[], [], [5, 5], [5, 5]])
+                        
+                        chart = alt.Chart(temp_14_long).mark_line(point=True, size=2).encode(
+                            x=alt.X('Tag', sort=None),
+                            y=alt.Y('Temperatur', scale=alt.Scale(zero=False), title='Temperatur (°C)'),
+                            color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
+                            strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
+                        ).properties(height=400).interactive()
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(temp_14, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("⚠️ Temperaturdaten nicht verfügbar")
                 
                 with tab_14_precip:
                     st.subheader("💧 Niederschlag über 14 Tage")
-                    precip_14 = forecast_display[['date_str', 'precipitation_sum']].copy()
-                    precip_14.columns = ['Tag', 'Niederschlag (mm)']
-                    
-                    chart = alt.Chart(precip_14).mark_bar(color='#06b6d4').encode(
-                        x=alt.X('Tag', sort=None),
-                        y=alt.Y('Niederschlag (mm)')
-                    ).properties(height=400).interactive()
-                    
-                    st.altair_chart(chart, use_container_width=True)
-                    st.dataframe(precip_14, use_container_width=True, hide_index=True)
+                    if 'precipitation_sum' in forecast_display.columns:
+                        precip_14 = forecast_display[['date_str', 'precipitation_sum']].copy()
+                        precip_14.columns = ['Tag', 'Niederschlag (mm)']
+                        
+                        chart = alt.Chart(precip_14).mark_bar(color='#06b6d4').encode(
+                            x=alt.X('Tag', sort=None),
+                            y=alt.Y('Niederschlag (mm)')
+                        ).properties(height=400).interactive()
+                        
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(precip_14, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("⚠️ Niederschlagsdaten nicht verfügbar")
                 
                 with tab_14_wind:
                     st.subheader("💨 Windgeschwindigkeit über 14 Tage")
-                    wind_14 = forecast_display[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
-                    wind_14.columns = ['Tag', 'Max Windspeed (km/h)', 'Max Windböen (km/h)']
-                    
-                    # Umwandle in long format für Legende
-                    wind_14_long = wind_14.melt(id_vars=['Tag'], var_name='Metrik', value_name='Windgeschwindigkeit')
-                    
-                    color_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
-                                            range=['#10b981', '#ef4444'])
-                    stroke_dash_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
-                                                  range=[[], [5, 5]])
-                    
-                    chart = alt.Chart(wind_14_long).mark_line(point=True, size=2).encode(
-                        x=alt.X('Tag', sort=None),
-                        y=alt.Y('Windgeschwindigkeit', scale=alt.Scale(zero=False), title='Windgeschwindigkeit (km/h)'),
-                        color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
-                        strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
-                    ).properties(height=400).interactive()
-                    st.altair_chart(chart, use_container_width=True)
-                    st.dataframe(wind_14, use_container_width=True, hide_index=True)
+                    # Prüfe ob wind-Spalten existieren
+                    if 'wind_speed_10m_max' in forecast_display.columns and 'wind_gusts_10m_max' in forecast_display.columns:
+                        wind_14 = forecast_display[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
+                        wind_14.columns = ['Tag', 'Max Windspeed (km/h)', 'Max Windböen (km/h)']
+                        
+                        # Umwandle in long format für Legende
+                        wind_14_long = wind_14.melt(id_vars=['Tag'], var_name='Metrik', value_name='Windgeschwindigkeit')
+                        
+                        color_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
+                                                range=['#10b981', '#ef4444'])
+                        stroke_dash_scale = alt.Scale(domain=['Max Windspeed (km/h)', 'Max Windböen (km/h)'],
+                                                      range=[[], [5, 5]])
+                        
+                        chart = alt.Chart(wind_14_long).mark_line(point=True, size=2).encode(
+                            x=alt.X('Tag', sort=None),
+                            y=alt.Y('Windgeschwindigkeit', scale=alt.Scale(zero=False), title='Windgeschwindigkeit (km/h)'),
+                            color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
+                            strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
+                        ).properties(height=400).interactive()
+                        st.altair_chart(chart, use_container_width=True)
+                        st.dataframe(wind_14, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("⚠️ Windgeschwindigkeitsdaten nicht verfügbar")
                 
                 with tab_14_cloud:
                     st.subheader("☁️ Wolkenbedeckung über 14 Tage")
