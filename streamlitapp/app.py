@@ -110,6 +110,14 @@ if st.session_state.weather_data is None:
                 'hourly_df': hourly_df,
                 'daily_df': daily_df
             }
+            # Setze selected_day_offset auf heutigen Tag
+            today = pd.Timestamp.now().normalize()
+            today_idx = 0
+            for idx, row in daily_df.iterrows():
+                if pd.to_datetime(row['date']).normalize() == today:
+                    today_idx = idx
+                    break
+            st.session_state.selected_day_offset = today_idx
         except Exception as e:
             st.warning(f"Konnte Wetterdaten nicht laden: {e}")
 
@@ -124,20 +132,16 @@ if st.session_state.weather_data is None:
     st.info("📍 Bitte suchen Sie einen Ort aus der Karte um zu starten")
 
 # ===== TABS: DRILL-DOWN KONZEPT =====
+# Nur Tabs erstellen wenn Ort ausgewählt ist
 if st.session_state.weather_data is not None:
     tab_map, tab_calendar, tab_detail, tab_forecast = st.tabs(
         ["🗺️ Wetterkarte", "📅 Kalender & Woche", "📊 Tagesdetail", "🔮 14-Tage Prognose"]
     )
-else:
-    # Nur Kartentab wenn kein Ort ausgewählt
-    tab_map = st.container()
-    tab_calendar = None
-    tab_detail = None
-    tab_forecast = None
 
 # ==================== TAB 1: WETTERKARTE ====================
-with tab_map:
-    st.subheader("🗺️ Interaktive Wetterkarte der Schweiz")
+if st.session_state.weather_data is not None:
+    with tab_map:
+        st.subheader("🗺️ Interaktive Wetterkarte der Schweiz")
     
     # Such-Bereich
     search_col1, search_col2 = st.columns([3, 1])
@@ -171,7 +175,14 @@ with tab_map:
                                 'daily_df': daily_df
                             }
                             st.session_state.cached_location_coords = (latitude, longitude)
-                            st.session_state.selected_day_offset = 0
+                            # Setze selected_day_offset auf heutigen Tag
+                            today = pd.Timestamp.now().normalize()
+                            today_idx = 0
+                            for idx, row in daily_df.iterrows():
+                                if pd.to_datetime(row['date']).normalize() == today:
+                                    today_idx = idx
+                                    break
+                            st.session_state.selected_day_offset = today_idx
                     except Exception as e:
                         st.error(f"Fehler: {e}")
                 else:
@@ -179,38 +190,40 @@ with tab_map:
             else:
                 st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
     
-    # Karte anzeigen
-    st.markdown("---")
-    with st.container():
-        with st.spinner("🗺️ Lade Wetterkarte..."):
-            display_weather_map(show_loading=False, map_height=600)
-    
-    # Legende
-    st.markdown("---")
-    with st.expander("📝 Kartenlegende", expanded=False):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **Temperaturfarben:**
-            - 🔵 **Dunkelblau**: < -5°C (sehr kalt)
-            - 🟦 **Blau**: -5 bis 0°C (kalt)
-            - 🟩 **Grün**: 0-10°C (kühl)
-            - 🟨 **Gelb**: 10-15°C (kühl-mild)
-            - 🟧 **Orange**: 15-20°C (mild)
-            - 🟥 **Rot**: > 20°C (warm)
-            """)
-        with col2:
-            st.markdown("""
-            **Wetter-Symbole:**
-            - ☀️ Sonnig
-            - 🌤️ Teilweise bewölkt
-            - ⛅ Bewölkt
-            - ☁️ Stark bewölkt
-            - 🌫️ Nebel
-            - 🌧️ Regen
-            - ❄️ Schnee
-            - ⛈️ Gewitter
-            """)
+        # Karte anzeigen
+        st.markdown("---")
+        with st.container():
+            with st.spinner("🗺️ Lade Wetterkarte..."):
+                display_weather_map(show_loading=False, map_height=600)
+        
+        # Legende
+        st.markdown("---")
+        with st.expander("📝 Kartenlegende", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("""
+                **Temperaturfarben:**
+                - 🔵 **Dunkelblau**: < -5°C (sehr kalt)
+                - 🟦 **Blau**: -5 bis 0°C (kalt)
+                - 🟩 **Grün**: 0-10°C (kühl)
+                - 🟨 **Gelb**: 10-15°C (kühl-mild)
+                - 🟧 **Orange**: 15-20°C (mild)
+                - 🟥 **Rot**: > 20°C (warm)
+                """)
+            with col2:
+                st.markdown("""
+                **Wetter-Symbole:**
+                - ☀️ Sonnig
+                - 🌤️ Teilweise bewölkt
+                - ⛅ Bewölkt
+                - ☁️ Stark bewölkt
+                - 🌫️ Nebel
+                - 🌧️ Regen
+                - ❄️ Schnee
+                - ⛈️ Gewitter
+                """)
+else:
+    st.info("📍 Bitte suchen Sie einen Ort aus der Karte um zu starten")
 
 # ==================== TAB 2: KALENDER & WOCHENÜBERSICHT ====================
 if tab_calendar is not None:
