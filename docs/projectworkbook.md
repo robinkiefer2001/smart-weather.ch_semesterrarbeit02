@@ -33,6 +33,46 @@ So lässt sich der Projektverlauf jederzeit transparent nachvollziehen und effiz
 
 ---
 
+## Inhaltsverzeichnis
+
+1. [Sprint 0 – Projektinitialisierung & Setup](#sprint-0--projektinitialisierung--setup)
+   - [Ziel des Sprints](#ziel-des-sprints)
+   - [Epics und User Stories](#1-epics-und-user-stories)
+   - [Aufgaben (Tasks)](#3-aufgaben-tasks)
+   - [Deliverables (Ergebnisse)](#4-deliverables-ergebnisse)
+   - [Review](#6-review)
+   - [Retrospektive](#7-retrospektive)
+   - [Worklog](#9-worklog)
+
+2. [Sprint 1 – Server & Infrastruktur](#sprint-1--server--infrastruktur)
+   - [Ziel des Sprints](#ziel-des-sprints-1)
+   - [Epics und User Stories](#1-epics-und-user-stories-1)
+   - [Aufgaben (Tasks)](#2-aufgaben-tasks-1)
+   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-1)
+   - [Review](#5-review)
+   - [Retrospektive](#6-retrospektive-1)
+   - [Worklog](#7-worklog-1)
+
+3. [Sprint 2 – Automatisierung & Integration](#sprint-2--automatisierung--integration)
+   - [Ziel des Sprints](#ziel-des-sprints-2)
+   - [Epics und User Stories](#1-epics-und-user-stories-2)
+   - [Aufgaben (Tasks)](#2-aufgaben-tasks-2)
+   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-2)
+   - [Review](#4-review)
+   - [Retrospektive](#5-retrospektive)
+   - [Worklog](#6-worklog)
+
+4. [Sprint 3 – Code-Refactoring & UI-Verbesserungen](#sprint-3--code-refactoring--ui-verbesserungen)
+   - [Ziel des Sprints](#ziel-des-sprints-3)
+   - [Epics und User Stories](#1-epic-und-user-stories)
+   - [Aufgaben (Tasks)](#2-aufgaben-tasks-3)
+   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-3)
+   - [Review](#4-review-1)
+   - [Retrospektive](#5-retrospektive-1)
+   - [Worklog](#6-worklog-1)
+
+---
+
 # Sprint 0 – Projektinitialisierung & Setup
 
 ## Ziel des Sprints
