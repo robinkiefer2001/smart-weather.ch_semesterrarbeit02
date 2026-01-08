@@ -65,7 +65,15 @@ if 'last_search' not in st.session_state:
 # ===== INITIALIZATION AT START =====
 if st.session_state.weather_data is None:
     with st.spinner("📡 Lade Wetterdaten für Schweiz..."):
-        st.session_state.weather_data = fetch_city_weather_data("Bern")
+        try:
+            current_data, hourly_df, daily_df = fetch_weather_data(46.95, 7.45)
+            st.session_state.weather_data = {
+                'current': current_data,
+                'hourly_df': hourly_df,
+                'daily_df': daily_df
+            }
+        except Exception as e:
+            st.warning(f"Konnte Wetterdaten nicht laden: {e}")
 
 heute = datetime.now().date()
 
@@ -103,7 +111,15 @@ with tab_map:
                 st.session_state.last_search = search_query
                 # Wetterdaten für ersten Treffer laden
                 result = search_results.iloc[0]
-                st.session_state.weather_data = fetch_weather_data(result['latitude'], result['longitude'])
+                try:
+                    current_data, hourly_df, daily_df = fetch_weather_data(result['latitude'], result['longitude'])
+                    st.session_state.weather_data = {
+                        'current': current_data,
+                        'hourly_df': hourly_df,
+                        'daily_df': daily_df
+                    }
+                except Exception as e:
+                    st.error(f"Fehler: {e}")
             else:
                 st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
     
@@ -279,47 +295,53 @@ with tab_detail:
                 )
             with metric_col4:
                 st.metric(
-                    "💨 Max Wind",
-                    f"{selected_row.get('wind_speed_10m_max', '--')} km/h"
+                    "☀️ Sonnenschein",
+                    f"{selected_row.get('sunshine_duration', '--')}"
                 )
             
             st.markdown("---")
             
             # Stündliche Daten für diesen Tag
-            daily_hourly = hourly_df[hourly_df['date'] == selected_date.date()].copy()
-            
-            if not daily_hourly.empty:
-                st.write("**⏰ Stündliche Vorhersage:**")
-                display_hourly_overview(prepare_hourly_overview(daily_hourly, selected_date))
+            hourly_df = st.session_state.weather_data.get('hourly_df')
+            if hourly_df is not None:
+                daily_hourly = hourly_df[hourly_df['time'].dt.date == selected_date.date()].copy()
+                
+                if not daily_hourly.empty:
+                    st.write("**⏰ Stündliche Vorhersage:**")
+                    display_hourly_overview(daily_hourly)
             
             st.markdown("---")
             
             # Grafiken
             st.write("**📈 Diagramme & Verlauf:**")
             
-            chart_col1, chart_col2 = st.columns(2)
-            
-            with chart_col1:
+            if hourly_df is not None:
+                daily_hourly = hourly_df[hourly_df['time'].dt.date == selected_date.date()].copy()
+                
                 if not daily_hourly.empty:
-                    st.subheader("🌡️ Temperaturverlauf")
-                    display_temperature_chart(daily_hourly)
-            
-            with chart_col2:
-                if not daily_hourly.empty:
-                    st.subheader("💧 Niederschlag & Feuchte")
-                    display_precipitation_chart(daily_hourly)
-            
-            chart_col3, chart_col4 = st.columns(2)
-            
-            with chart_col3:
-                if not daily_hourly.empty:
-                    st.subheader("💨 Windgeschwindigkeit")
-                    display_wind_chart(daily_hourly)
-            
-            with chart_col4:
-                if not daily_hourly.empty:
-                    st.subheader("☁️ Wolkenbedeckung")
-                    display_cloud_chart(daily_hourly)
+                    chart_col1, chart_col2 = st.columns(2)
+                    
+                    with chart_col1:
+                        st.subheader("🌡️ Temperaturverlauf")
+                        display_temperature_chart(daily_hourly)
+                    
+                    with chart_col2:
+                        st.subheader("💧 Niederschlag & Feuchte")
+                        display_precipitation_chart(daily_hourly)
+                    
+                    chart_col3, chart_col4 = st.columns(2)
+                    
+                    with chart_col3:
+                        st.subheader("💨 Windgeschwindigkeit")
+                        display_wind_chart(daily_hourly)
+                    
+                    with chart_col4:
+                        st.subheader("☁️ Wolkenbedeckung")
+                        display_cloud_chart(daily_hourly)
+                else:
+                    st.info("Keine stündlichen Daten für diesen Tag verfügbar.")
+            else:
+                st.warning("Stündliche Daten nicht verfügbar.")
         else:
             st.warning("⚠️ Keine detaillierten Daten für diesen Tag verfügbar.")
     else:
@@ -353,9 +375,8 @@ with tab_forecast:
             forecast_display['Max °C'] = forecast_display['temperature_2m_max'].round(1)
             forecast_display['Min °C'] = forecast_display['temperature_2m_min'].round(1)
             forecast_display['Niederschlag'] = forecast_display['precipitation_sum'].round(1).astype(str) + " mm"
-            forecast_display['Wind'] = forecast_display['wind_speed_10m_max'].round(0).astype(int).astype(str) + " km/h"
             
-            display_cols = ['Datum', 'Wetter', 'Max °C', 'Min °C', 'Niederschlag', 'Wind']
+            display_cols = ['Datum', 'Wetter', 'Max °C', 'Min °C', 'Niederschlag']
             
             st.dataframe(
                 forecast_display[display_cols],
