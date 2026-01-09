@@ -35,6 +35,32 @@ def format_date_german(date_obj, format_type='long'):
         month_name = DEUTSCH_MONATE[date_obj.month]
         return f"{day_name}, {date_obj.day}. {month_name} {date_obj.year}"
     return str(date_obj)
+
+# ===== HILFSFUNKTIONEN FÜR DATUM & INDIZES =====
+def find_today_index(daily_df: pd.DataFrame) -> int:
+    """Index des heutigen Tages im daily_df (normalisiertes Datum)."""
+    today = pd.Timestamp.now().normalize()
+    for idx, row in daily_df.iterrows():
+        if pd.to_datetime(row["date"]).normalize() == today:
+            return idx
+    return 0
+
+
+def get_week_start(offset_weeks: int = 0) -> pd.Timestamp:
+    """Montag der Woche mit optionalem Offset (negativ = Vergangenheit, positiv = Zukunft)."""
+    today = pd.Timestamp.now().date()
+    today_pd = pd.Timestamp(today)
+    monday = today_pd - pd.Timedelta(days=today_pd.weekday())
+    return monday + pd.Timedelta(days=offset_weeks * 7)
+
+
+def slice_week(daily_df: pd.DataFrame, week_start: pd.Timestamp) -> pd.DataFrame:
+    """Gibt daily_df-Zeilen für Woche [week_start, week_start+6 Tage] zurück."""
+    week_end = week_start + pd.Timedelta(days=6)
+    df = daily_df.copy()
+    df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+    return df[(df["date"] >= week_start.normalize()) & (df["date"] <= week_end.normalize())]
+
 from data_handlers import (
     prepare_hourly_overview, prepare_temperature_chart, prepare_precipitation_chart,
     prepare_wind_chart, prepare_cloud_chart, prepare_snow_chart,
@@ -86,6 +112,86 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ===== LOCATION FUNKTIONEN =====
+def update_location_suggestions(query: str):
+    """Sucht Orte und aktualisiert st.session_state.location_suggestions."""
+    if not query:
+        st.session_state.location_suggestions = []
+        return
+
+    with st.spinner("📡 Suche Orte in der Schweiz..."):
+        results = geocode_multiple(query, max_results=5)
+        if not results:
+            st.warning(f"❌ Keine Ergebnisse für '{query}' gefunden.")
+            st.session_state.location_suggestions = []
+            return
+
+        options = []
+        for result in results:
+            name = result.get("name", "")
+            admin1 = result.get("admin1", "")
+            postcode = result.get("postcode", "")
+            parts = [name]
+            if admin1:
+                parts.append(admin1)
+            if postcode:
+                parts.append(postcode)
+            label = ", ".join(parts)
+            options.append((label, result))
+
+        st.session_state.location_suggestions = options
+
+
+def handle_location_selection():
+    """Liest Auswahl aus location_suggestions, lädt ggf. Wetterdaten und setzt State."""
+    options = st.session_state.get("location_suggestions", [])
+    if not options:
+        return
+
+    # Auto-Auswahl bei nur einem Treffer
+    if len(options) == 1:
+        selected_label, selected = options[0]
+    else:
+        selected_label = st.session_state.get("location_select")
+        if not selected_label:
+            return
+        selected = next((r for label, r in options if label == selected_label), None)
+        if selected is None:
+            return
+
+    latitude = selected["latitude"]
+    longitude = selected["longitude"]
+    location_name = selected["name"]
+    postcode = selected.get("postcode", "")
+    admin1 = selected.get("admin1", "")
+
+    display_parts = [location_name]
+    if admin1:
+        display_parts.append(admin1)
+    if postcode:
+        display_parts.append(postcode)
+    display_name = ", ".join(display_parts)
+
+    st.success(f"✅ Ort ausgewählt: **{display_name}**")
+    st.session_state.selected_location = (location_name, latitude, longitude)
+
+    # Cache-Check
+    if st.session_state.cached_location_coords != (latitude, longitude):
+        try:
+            with st.spinner("📡 Lade Wetterdaten..."):
+                current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
+                st.session_state.weather_data = {
+                    "current": current_data,
+                    "hourly_df": hourly_df,
+                    "daily_df": daily_df,
+                }
+                st.session_state.cached_location_coords = (latitude, longitude)
+                st.session_state.selected_day_offset = find_today_index(daily_df)
+        except Exception as e:
+            st.error(f"Fehler beim Laden der Wetterdaten: {e}")
+    else:
+        st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
+
 # ===== SESSION STATE INITIALIZATION =====
 if 'weather_data' not in st.session_state:
     st.session_state.weather_data = None
@@ -114,14 +220,7 @@ if st.session_state.weather_data is None:
                 'hourly_df': hourly_df,
                 'daily_df': daily_df
             }
-            # Setze selected_day_offset auf heutigen Tag
-            today = pd.Timestamp.now().normalize()
-            today_idx = 0
-            for idx, row in daily_df.iterrows():
-                if pd.to_datetime(row['date']).normalize() == today:
-                    today_idx = idx
-                    break
-            st.session_state.selected_day_offset = today_idx
+            st.session_state.selected_day_offset = find_today_index(daily_df)
         except Exception as e:
             st.warning(f"Konnte Wetterdaten nicht laden: {e}")
 
@@ -156,9 +255,7 @@ if st.session_state.weather_data is not None:
                 key="location_search",
             )
 
-            # Vorschlagsliste direkt UNTER dem Input rendern (nur wenn > 1 Treffer)
             suggestions = st.session_state.get("location_suggestions", [])
-            selected_label = None
             if len(suggestions) > 1:
                 labels = [opt[0] for opt in suggestions]
                 selected_label = st.selectbox(
@@ -167,90 +264,19 @@ if st.session_state.weather_data is not None:
                     key="location_select",
                     label_visibility="collapsed",
                 )
+            elif len(suggestions) == 1:
+                st.caption("✓ 1 Treffer gefunden – wird automatisch verwendet.")
 
         with col_button:
             search_button = st.button("Suchen", use_container_width=True)
 
-        # --- Suche auslösen und Suggestions in session_state legen ---
         if search_button and search_query:
-            with st.spinner("📡 Suche Orte in der Schweiz..."):
-                search_results = geocode_multiple(search_query, max_results=5)
+            update_location_suggestions(search_query)
+            st.rerun()
 
-                if not search_results:
-                    st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
-                    st.session_state.location_suggestions = []
-                else:
-                    options = []
-                    for result in search_results:
-                        name = result.get("name", "")
-                        admin1 = result.get("admin1", "")
-                        postcode = result.get("postcode", "")
-                        parts = [name]
-                        if admin1:
-                            parts.append(admin1)
-                        if postcode:
-                            parts.append(postcode)
-                        label = ", ".join(parts)
-                        options.append((label, result))
+        # Auswahl nach jedem Rerun prüfen
+        handle_location_selection()
 
-                    # Vorschläge im State speichern → werden oben direkt unter dem Input angezeigt
-                    st.session_state.location_suggestions = options
-                    st.rerun()
-
-        # --- Auswahl aus Vorschlagsliste auswerten ---
-        options = st.session_state.get("location_suggestions", [])
-        if options:
-            labels = [opt[0] for opt in options]
-            
-            # Wenn nur 1 Treffer: automatisch auswählen
-            if len(options) == 1:
-                selected = options[0][1]
-                selected_label = options[0][0]
-            else:
-                # Wenn > 1 Treffer: nehme die Auswahl aus Selectbox
-                selected_label = st.session_state.get("location_select")
-                selected = next((r for label, r in options if label == selected_label), None) if selected_label else None
-            
-            if selected and selected_label:
-                latitude = selected["latitude"]
-                longitude = selected["longitude"]
-                location_name = selected["name"]
-                postcode = selected.get("postcode", "")
-                admin1 = selected.get("admin1", "")
-
-                display_parts = [location_name]
-                if admin1:
-                    display_parts.append(admin1)
-                if postcode:
-                    display_parts.append(postcode)
-                display_name = ", ".join(display_parts)
-
-                st.success(f"✅ Ort ausgewählt: **{display_name}**")
-                st.session_state.selected_location = (location_name, latitude, longitude)
-
-                # Prüfe Cache: nur neu laden wenn andere Koordinaten
-                if st.session_state.cached_location_coords != (latitude, longitude):
-                    try:
-                        with st.spinner("📡 Lade Wetterdaten..."):
-                            current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
-                            st.session_state.weather_data = {
-                                'current': current_data,
-                                'hourly_df': hourly_df,
-                                'daily_df': daily_df
-                            }
-                            st.session_state.cached_location_coords = (latitude, longitude)
-                            # Setze selected_day_offset auf heutigen Tag
-                            today = pd.Timestamp.now().normalize()
-                            today_idx = 0
-                            for idx, row in daily_df.iterrows():
-                                if pd.to_datetime(row['date']).normalize() == today:
-                                    today_idx = idx
-                                    break
-                            st.session_state.selected_day_offset = today_idx
-                    except Exception as e:
-                        st.error(f"Fehler beim Laden der Wetterdaten: {e}")
-                else:
-                    st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
         # Karte anzeigen (nur beim ersten Mal laden, dann cachen)
         st.markdown("---")
         with st.container():
@@ -302,16 +328,9 @@ if tab_calendar is not None:
             daily_df = st.session_state.weather_data.get('daily_df')
             
             if daily_df is not None and not daily_df.empty:
-                # Aktuelles Datum bestimmen
-                today = pd.Timestamp.now().date()
-                
-                # Finde Montag der aktuellen Woche
-                today_pd = pd.Timestamp(today)
-                monday_of_week = today_pd - pd.Timedelta(days=today_pd.weekday())
-                
-                # Berechne Startdatum für Anzeige (7 Tage vor Montag der aktuellen Woche)
-                # Damit die aktuelle Woche vollständig in historischen Daten vorhanden ist
-                display_start_date = monday_of_week - pd.Timedelta(days=7)
+                # Nutze Hilfsfunktion für Week-Start
+                week_start = get_week_start(st.session_state.calendar_week_offset)
+                week_end = week_start + pd.Timedelta(days=6)
                 
                 # Kalender-Navigation
                 nav_col1, nav_col2, nav_col3 = st.columns([1, 3, 1])
@@ -322,10 +341,11 @@ if tab_calendar is not None:
                         st.rerun()
                 
                 with nav_col2:
-                    # Zeige welche Woche aktuell angezeigt wird
-                    week_start = monday_of_week + pd.Timedelta(days=st.session_state.calendar_week_offset * 7)
-                    week_end = week_start + pd.Timedelta(days=6)
-                    st.info(f"📍 Woche: **{format_date_german(week_start.to_pydatetime().date(), 'short').split(chr(10))[1]}** - **{format_date_german(week_end.to_pydatetime().date(), 'short').split(chr(10))[1]}**", icon="📌")
+                    st.info(
+                        f"📍 Woche: **{format_date_german(week_start.to_pydatetime().date(), 'short').split(chr(10))[1]}** - "
+                        f"**{format_date_german(week_end.to_pydatetime().date(), 'short').split(chr(10))[1]}**",
+                        icon="📌"
+                    )
                 
                 with nav_col3:
                     if st.button("Nächste Woche ➡️", use_container_width=True):
@@ -337,23 +357,25 @@ if tab_calendar is not None:
                 # 7-Tage Kalender (Montag bis Sonntag)
                 st.write("**📅 Woche:**")
                 
-                week_start_date = monday_of_week + pd.Timedelta(days=st.session_state.calendar_week_offset * 7)
+                # Hole Wochendaten
+                week_data = slice_week(daily_df, week_start)
+                
                 week_cols = st.columns(7)
+                today = pd.Timestamp.now().date()
                 
                 for day_offset in range(7):
-                    current_date = (week_start_date + pd.Timedelta(days=day_offset)).to_pydatetime().date()
+                    current_date = (week_start + pd.Timedelta(days=day_offset)).date()
                     col = week_cols[day_offset]
                     
-                    # Suche Daten für diesen Tag
-                    matching_rows = daily_df[pd.to_datetime(daily_df['date']).dt.date == current_date]
+                    # Suche Daten für diesen Tag in week_data
+                    matching_rows = week_data[pd.to_datetime(week_data['date']).dt.date == current_date]
                     
-                    if not matching_rows.empty:
-                        row = matching_rows.iloc[0]
-                    else:
-                        # Wenn keine Daten, skip
+                    if matching_rows.empty:
                         with col:
                             st.markdown(f"<div style='text-align: center; padding: 12px; color: #999;'>{format_date_german(current_date, 'short')}<br>Keine Daten</div>", unsafe_allow_html=True)
                         continue
+                    
+                    row = matching_rows.iloc[0]
                     
                     with col:
                         date_str = format_date_german(current_date, 'short')
@@ -361,10 +383,7 @@ if tab_calendar is not None:
                         temp_min = row.get('temperature_2m_min', '--')
                         precip = row.get('precipitation_sum', 0)
                         weather_code = int(row.get('weather_code', 0))
-                        emoji = weather_icon(weather_code)
-                        
-                        if not emoji:
-                            emoji = "🌤️"
+                        emoji = weather_icon(weather_code) or "🌤️"
                         
                         # Hintergrundfarbe
                         if isinstance(temp_max, (int, float)):
@@ -425,18 +444,13 @@ if tab_calendar is not None:
                 # Wochengrafiken
                 st.write("**📈 Entwicklung in der Woche:**")
                 
-                # Hole die Daten für die aktuelle Woche
-                week_start_date = monday_of_week + pd.Timedelta(days=st.session_state.calendar_week_offset * 7)
-                week_end_date = week_start_date + pd.Timedelta(days=6)
-                
-                week_data = daily_df[
-                    (pd.to_datetime(daily_df['date']).dt.date >= week_start_date.date()) &
-                    (pd.to_datetime(daily_df['date']).dt.date <= week_end_date.date())
-                ].copy().reset_index(drop=True)
+                # Nutze slice_week für saubere Wochendaten (bereits oben definiert als week_data)
+                # week_data ist bereits gefiltert für die aktuelle Woche
                 
                 if not week_data.empty:
                     # Vorbereitung der Wochendaten für Charts
-                    week_data['date_str'] = pd.to_datetime(week_data['date']).apply(lambda d: format_date_german(d, 'short').split('\n')[0])
+                    week_data_copy = week_data.copy().reset_index(drop=True)
+                    week_data_copy['date_str'] = pd.to_datetime(week_data_copy['date']).apply(lambda d: format_date_german(d, 'short').split('\n')[0])
                     
                     # Tabs für Diagramme
                     tab_week_temp, tab_week_precip, tab_week_wind, tab_week_cloud, tab_week_snow = st.tabs([
@@ -450,8 +464,8 @@ if tab_calendar is not None:
                     with tab_week_temp:
                         st.subheader("🌡️ Temperaturverlauf über die Woche")
                         temp_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']
-                        if all(col in week_data.columns for col in temp_cols):
-                            temp_week = week_data[temp_cols].copy()
+                        if all(col in week_data_copy.columns for col in temp_cols):
+                            temp_week = week_data_copy[temp_cols].copy()
                             temp_week.columns = ['Tag', 'Max Temp', 'Min Temp', 'Gefühlte Max', 'Gefühlte Min']
                             
                             import altair as alt
@@ -480,8 +494,8 @@ if tab_calendar is not None:
                     
                     with tab_week_precip:
                         st.subheader("💧 Niederschlag über die Woche")
-                        if 'precipitation_sum' in week_data.columns:
-                            precip_week = week_data[['date_str', 'precipitation_sum']].copy()
+                        if 'precipitation_sum' in week_data_copy.columns:
+                            precip_week = week_data_copy[['date_str', 'precipitation_sum']].copy()
                             precip_week.columns = ['Tag', 'Niederschlag (mm)']
                             
                             chart = alt.Chart(precip_week).mark_bar(color='#06b6d4').encode(
@@ -497,8 +511,8 @@ if tab_calendar is not None:
                     with tab_week_wind:
                         st.subheader("💨 Windgeschwindigkeit über die Woche")
                         # Prüfe ob wind-Spalten existieren
-                        if 'wind_speed_10m_max' in week_data.columns and 'wind_gusts_10m_max' in week_data.columns:
-                            wind_week = week_data[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
+                        if 'wind_speed_10m_max' in week_data_copy.columns and 'wind_gusts_10m_max' in week_data_copy.columns:
+                            wind_week = week_data_copy[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
                             wind_week.columns = ['Tag', 'Max Windspeed (km/h)', 'Max Windböen (km/h)']
                             
                             # Umwandle in long format für Legende
@@ -522,7 +536,7 @@ if tab_calendar is not None:
                     
                     with tab_week_cloud:
                         st.subheader("☁️ Wolkenbedeckung über die Woche")
-                        cloud_week = week_data[['date_str', 'cloud_cover']].copy() if 'cloud_cover' in week_data.columns else pd.DataFrame()
+                        cloud_week = week_data_copy[['date_str', 'cloud_cover']].copy() if 'cloud_cover' in week_data_copy.columns else pd.DataFrame()
                         
                         if not cloud_week.empty:
                             cloud_week.columns = ['Tag', 'Wolkenbedeckung (%)']
@@ -539,7 +553,7 @@ if tab_calendar is not None:
                     
                     with tab_week_snow:
                         st.subheader("❄️ Schneefall über die Woche")
-                        snow_week = week_data[['date_str', 'snowfall_sum']].copy() if 'snowfall_sum' in week_data.columns else pd.DataFrame()
+                        snow_week = week_data_copy[['date_str', 'snowfall_sum']].copy() if 'snowfall_sum' in week_data_copy.columns else pd.DataFrame()
                         
                         if not snow_week.empty:
                             snow_week.columns = ['Tag', 'Schneefall (cm)']
