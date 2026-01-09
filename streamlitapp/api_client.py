@@ -1,5 +1,6 @@
 import openmeteo_requests
 import pandas as pd
+import requests
 from typing import Dict, Tuple
 
 # User-Agent für API-Requests
@@ -171,35 +172,6 @@ def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.Data
     return current_data, hourly_df, daily_df
 
 
-# Get Geo Location via Nominatim
-def get_geo_location(location: str) -> Tuple[float, float]:
-    """
-    Holt die geografische Lage (Breitengrad, Längengrad) für einen gegebenen Ort.
-    
-    Args:
-        location: Name des Ortes
-        
-    Returns:
-        Tuple mit (latitude, longitude)
-    """
-    nominatim = openmeteo_requests.NominatimClient()
-
-    url = "https://nominatim.openstreetmap.org/search"
-    params = {
-        "q": location,
-        "format": "json",
-        "limit": 1,
-    }
-
-    responses = nominatim.geocoding_api(url, params=params)
-    response = responses[0]
-
-    latitude = float(response[0]["lat"])
-    longitude = float(response[0]["lon"])
-
-    return latitude, longitude
-
-
 def geocode_multiple(location: str, max_results: int = 5) -> list:
     """
     Holt mehrere geografische Ortsvorschläge für einen gegebenen Ort.
@@ -211,10 +183,6 @@ def geocode_multiple(location: str, max_results: int = 5) -> list:
     Returns:
         Liste von Dictionaries mit Ortsinformationen (name, country, admin1, postcode, latitude, longitude)
     """
-    nominatim = openmeteo_requests.NominatimClient(
-        user_agent=USER_AGENT
-    )
-
     url = "https://nominatim.openstreetmap.org/search"
     params = {
         "q": location,
@@ -222,19 +190,25 @@ def geocode_multiple(location: str, max_results: int = 5) -> list:
         "limit": max_results,
         "addressdetails": 1,
     }
+    
+    headers = {
+        "User-Agent": USER_AGENT
+    }
 
     try:
-        responses = nominatim.geocoding_api(url, params=params)
+        response = requests.get(url, params=params, headers=headers, timeout=5)
+        response.raise_for_status()
+        responses = response.json()
         results = []
         
-        for response in responses:
+        for result in responses:
             result_dict = {
-                "name": response.get("name", ""),
-                "latitude": float(response.get("lat", 0)),
-                "longitude": float(response.get("lon", 0)),
-                "country": response.get("address", {}).get("country", ""),
-                "postcode": response.get("address", {}).get("postcode", ""),
-                "admin1": response.get("address", {}).get("state", ""),  # Kanton/Region/Provinz
+                "name": result.get("name", ""),
+                "latitude": float(result.get("lat", 0)),
+                "longitude": float(result.get("lon", 0)),
+                "country": result.get("address", {}).get("country", ""),
+                "postcode": result.get("address", {}).get("postcode", ""),
+                "admin1": result.get("address", {}).get("state", ""),  # Kanton/Region/Provinz
             }
             results.append(result_dict)
         

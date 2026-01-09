@@ -1,8 +1,7 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
-from api_client import fetch_weather_data
-from api_client import geocode_multiple
+from api_client import fetch_weather_data, geocode_multiple
 from map_handler import display_weather_map, fetch_city_weather_data
 from database import search_location
 
