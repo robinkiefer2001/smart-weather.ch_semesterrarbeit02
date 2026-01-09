@@ -122,7 +122,7 @@ def update_location_suggestions(query: str):
     with st.spinner("📡 Suche Orte in der Schweiz..."):
         results = geocode_multiple(query, max_results=5)
         if not results:
-            st.warning(f"❌ Keine Ergebnisse für '{query}' gefunden.")
+            st.warning(f"Keine Ergebnisse für '{query}' gefunden.")
             st.session_state.location_suggestions = []
             return
 
@@ -227,24 +227,24 @@ if st.session_state.weather_data is None:
 heute = datetime.now().date()
 
 # ===== HEADER =====
-st.title("🌤️ Smart Weather Switzerland")
-st.markdown("Echtzeit Wettervorhersage mit interaktiver Karte und Tagesdetails")
+st.title("Smart Weather Switzerland")
+st.markdown("Präzise Wettervorhersagen basierend auf MeteoSwiss ICON-Daten")
 
 # ===== NUR ZEIGEN WENN ORT AUSGEWÄHLT IST =====
 if st.session_state.weather_data is None:
-    st.info("📍 Bitte suchen Sie einen Ort aus der Karte um zu starten")
+    st.info("Wählen Sie oben einen Ort aus, um die Detailansicht zu laden.")
 
 # ===== TABS: DRILL-DOWN KONZEPT =====
 # Nur Tabs erstellen wenn Ort ausgewählt ist
 if st.session_state.weather_data is not None:
     tab_map, tab_calendar, tab_detail, tab_forecast = st.tabs(
-        ["🗺️ Wetterkarte", "📅 Kalender & Woche", "📊 Tagesdetail", "🔮 14-Tage Prognose"]
+        ["Wetterkarte", "Kalender & Woche", "Tagesdetail", "14-Tage Prognose"]
     )
 
 # ==================== TAB 1: WETTERKARTE ====================
 if st.session_state.weather_data is not None:
     with tab_map:
-        st.subheader("🗺️ Interaktive Wetterkarte der Schweiz")
+        st.subheader("Interaktive Wetterkarte der Schweiz")
 
         col_search, col_button = st.columns([3, 1])
 
@@ -265,7 +265,7 @@ if st.session_state.weather_data is not None:
                     label_visibility="collapsed",
                 )
             elif len(suggestions) == 1:
-                st.caption("✓ 1 Treffer gefunden – wird automatisch verwendet.")
+                st.caption("1 Treffer gefunden – wird automatisch verwendet.")
 
         with col_button:
             search_button = st.button("Suchen", use_container_width=True)
@@ -292,37 +292,35 @@ if st.session_state.weather_data is not None:
         
         # Legende
         st.markdown("---")
-        with st.expander("📝 Kartenlegende", expanded=False):
+        with st.expander("Kartenlegende", expanded=False):
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("""
-                **Temperaturfarben:**
-                - 🔵 **Dunkelblau**: < -5°C (sehr kalt)
-                - 🟦 **Blau**: -5 bis 0°C (kalt)
-                - 🟩 **Grün**: 0-10°C (kühl)
-                - 🟨 **Gelb**: 10-15°C (kühl-mild)
-                - 🟧 **Orange**: 15-20°C (mild)
-                - 🟥 **Rot**: > 20°C (warm)
+                **Temperaturbereich:**
+                - Unter -5°C (sehr kalt)
+                - -5 bis 0°C (kalt)
+                - 0 bis 10°C (kühl)
+                - 10 bis 15°C (temperiert)
+                - 15 bis 20°C (mild)
+                - Über 20°C (warm)
                 """)
             with col2:
                 st.markdown("""
-                **Wetter-Symbole:**
-                - ☀️ Sonnig
-                - 🌤️ Teilweise bewölkt
-                - ⛅ Bewölkt
-                - ☁️ Stark bewölkt
-                - 🌫️ Nebel
-                - 🌧️ Regen
-                - ❄️ Schnee
-                - ⛈️ Gewitter
+                **Wetterzustände:**
+                - Sonnig / Heiter
+                - Teilweise bewölkt
+                - Bewölkt
+                - Regnerisch
+                - Schneefall
+                - Gewitter
                 """)
 else:
-    st.info("📍 Bitte suchen Sie einen Ort aus der Karte um zu starten")
+    st.info("Wählen Sie oben einen Ort aus, um die Detailansicht zu laden.")
 
 # ==================== TAB 2: KALENDER & WOCHENÜBERSICHT ====================
 if tab_calendar is not None:
     with tab_calendar:
-        st.subheader("📅 Kalender & Wochenübersicht")
+        st.subheader("Kalender & Wochenübersicht")
         
         if st.session_state.weather_data is not None:
             daily_df = st.session_state.weather_data.get('daily_df')
@@ -342,9 +340,9 @@ if tab_calendar is not None:
                 
                 with nav_col2:
                     st.info(
-                        f"📍 Woche: **{format_date_german(week_start.to_pydatetime().date(), 'short').split(chr(10))[1]}** - "
+                        f"Woche: **{format_date_german(week_start.to_pydatetime().date(), 'short').split(chr(10))[1]}** - "
                         f"**{format_date_german(week_end.to_pydatetime().date(), 'short').split(chr(10))[1]}**",
-                        icon="📌"
+                        icon="🗓️"
                     )
                 
                 with nav_col3:
@@ -355,7 +353,7 @@ if tab_calendar is not None:
                 st.markdown("---")
                 
                 # 7-Tage Kalender (Montag bis Sonntag)
-                st.write("**📅 Woche:**")
+                st.write("**Woche:**")
                 
                 # Hole Wochendaten
                 week_data = slice_week(daily_df, week_start)
@@ -434,15 +432,11 @@ if tab_calendar is not None:
                             <small>💧 {precip_str}mm</small>
                         </div>
                         """, unsafe_allow_html=True)
-                        
-                        if st.button("📌 Wählen", key=f"day_select_{current_date}", use_container_width=True):
-                            st.session_state.selected_day_offset = len(daily_df[pd.to_datetime(daily_df['date']).dt.date <= current_date]) - 1
-                            st.rerun()
                 
                 st.markdown("---")
                 
                 # Wochengrafiken
-                st.write("**📈 Entwicklung in der Woche:**")
+                st.write("**Entwicklung in der Woche:**")
                 
                 # Nutze slice_week für saubere Wochendaten (bereits oben definiert als week_data)
                 # week_data ist bereits gefiltert für die aktuelle Woche
@@ -454,15 +448,15 @@ if tab_calendar is not None:
                     
                     # Tabs für Diagramme
                     tab_week_temp, tab_week_precip, tab_week_wind, tab_week_cloud, tab_week_snow = st.tabs([
-                        "🌡️ Temperatur",
-                        "💧 Niederschlag",
-                        "💨 Wind",
-                        "☁️ Bewölkung",
-                        "❄️ Schnee"
+                        "Temperatur",
+                        "Niederschlag",
+                        "Wind",
+                        "Bewölkung",
+                        "Schnee"
                     ])
                     
                     with tab_week_temp:
-                        st.subheader("🌡️ Temperaturverlauf über die Woche")
+                        st.subheader("Temperaturverlauf über die Woche")
                         temp_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']
                         if all(col in week_data_copy.columns for col in temp_cols):
                             temp_week = week_data_copy[temp_cols].copy()
@@ -490,10 +484,10 @@ if tab_calendar is not None:
                             st.altair_chart(chart, use_container_width=True)
                             st.dataframe(temp_week, use_container_width=True, hide_index=True)
                         else:
-                            st.info("⚠️ Temperaturdaten nicht verfügbar")
+                            st.info("Temperaturdaten nicht verfügbar")
                     
                     with tab_week_precip:
-                        st.subheader("💧 Niederschlag über die Woche")
+                        st.subheader("Niederschlag über die Woche")
                         if 'precipitation_sum' in week_data_copy.columns:
                             precip_week = week_data_copy[['date_str', 'precipitation_sum']].copy()
                             precip_week.columns = ['Tag', 'Niederschlag (mm)']
@@ -506,10 +500,10 @@ if tab_calendar is not None:
                             st.altair_chart(chart, use_container_width=True)
                             st.dataframe(precip_week, use_container_width=True, hide_index=True)
                         else:
-                            st.info("⚠️ Niederschlagsdaten nicht verfügbar")
+                            st.info("Niederschlagsdaten nicht verfügbar")
                     
                     with tab_week_wind:
-                        st.subheader("💨 Windgeschwindigkeit über die Woche")
+                        st.subheader("Windgeschwindigkeit über die Woche")
                         # Prüfe ob wind-Spalten existieren
                         if 'wind_speed_10m_max' in week_data_copy.columns and 'wind_gusts_10m_max' in week_data_copy.columns:
                             wind_week = week_data_copy[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
@@ -532,10 +526,10 @@ if tab_calendar is not None:
                             st.altair_chart(chart, use_container_width=True)
                             st.dataframe(wind_week, use_container_width=True, hide_index=True)
                         else:
-                            st.info("⚠️ Windgeschwindigkeitsdaten nicht verfügbar")
+                            st.info("Windgeschwindigkeitsdaten nicht verfügbar")
                     
                     with tab_week_cloud:
-                        st.subheader("☁️ Wolkenbedeckung über die Woche")
+                        st.subheader("Wolkenbedeckung über die Woche")
                         cloud_week = week_data_copy[['date_str', 'cloud_cover']].copy() if 'cloud_cover' in week_data_copy.columns else pd.DataFrame()
                         
                         if not cloud_week.empty:
@@ -552,7 +546,7 @@ if tab_calendar is not None:
                             st.info("Keine Wolkendaten verfügbar")
                     
                     with tab_week_snow:
-                        st.subheader("❄️ Schneefall über die Woche")
+                        st.subheader("Schneefall über die Woche")
                         snow_week = week_data_copy[['date_str', 'snowfall_sum']].copy() if 'snowfall_sum' in week_data_copy.columns else pd.DataFrame()
                         
                         if not snow_week.empty:
@@ -568,14 +562,14 @@ if tab_calendar is not None:
                         else:
                             st.info("Keine Schneefalldaten verfügbar")
             else:
-                st.warning("⚠️ Keine Wetterdaten für Kalender verfügbar.")
+                st.warning("Keine Wetterdaten für Kalender verfügbar.")
         else:
-            st.warning("⚠️ Keine Wetterdaten verfügbar. Bitte auf der Kartenseite einen Ort suchen.")
+            st.warning("Keine Wetterdaten verfügbar. Bitte auf der Kartenseite einen Ort suchen.")
 
 # ==================== TAB 3: TAGESDETAIL ====================
 if tab_detail is not None:
     with tab_detail:
-        st.subheader("📊 Detailansicht des ausgewählten Tages")
+        st.subheader("Detailansicht des ausgewählten Tages")
         
         if st.session_state.weather_data is not None:
             daily_df = st.session_state.weather_data.get('daily_df')
@@ -596,25 +590,25 @@ if tab_detail is not None:
                     max_temp = selected_row.get('temperature_2m_max', '--')
                     if isinstance(max_temp, (int, float)):
                         max_temp = f"{max_temp:.2f}"
-                    st.metric("🌡️ Max Temperatur", f"{max_temp}°C")
+                    st.metric("Max. Temperatur", f"{max_temp}°C")
                 
                 with metric_col2:
                     min_temp = selected_row.get('temperature_2m_min', '--')
                     if isinstance(min_temp, (int, float)):
                         min_temp = f"{min_temp:.2f}"
-                    st.metric("❄️ Min Temperatur", f"{min_temp}°C")
+                    st.metric("Min. Temperatur", f"{min_temp}°C")
                 
                 with metric_col3:
                     app_max_temp = selected_row.get('apparent_temperature_max', '--')
                     if isinstance(app_max_temp, (int, float)):
                         app_max_temp = f"{app_max_temp:.2f}"
-                    st.metric("🌡️ Gefühlte Max", f"{app_max_temp}°C")
+                    st.metric("Gefühlte Max", f"{app_max_temp}°C")
                 
                 with metric_col4:
                     app_min_temp = selected_row.get('apparent_temperature_min', '--')
                     if isinstance(app_min_temp, (int, float)):
                         app_min_temp = f"{app_min_temp:.2f}"
-                    st.metric("❄️ Gefühlte Min", f"{app_min_temp}°C")
+                    st.metric("Gefühlte Min", f"{app_min_temp}°C")
                 
                 with metric_col5:
                     sunshine = selected_row.get('sunshine_duration', '--')
@@ -625,7 +619,7 @@ if tab_detail is not None:
                     else:
                         sunshine = "--"
                     st.metric(
-                        "☀️ Sonnenschein",
+                        "Sonnenschein",
                         sunshine
                     )
                 
@@ -644,7 +638,7 @@ if tab_detail is not None:
                 st.markdown("---")
                 
                 # Grafiken in Tabs
-                st.write("**📈 Diagramme & Verlauf:**")
+                st.write("**Diagramme & Verlauf:**")
                 
                 if hourly_df is not None:
                     # Prepare chart data für alle Charts (übergebe den gesamten hourly_df)
@@ -663,38 +657,38 @@ if tab_detail is not None:
                     
                     # Tabs für Diagramme
                     tab_temp, tab_precip, tab_wind, tab_cloud, tab_snow = st.tabs([
-                        "🌡️ Temperatur",
-                        "💧 Niederschlag",
-                        "💨 Wind",
-                        "☁️ Bewölkung",
-                        "❄️ Schnee"
+                        "Temperatur",
+                        "Niederschlag",
+                        "Wind",
+                        "Bewölkung",
+                        "Schnee"
                     ])
                     
                     with tab_temp:
-                        st.subheader("🌡️ Temperaturverlauf")
+                        st.subheader("Temperaturverlauf")
                         display_temperature_chart(temp_chart_df, temp_stats)
                     
                     with tab_precip:
-                        st.subheader("💧 Niederschlag & Feuchte")
+                        st.subheader("Niederschlag & Feuchte")
                         display_precipitation_chart(precip_chart_df, precip_stats)
                     
                     with tab_wind:
-                        st.subheader("💨 Windgeschwindigkeit")
+                        st.subheader("Windgeschwindigkeit")
                         display_wind_chart(wind_chart_df, wind_stats)
                     
                     with tab_cloud:
-                        st.subheader("☁️ Wolkenbedeckung")
+                        st.subheader("Wolkenbedeckung")
                         display_cloud_chart(cloud_chart_df, cloud_stats)
                     
                     with tab_snow:
-                        st.subheader("❄️ Schneefall")
+                        st.subheader("Schneefall")
                         display_snow_chart(snow_chart_df, snow_stats)
                 else:
                     st.warning("Stündliche Daten nicht verfügbar.")
             else:
-                st.warning("⚠️ Keine detaillierten Daten für diesen Tag verfügbar.")
+                st.warning("Keine detaillierten Daten für diesen Tag verfügbar.")
         else:
-            st.warning("⚠️ Keine Wetterdaten verfügbar. Bitte auf der Kartenseite einen Ort suchen.")
+            st.warning("Keine Wetterdaten verfügbar. Bitte auf der Kartenseite einen Ort suchen.")
 
 # ==================== TAB 4: 14-TAGE PROGNOSE ====================
 if tab_forecast is not None:
@@ -745,24 +739,24 @@ if tab_forecast is not None:
                 st.markdown("---")
                 
                 # 14-Tage Grafiken
-                st.write("**📈 Entwicklung über 14 Tage:**")
+                st.write("**Entwicklung über 14 Tage:**")
                 
                 # Vorbereitung der Prognosedaten für Charts
                 forecast_display['date_str'] = forecast_display['date'].apply(lambda d: d.strftime('%d.%m'))
                 
                 # Tabs für Diagramme
                 tab_14_temp, tab_14_precip, tab_14_wind, tab_14_cloud, tab_14_snow = st.tabs([
-                    "🌡️ Temperatur",
-                    "💧 Niederschlag",
-                    "💨 Wind",
-                    "☁️ Bewölkung",
-                    "❄️ Schnee"
+                    "Temperatur",
+                    "Niederschlag",
+                    "Wind",
+                    "Bewölkung",
+                    "Schnee"
                 ])
                 
                 import altair as alt
                 
                 with tab_14_temp:
-                    st.subheader("🌡️ Temperaturverlauf über 14 Tage")
+                    st.subheader("Temperaturverlauf über 14 Tage")
                     temp_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 'apparent_temperature_max', 'apparent_temperature_min']
                     if all(col in forecast_display.columns for col in temp_cols):
                         temp_14 = forecast_display[temp_cols].copy()
@@ -785,10 +779,10 @@ if tab_forecast is not None:
                         st.altair_chart(chart, use_container_width=True)
                         st.dataframe(temp_14, use_container_width=True, hide_index=True)
                     else:
-                        st.info("⚠️ Temperaturdaten nicht verfügbar")
+                        st.info("Temperaturdaten nicht verfügbar")
                 
                 with tab_14_precip:
-                    st.subheader("💧 Niederschlag über 14 Tage")
+                    st.subheader("Niederschlag über 14 Tage")
                     if 'precipitation_sum' in forecast_display.columns:
                         precip_14 = forecast_display[['date_str', 'precipitation_sum']].copy()
                         precip_14.columns = ['Tag', 'Niederschlag (mm)']
@@ -801,10 +795,10 @@ if tab_forecast is not None:
                         st.altair_chart(chart, use_container_width=True)
                         st.dataframe(precip_14, use_container_width=True, hide_index=True)
                     else:
-                        st.info("⚠️ Niederschlagsdaten nicht verfügbar")
+                        st.info("Niederschlagsdaten nicht verfügbar")
                 
                 with tab_14_wind:
-                    st.subheader("💨 Windgeschwindigkeit über 14 Tage")
+                    st.subheader("Windgeschwindigkeit über 14 Tage")
                     # Prüfe ob wind-Spalten existieren
                     if 'wind_speed_10m_max' in forecast_display.columns and 'wind_gusts_10m_max' in forecast_display.columns:
                         wind_14 = forecast_display[['date_str', 'wind_speed_10m_max', 'wind_gusts_10m_max']].copy()
@@ -827,10 +821,10 @@ if tab_forecast is not None:
                         st.altair_chart(chart, use_container_width=True)
                         st.dataframe(wind_14, use_container_width=True, hide_index=True)
                     else:
-                        st.info("⚠️ Windgeschwindigkeitsdaten nicht verfügbar")
+                        st.info("Windgeschwindigkeitsdaten nicht verfügbar")
                 
                 with tab_14_cloud:
-                    st.subheader("☁️ Wolkenbedeckung über 14 Tage")
+                    st.subheader("Wolkenbedeckung über 14 Tage")
                     cloud_14 = forecast_display[['date_str', 'cloud_cover']].copy() if 'cloud_cover' in forecast_display.columns else pd.DataFrame()
                     
                     if not cloud_14.empty:
@@ -847,7 +841,7 @@ if tab_forecast is not None:
                         st.info("Keine Wolkendaten verfügbar")
                 
                 with tab_14_snow:
-                    st.subheader("❄️ Schneefall über 14 Tage")
+                    st.subheader("Schneefall über 14 Tage")
                     snow_14 = forecast_display[['date_str', 'snowfall_sum']].copy() if 'snowfall_sum' in forecast_display.columns else pd.DataFrame()
                     
                     if not snow_14.empty:
@@ -863,9 +857,9 @@ if tab_forecast is not None:
                     else:
                         st.info("Keine Schneefalldaten verfügbar")
             else:
-                st.warning("⚠️ Keine Prognosedaten verfügbar.")
+                st.warning("Keine Prognosedaten verfügbar.")
         else:
-            st.warning("⚠️ Keine Wetterdaten verfügbar. Bitte auf der Kartenseite einen Ort suchen.")
+            st.warning("Keine Wetterdaten verfügbar. Bitte auf der Kartenseite einen Ort suchen.")
 
 # ===== FOOTER =====
 st.markdown("---")
