@@ -334,7 +334,7 @@ def display_day_card(date_obj, row, today, format_date_german_func, weather_icon
     precip_str = f'{precip:.2f}'
 
     return f"""
-    <div style="
+    <div class="week-day-card" style="
         background: {bg_color};
         border: {border};
         padding: {padding};
