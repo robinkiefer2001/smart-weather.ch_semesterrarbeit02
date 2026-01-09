@@ -169,86 +169,86 @@ if st.session_state.weather_data is not None:
         with col_button:
             search_button = st.button("Suchen", use_container_width=True)
 
-    # --- Suche auslösen und Suggestions in session_state legen ---
-    if search_button and search_query:
-        with st.spinner("📡 Suche Orte in der Schweiz..."):
-            search_results = geocode_multiple(search_query, max_results=5)
+        # --- Suche auslösen und Suggestions in session_state legen ---
+        if search_button and search_query:
+            with st.spinner("📡 Suche Orte in der Schweiz..."):
+                search_results = geocode_multiple(search_query, max_results=5)
 
-            if not search_results:
-                st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
-                st.session_state.location_suggestions = []
-            else:
-                options = []
-                for result in search_results:
-                    name = result.get("name", "")
-                    admin1 = result.get("admin1", "")
-                    postcode = result.get("postcode", "")
-                    parts = [name]
-                    if admin1:
-                        parts.append(admin1)
-                    if postcode:
-                        parts.append(postcode)
-                    label = ", ".join(parts)
-                    options.append((label, result))
-
-                # Vorschläge im State speichern → werden oben direkt unter dem Input angezeigt
-                st.session_state.location_suggestions = options
-                st.rerun()
-
-    # --- Auswahl aus Vorschlagsliste auswerten ---
-    options = st.session_state.get("location_suggestions", [])
-    if options:
-        labels = [opt[0] for opt in options]
-        selected_label = st.session_state.get("location_select")
-        if selected_label and selected_label in labels:
-            selected = next((r for label, r in options if label == selected_label), None)
-
-            if selected:
-                latitude = selected["latitude"]
-                longitude = selected["longitude"]
-                location_name = selected["name"]
-                postcode = selected.get("postcode", "")
-                admin1 = selected.get("admin1", "")
-
-                display_parts = [location_name]
-                if admin1:
-                    display_parts.append(admin1)
-                if postcode:
-                    display_parts.append(postcode)
-                display_name = ", ".join(display_parts)
-
-                st.success(f"✅ Ort ausgewählt: **{display_name}**")
-                st.session_state.selected_location = (location_name, latitude, longitude)
-
-                # Prüfe Cache: nur neu laden wenn andere Koordinaten
-                if st.session_state.cached_location_coords != (latitude, longitude):
-                    try:
-                        with st.spinner("📡 Lade Wetterdaten..."):
-                            current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
-                            st.session_state.weather_data = {
-                                'current': current_data,
-                                'hourly_df': hourly_df,
-                                'daily_df': daily_df
-                            }
-                            st.session_state.cached_location_coords = (latitude, longitude)
-                            # Setze selected_day_offset auf heutigen Tag
-                            today = pd.Timestamp.now().normalize()
-                            today_idx = 0
-                            for idx, row in daily_df.iterrows():
-                                if pd.to_datetime(row['date']).normalize() == today:
-                                    today_idx = idx
-                                    break
-                            st.session_state.selected_day_offset = today_idx
-                    except Exception as e:
-                        st.error(f"Fehler beim Laden der Wetterdaten: {e}")
+                if not search_results:
+                    st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
+                    st.session_state.location_suggestions = []
                 else:
-                    st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
+                    options = []
+                    for result in search_results:
+                        name = result.get("name", "")
+                        admin1 = result.get("admin1", "")
+                        postcode = result.get("postcode", "")
+                        parts = [name]
+                        if admin1:
+                            parts.append(admin1)
+                        if postcode:
+                            parts.append(postcode)
+                        label = ", ".join(parts)
+                        options.append((label, result))
 
-    # Karte anzeigen
-    st.markdown("---")
-    with st.container():
-        with st.spinner("🗺️ Lade Wetterkarte..."):
-            display_weather_map(show_loading=False, map_height=600)
+                    # Vorschläge im State speichern → werden oben direkt unter dem Input angezeigt
+                    st.session_state.location_suggestions = options
+                    st.rerun()
+
+        # --- Auswahl aus Vorschlagsliste auswerten ---
+        options = st.session_state.get("location_suggestions", [])
+        if options:
+            labels = [opt[0] for opt in options]
+            selected_label = st.session_state.get("location_select")
+            if selected_label and selected_label in labels:
+                selected = next((r for label, r in options if label == selected_label), None)
+
+                if selected:
+                    latitude = selected["latitude"]
+                    longitude = selected["longitude"]
+                    location_name = selected["name"]
+                    postcode = selected.get("postcode", "")
+                    admin1 = selected.get("admin1", "")
+
+                    display_parts = [location_name]
+                    if admin1:
+                        display_parts.append(admin1)
+                    if postcode:
+                        display_parts.append(postcode)
+                    display_name = ", ".join(display_parts)
+
+                    st.success(f"✅ Ort ausgewählt: **{display_name}**")
+                    st.session_state.selected_location = (location_name, latitude, longitude)
+
+                    # Prüfe Cache: nur neu laden wenn andere Koordinaten
+                    if st.session_state.cached_location_coords != (latitude, longitude):
+                        try:
+                            with st.spinner("📡 Lade Wetterdaten..."):
+                                current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
+                                st.session_state.weather_data = {
+                                    'current': current_data,
+                                    'hourly_df': hourly_df,
+                                    'daily_df': daily_df
+                                }
+                                st.session_state.cached_location_coords = (latitude, longitude)
+                                # Setze selected_day_offset auf heutigen Tag
+                                today = pd.Timestamp.now().normalize()
+                                today_idx = 0
+                                for idx, row in daily_df.iterrows():
+                                    if pd.to_datetime(row['date']).normalize() == today:
+                                        today_idx = idx
+                                        break
+                                st.session_state.selected_day_offset = today_idx
+                        except Exception as e:
+                            st.error(f"Fehler beim Laden der Wetterdaten: {e}")
+                    else:
+                        st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
+
+        # Karte anzeigen
+        st.markdown("---")
+        with st.container():
+            with st.spinner("🗺️ Lade Wetterkarte..."):
+                display_weather_map(show_loading=False, map_height=600)
         
         # Legende
         st.markdown("---")
@@ -720,7 +720,7 @@ if tab_forecast is not None:
                 st.write("**📈 Entwicklung über 14 Tage:**")
                 
                 # Vorbereitung der Prognosedaten für Charts
-                forecast_display['date_str'] = forecast_display['date'].apply(lambda d: format_date_german(d, 'short').split('\n')[0])
+                forecast_display['date_str'] = forecast_display['date'].apply(lambda d: d.strftime('%d.%m'))
                 
                 # Tabs für Diagramme
                 tab_14_temp, tab_14_precip, tab_14_wind, tab_14_cloud, tab_14_snow = st.tabs([
