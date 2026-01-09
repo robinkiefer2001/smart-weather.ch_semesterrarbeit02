@@ -174,7 +174,7 @@ def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.Data
 
 def geocode_multiple(location: str, max_results: int = 5) -> list:
     """
-    Holt mehrere geografische Ortsvorschläge für einen gegebenen Ort.
+    Holt mehrere geografische Ortsvorschläge für einen gegebenen Ort (nur Schweiz).
     
     Args:
         location: Name des Ortes (Suchtext)
@@ -189,6 +189,7 @@ def geocode_multiple(location: str, max_results: int = 5) -> list:
         "format": "json",
         "limit": max_results,
         "addressdetails": 1,
+        "countrycodes": "ch",  # Nur Schweiz
     }
     
     headers = {

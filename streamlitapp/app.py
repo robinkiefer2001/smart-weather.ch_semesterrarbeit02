@@ -144,19 +144,16 @@ if st.session_state.weather_data is not None:
         st.subheader("🗺️ Interaktive Wetterkarte der Schweiz")
     
     # Such-Bereich
-    search_col1, search_col2 = st.columns([3, 1])
-    with search_col1:
-        search_query = st.text_input(
-            label="",
-            placeholder="🔍 Ort suchen (z.B. 'Bern', 'Zürich', 'Genf')",
-            key="location_search"
-        )
+    search_query = st.text_input(
+        label="",
+        placeholder="🔍 Ort suchen (z.B. 'Bern', 'Zürich', 'Genf')",
+        key="location_search"
+    )
     
-    with search_col2:
-        search_button = st.button("🔄 Suchen", use_container_width=True)
+    search_button = st.button("🔄 Suchen", use_container_width=True)
     
     if search_button and search_query:
-        with st.spinner("📡 Suche Orte..."):
+        with st.spinner("📡 Suche Orte in der Schweiz..."):
             search_results = geocode_multiple(search_query, max_results=5)
             
             if not search_results:
@@ -166,28 +163,26 @@ if st.session_state.weather_data is not None:
                 options = []
                 for result in search_results:
                     name = result.get("name", "")
-                    country = result.get("country", "")
                     admin1 = result.get("admin1", "")  # Kanton/Region
                     postcode = result.get("postcode", "")
                     
-                    # Label zusammensetzen, z.B.: "Cham (ZG), Schweiz – PLZ 6330"
+                    # Label zusammensetzen: "Cham, ZG 6330"
                     label_parts = [name]
                     if admin1:
-                        label_parts.append(f"({admin1})")
-                    if country:
-                        label_parts.append(country)
+                        label_parts.append(admin1)
                     if postcode:
-                        label_parts.append(f"– {postcode}")
+                        label_parts.append(postcode)
                     
-                    label = " ".join(label_parts)
+                    label = ", ".join(label_parts)
                     options.append((label, result))
                 
-                # Selectbox für Ortsauswahl
+                # Selectbox für Ortsauswahl (direkt unter Suchfeld)
                 labels = [o[0] for o in options]
                 selected_label = st.selectbox(
-                    "🏙️ Bitte wählen Sie einen Ort aus:",
+                    "Orte:",
                     labels,
-                    key=f"location_select_{search_query}"
+                    key=f"location_select_{search_query}",
+                    label_visibility="collapsed"
                 )
                 
                 # Gewählten Datensatz finden
@@ -197,8 +192,18 @@ if st.session_state.weather_data is not None:
                     latitude = selected["latitude"]
                     longitude = selected["longitude"]
                     location_name = selected["name"]
+                    postcode = selected.get("postcode", "")
+                    admin1 = selected.get("admin1", "")
                     
-                    st.success(f"✅ Ort '{selected_label}' ausgewählt!")
+                    # Schöne Anzeige des ausgewählten Ortes
+                    display_parts = [location_name]
+                    if admin1:
+                        display_parts.append(admin1)
+                    if postcode:
+                        display_parts.append(postcode)
+                    display_name = ", ".join(display_parts)
+                    
+                    st.success(f"✅ Ort ausgewählt: **{display_name}**")
                     st.session_state.selected_location = (location_name, latitude, longitude)
                     
                     # Prüfe Cache: nur neu laden wenn andere Koordinaten
