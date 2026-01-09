@@ -165,5 +165,27 @@ def load_app_styles():
             background: #1f2937 !important;
         }
         
+        /* ===== DARKMODE: Streamlit-Theme (Variante C) ===== */
+        /* Wenn Streamlit data-testid mit dark setzt (häufig am PC) */
+        [data-testid="stAppViewContainer"][data-theme="dark"] .week-day-card {
+            background: #111827 !important;
+            color: #000000 !important;
+            border-color: #374151 !important;
+        }
+        
+        [data-testid="stAppViewContainer"][data-theme="dark"] .week-day-card * {
+            color: #000000 !important;
+        }
+        
+        .stApp[data-theme="dark"] .week-day-card {
+            background: #111827 !important;
+            color: #000000 !important;
+            border-color: #374151 !important;
+        }
+        
+        .stApp[data-theme="dark"] .week-day-card * {
+            color: #000000 !important;
+        }
+        
     </style>
     """, unsafe_allow_html=True)
