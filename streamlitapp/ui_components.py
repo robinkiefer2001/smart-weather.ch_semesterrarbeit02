@@ -196,3 +196,162 @@ def display_snow_chart(chart_df: pd.DataFrame, stats: dict):
     )
 
     st.metric("❄️ Gesamtschneefall", f"{stats['total_snowfall']:.2f} cm")
+
+# ===== LOCATION & SEARCH UI =====
+def display_location_search_section():
+    """
+    Zeigt Suchbereich mit Textfeld, Button und Vorschlagsliste an.
+    Verwaltet location_search_pending, location_chosen, location_suggestions in session_state.
+    """
+    # Pending-Wert verarbeiten (von Button-Klick aus)
+    if st.session_state.location_search_pending is not None:
+        pending_value = st.session_state.location_search_pending
+        st.session_state.location_search = pending_value
+        st.session_state.location_search_pending = None
+        st.rerun()
+
+    col_search, col_button = st.columns([3, 1])
+
+    with col_search:
+        search_query = st.text_input(
+            label="",
+            placeholder="🔍 Ort suchen (z.B. 'Bern', 'Zürich', 'Genf')",
+            key="location_search",
+        )
+
+    with col_button:
+        st.write("")  # Spacer für Alignment
+        search_button = st.button("Suchen", use_container_width=True)
+
+    return search_query, search_button
+
+
+def display_location_suggestions(suggestions):
+    """
+    Zeigt Button-basierte Trefferliste und Auto-Auswahl-Logik.
+    
+    Args:
+        suggestions: Liste von (label, result) Tupeln
+    
+    Returns:
+        Tuple: (label, result) der ausgewählten Location oder (None, None)
+    """
+    selected_label = None
+    selected_result = None
+    
+    if len(suggestions) > 1 and not st.session_state.location_chosen:
+        st.write("**Verfügbare Orte:**")
+        for label, result in suggestions:
+            if st.button(label, use_container_width=True, key=f"sugg_{label}"):
+                selected_label = label
+                selected_result = result
+                return selected_label, selected_result
+    elif len(suggestions) == 1 and not st.session_state.location_chosen:
+        st.caption("✓ 1 Treffer gefunden – wird automatisch verwendet.")
+        label, result = suggestions[0]
+        return label, result
+    
+    return None, None
+
+
+def display_map_legend():
+    """Zeigt interaktive Kartenlegende an."""
+    with st.expander("Kartenlegende", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("""
+            **Temperaturbereich:**
+            - Unter -5°C (sehr kalt)
+            - -5 bis 0°C (kalt)
+            - 0 bis 10°C (kühl)
+            - 10 bis 15°C (temperiert)
+            - 15 bis 20°C (mild)
+            - Über 20°C (warm)
+            """)
+        with col2:
+            st.markdown("""
+            **Wetterzustände:**
+            - Sonnig / Heiter
+            - Teilweise bewölkt
+            - Bewölkt
+            - Regnerisch
+            - Schneefall
+            - Gewitter
+            """)
+
+
+def display_day_card(date_obj, row, today, format_date_german_func, weather_icon_func):
+    """
+    Zeigt eine einzelne Tages-Karte an.
+    
+    Args:
+        date_obj: datetime.date Objekt
+        row: pandas Series mit Wetterdaten
+        today: datetime.date für Heute-Markierung
+        format_date_german_func: Funktion zum Formatieren von Daten auf Deutsch
+        weather_icon_func: Funktion zur Rückgabe von Wetter-Emoji
+    
+    Returns:
+        HTML-String für die Karte
+    """
+    date_str = format_date_german_func(date_obj, 'short')
+    temp_max = row.get('temperature_2m_max', '--')
+    temp_min = row.get('temperature_2m_min', '--')
+    precip = row.get('precipitation_sum', 0)
+    weather_code = int(row.get('weather_code', 0))
+    emoji = weather_icon_func(weather_code) or "🌤️"
+
+    # Hintergrundfarbe
+    if isinstance(temp_max, (int, float)):
+        if temp_max < 0:
+            bg_color = "#eff6ff"
+        elif temp_max < 5:
+            bg_color = "#f9fafb"
+        elif temp_max < 10:
+            bg_color = "#fffbeb"
+        elif temp_max < 15:
+            bg_color = "#fef9e7"
+        else:
+            bg_color = "#fef3c7"
+    else:
+        bg_color = "#f5f5f5"
+
+    # Markiere heutigen Tag
+    is_today = date_obj == today
+    if is_today:
+        border = "3px solid #dc2626"
+        font_size = "36px"
+        padding = "16px"
+        font_weight_emoji = "bold"
+    else:
+        border = "1px solid #e5e7eb"
+        font_size = "28px"
+        padding = "12px"
+        font_weight_emoji = "normal"
+
+    temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
+    temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.2f}'
+    precip_str = f'{precip:.2f}'
+
+    return f"""
+    <div style="
+        background: {bg_color};
+        border: {border};
+        padding: {padding};
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    ">
+        <small style="font-weight: bold;">{date_str}</small><br>
+        <div style="font-size: {font_size}; margin: 8px 0; font-weight: {font_weight_emoji};">{emoji}</div>
+        <small><strong>↑ {temp_max_str}°</strong></small><br>
+        <small>↓ {temp_min_str}°</small><br>
+        <small>💧 {precip_str}mm</small>
+    </div>
+    """
+
+
+def display_location_selected_message(display_name):
+    """Zeigt Erfolgs-Meldung nach Ort-Auswahl."""
+    st.success(f"✅ Ort ausgewählt: **{display_name}**")

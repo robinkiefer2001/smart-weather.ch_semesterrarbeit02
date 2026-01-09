@@ -70,7 +70,8 @@ from data_handlers import (
 from ui_components import (
     display_current_metrics, display_hourly_overview, display_temperature_chart,
     display_precipitation_chart, display_wind_chart, display_cloud_chart, display_snow_chart,
-    display_detailed_table
+    display_detailed_table, display_location_search_section, display_location_suggestions,
+    display_map_legend, display_day_card, display_location_selected_message
 )
 
 # ===== PAGE CONFIG =====
@@ -251,26 +252,8 @@ if st.session_state.weather_data is not None:
     with tab_map:
         st.subheader("Interaktive Wetterkarte der Schweiz")
 
-        # Suchfeld + Button auf einer Linie
-        col_search, col_button = st.columns([3, 1])
-
-        # Pending-Wert verarbeiten (von Button-Klick aus)
-        if st.session_state.location_search_pending is not None:
-            pending_value = st.session_state.location_search_pending
-            st.session_state.location_search = pending_value
-            st.session_state.location_search_pending = None
-            st.rerun()
-
-        with col_search:
-            search_query = st.text_input(
-                label="",
-                placeholder="🔍 Ort suchen (z.B. 'Bern', 'Zürich', 'Genf')",
-                key="location_search",
-            )
-
-        with col_button:
-            st.write("")  # Spacer für Alignment
-            search_button = st.button("Suchen", use_container_width=True)
+        # Location Search Section
+        search_query, search_button = display_location_search_section()
 
         # Search auslösen
         if search_button and search_query:
@@ -278,31 +261,19 @@ if st.session_state.weather_data is not None:
             st.session_state.location_chosen = False  # Reset für neue Suche
             st.rerun()
 
-        # Button-basierte Trefferliste (nur wenn mehrere Treffer und noch nicht gewählt)
+        # Location Suggestions anzeigen
         suggestions = st.session_state.get("location_suggestions", [])
-        if len(suggestions) > 1 and not st.session_state.location_chosen:
-            st.write("**Verfügbare Orte:**")
-            for label, result in suggestions:
-                if st.button(label, use_container_width=True, key=f"sugg_{label}"):
-                    # Pending-Wert setzen (nicht direkt schreiben!)
-                    st.session_state.location_search_pending = label
-                    st.session_state.location_chosen = True
-                    # Nur den gewählten Treffer in suggestions halten für handle_location_selection
-                    st.session_state.location_suggestions = [(label, result)]
-                    # Wetter laden
-                    handle_location_selection()
-                    # Liste leeren
-                    st.session_state.location_suggestions = []
-                    st.rerun()
-        elif len(suggestions) == 1 and not st.session_state.location_chosen:
-            # Auto-Auswahl bei einem Treffer
-            st.caption("✓ 1 Treffer gefunden – wird automatisch verwendet.")
-            label, result = suggestions[0]
+        selected_label, selected_result = display_location_suggestions(suggestions)
+        
+        if selected_label and selected_result:
             # Pending-Wert setzen (nicht direkt schreiben!)
-            st.session_state.location_search_pending = label
+            st.session_state.location_search_pending = selected_label
             st.session_state.location_chosen = True
-            st.session_state.location_suggestions = [(label, result)]
+            # Nur den gewählten Treffer in suggestions halten für handle_location_selection
+            st.session_state.location_suggestions = [(selected_label, selected_result)]
+            # Wetter laden
             handle_location_selection()
+            # Liste leeren
             st.session_state.location_suggestions = []
             st.rerun()
 
@@ -321,28 +292,7 @@ if st.session_state.weather_data is not None:
         
         # Legende
         st.markdown("---")
-        with st.expander("Kartenlegende", expanded=False):
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown("""
-                **Temperaturbereich:**
-                - Unter -5°C (sehr kalt)
-                - -5 bis 0°C (kalt)
-                - 0 bis 10°C (kühl)
-                - 10 bis 15°C (temperiert)
-                - 15 bis 20°C (mild)
-                - Über 20°C (warm)
-                """)
-            with col2:
-                st.markdown("""
-                **Wetterzustände:**
-                - Sonnig / Heiter
-                - Teilweise bewölkt
-                - Bewölkt
-                - Regnerisch
-                - Schneefall
-                - Gewitter
-                """)
+        display_map_legend()
 else:
     st.info("Wählen Sie oben einen Ort aus, um die Detailansicht zu laden.")
 
@@ -405,62 +355,9 @@ if tab_calendar is not None:
                     row = matching_rows.iloc[0]
                     
                     with col:
-                        date_str = format_date_german(current_date, 'short')
-                        temp_max = row.get('temperature_2m_max', '--')
-                        temp_min = row.get('temperature_2m_min', '--')
-                        precip = row.get('precipitation_sum', 0)
-                        weather_code = int(row.get('weather_code', 0))
-                        emoji = weather_icon(weather_code) or "🌤️"
-                        
-                        # Hintergrundfarbe
-                        if isinstance(temp_max, (int, float)):
-                            if temp_max < 0:
-                                bg_color = "#eff6ff"
-                            elif temp_max < 5:
-                                bg_color = "#f9fafb"
-                            elif temp_max < 10:
-                                bg_color = "#fffbeb"
-                            elif temp_max < 15:
-                                bg_color = "#fef9e7"
-                            else:
-                                bg_color = "#fef3c7"
-                        else:
-                            bg_color = "#f5f5f5"
-                        
-                        # Markiere heutigen Tag und mache ihn größer
-                        is_today = current_date == today
-                        if is_today:
-                            border = "3px solid #dc2626"
-                            font_size = "36px"
-                            padding = "16px"
-                            font_weight_emoji = "bold"
-                        else:
-                            border = "1px solid #e5e7eb"
-                            font_size = "28px"
-                            padding = "12px"
-                            font_weight_emoji = "normal"
-                        
-                        temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
-                        temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.2f}'
-                        precip_str = f'{precip:.2f}'
-                        
-                        st.markdown(f"""
-                        <div style="
-                            background: {bg_color};
-                            border: {border};
-                            padding: {padding};
-                            border-radius: 8px;
-                            text-align: center;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        ">
-                            <small style="font-weight: bold;">{date_str}</small><br>
-                            <div style="font-size: {font_size}; margin: 8px 0; font-weight: {font_weight_emoji};">{emoji}</div>
-                            <small><strong>↑ {temp_max_str}°</strong></small><br>
-                            <small>↓ {temp_min_str}°</small><br>
-                            <small>💧 {precip_str}mm</small>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        # Nutze display_day_card Funktion aus ui_components
+                        card_html = display_day_card(current_date, row, today, format_date_german, weather_icon)
+                        st.markdown(card_html, unsafe_allow_html=True)
                 
                 st.markdown("---")
                 
