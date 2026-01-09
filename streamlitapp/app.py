@@ -148,21 +148,17 @@ def update_location_suggestions(query: str):
 
 
 def handle_location_selection():
-    """Liest Auswahl aus location_suggestions, lädt ggf. Wetterdaten und setzt State."""
+    """Liest Auswahl aus location_suggestions, lädt Wetterdaten und setzt State."""
     options = st.session_state.get("location_suggestions", [])
     if not options:
         return
 
-    # Auto-Auswahl bei nur einem Treffer
+    # Bei nur einem Treffer (oder Button-Auswahl) automatisch verwenden
     if len(options) == 1:
         selected_label, selected = options[0]
     else:
-        selected_label = st.session_state.get("location_select")
-        if not selected_label:
-            return
-        selected = next((r for label, r in options if label == selected_label), None)
-        if selected is None:
-            return
+        # Fallback: sollte nicht vorkommen mit neuem Button-System
+        return
 
     latitude = selected["latitude"]
     longitude = selected["longitude"]
@@ -212,6 +208,8 @@ if 'map_data_cache' not in st.session_state:
     st.session_state.map_data_cache = None
 if 'location_suggestions' not in st.session_state:
     st.session_state.location_suggestions = []
+if 'location_chosen' not in st.session_state:
+    st.session_state.location_chosen = False
 if 'map_loaded' not in st.session_state:
     st.session_state.map_loaded = False
 
@@ -268,23 +266,35 @@ if st.session_state.weather_data is not None:
         # Search auslösen
         if search_button and search_query:
             update_location_suggestions(search_query)
+            st.session_state.location_chosen = False  # Reset für neue Suche
             st.rerun()
 
-        # Dropdown NUR bei mehreren Treffern anzeigen (direkt unter Suchfeld)
+        # Button-basierte Trefferliste (nur wenn mehrere Treffer und noch nicht gewählt)
         suggestions = st.session_state.get("location_suggestions", [])
-        if len(suggestions) > 1:
-            labels = [opt[0] for opt in suggestions]
-            selected_label = st.selectbox(
-                label="",
-                options=labels,
-                key="location_select",
-                label_visibility="collapsed",
-            )
-        elif len(suggestions) == 1:
+        if len(suggestions) > 1 and not st.session_state.location_chosen:
+            st.write("**Verfügbare Orte:**")
+            for label, result in suggestions:
+                if st.button(label, use_container_width=True, key=f"sugg_{label}"):
+                    # Auswahl speichern
+                    st.session_state.location_search = label
+                    st.session_state.location_chosen = True
+                    # Nur den gewählten Treffer in suggestions halten für handle_location_selection
+                    st.session_state.location_suggestions = [(label, result)]
+                    # Wetter laden
+                    handle_location_selection()
+                    # Liste leeren
+                    st.session_state.location_suggestions = []
+                    st.rerun()
+        elif len(suggestions) == 1 and not st.session_state.location_chosen:
+            # Auto-Auswahl bei einem Treffer
             st.caption("✓ 1 Treffer gefunden – wird automatisch verwendet.")
-
-        # Auswahl verarbeiten
-        handle_location_selection()
+            label, result = suggestions[0]
+            st.session_state.location_search = label
+            st.session_state.location_chosen = True
+            st.session_state.location_suggestions = [(label, result)]
+            handle_location_selection()
+            st.session_state.location_suggestions = []
+            st.rerun()
 
         # Karte anzeigen (nur beim ersten Mal laden, dann cachen)
         st.markdown("---")
