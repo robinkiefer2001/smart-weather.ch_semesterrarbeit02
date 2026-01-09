@@ -63,25 +63,29 @@ def load_app_styles():
         @media (prefers-color-scheme: dark) {
             .week-day-card {
                 background: #111827 !important;
-                color: #e5e7eb !important;
+                color: #ffffff !important;
                 border-color: #374151 !important;
             }
             
+            .week-day-card * {
+                color: #ffffff !important;
+            }
+            
             .week-day-card small {
-                color: #e5e7eb !important;
+                color: #ffffff !important;
             }
             
             .week-day-card div {
-                color: #e5e7eb !important;
+                color: #ffffff !important;
             }
             
             .week-day-card strong {
-                color: #f3f4f6 !important;
+                color: #ffffff !important;
             }
             
             .day-card {
                 background: #1f2937 !important;
-                color: #e5e7eb !important;
+                color: #ffffff !important;
                 border-color: #374151 !important;
             }
             
@@ -95,25 +99,29 @@ def load_app_styles():
         /* Wenn Streamlit data-theme="dark" setzt */
         body[data-theme="dark"] .week-day-card {
             background: #111827 !important;
-            color: #e5e7eb !important;
+            color: #ffffff !important;
             border-color: #374151 !important;
         }
         
+        body[data-theme="dark"] .week-day-card * {
+            color: #ffffff !important;
+        }
+        
         body[data-theme="dark"] .week-day-card small {
-            color: #e5e7eb !important;
+            color: #ffffff !important;
         }
         
         body[data-theme="dark"] .week-day-card div {
-            color: #e5e7eb !important;
+            color: #ffffff !important;
         }
         
         body[data-theme="dark"] .week-day-card strong {
-            color: #f3f4f6 !important;
+            color: #ffffff !important;
         }
         
         body[data-theme="dark"] .day-card {
             background: #1f2937 !important;
-            color: #e5e7eb !important;
+            color: #ffffff !important;
             border-color: #374151 !important;
         }
         
@@ -126,25 +134,29 @@ def load_app_styles():
         /* Wenn Streamlit die Klasse theme-dark setzt */
         .theme-dark .week-day-card {
             background: #111827 !important;
-            color: #e5e7eb !important;
+            color: #ffffff !important;
             border-color: #374151 !important;
         }
         
+        .theme-dark .week-day-card * {
+            color: #ffffff !important;
+        }
+        
         .theme-dark .week-day-card small {
-            color: #e5e7eb !important;
+            color: #ffffff !important;
         }
         
         .theme-dark .week-day-card div {
-            color: #e5e7eb !important;
+            color: #ffffff !important;
         }
         
         .theme-dark .week-day-card strong {
-            color: #f3f4f6 !important;
+            color: #ffffff !important;
         }
         
         .theme-dark .day-card {
             background: #1f2937 !important;
-            color: #e5e7eb !important;
+            color: #ffffff !important;
             border-color: #374151 !important;
         }
         
