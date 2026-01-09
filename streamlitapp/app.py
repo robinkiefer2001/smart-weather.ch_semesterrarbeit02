@@ -99,6 +99,8 @@ if 'cached_location_coords' not in st.session_state:
     st.session_state.cached_location_coords = None  # Caching: (latitude, longitude)
 if 'map_data_cache' not in st.session_state:
     st.session_state.map_data_cache = None
+if 'location_suggestions' not in st.session_state:
+    st.session_state.location_suggestions = []
 
 # ===== INITIALIZATION AT START =====
 if st.session_state.weather_data is None:
@@ -142,98 +144,111 @@ if st.session_state.weather_data is not None:
 if st.session_state.weather_data is not None:
     with tab_map:
         st.subheader("🗺️ Interaktive Wetterkarte der Schweiz")
-    
-    # Such-Bereich
-    search_query = st.text_input(
-        label="",
-        placeholder="🔍 Ort suchen (z.B. 'Bern', 'Zürich', 'Genf')",
-        key="location_search"
-    )
-    
-    search_button = st.button("🔄 Suchen", use_container_width=True)
-    
+
+        col_search, col_button = st.columns([3, 1])
+
+        with col_search:
+            search_query = st.text_input(
+                label="",
+                placeholder="🔍 Ort suchen (z.B. 'Bern', 'Zürich', 'Genf')",
+                key="location_search",
+            )
+
+            # Vorschlagsliste direkt UNTER dem Input rendern
+            suggestions = st.session_state.get("location_suggestions", [])
+            selected_label = None
+            if suggestions:
+                labels = [opt[0] for opt in suggestions]
+                selected_label = st.selectbox(
+                    "",
+                    labels,
+                    key="location_select",
+                    label_visibility="collapsed",
+                )
+
+        with col_button:
+            search_button = st.button("Suchen", use_container_width=True)
+
+    # --- Suche auslösen und Suggestions in session_state legen ---
     if search_button and search_query:
         with st.spinner("📡 Suche Orte in der Schweiz..."):
             search_results = geocode_multiple(search_query, max_results=5)
-            
+
             if not search_results:
                 st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
+                st.session_state.location_suggestions = []
             else:
-                # Label-Strings für Dropdown bauen
                 options = []
                 for result in search_results:
                     name = result.get("name", "")
-                    admin1 = result.get("admin1", "")  # Kanton/Region
+                    admin1 = result.get("admin1", "")
                     postcode = result.get("postcode", "")
-                    
-                    # Label zusammensetzen: "Cham, ZG 6330"
-                    label_parts = [name]
+                    parts = [name]
                     if admin1:
-                        label_parts.append(admin1)
+                        parts.append(admin1)
                     if postcode:
-                        label_parts.append(postcode)
-                    
-                    label = ", ".join(label_parts)
+                        parts.append(postcode)
+                    label = ", ".join(parts)
                     options.append((label, result))
-                
-                # Selectbox für Ortsauswahl (direkt unter Suchfeld)
-                labels = [o[0] for o in options]
-                selected_label = st.selectbox(
-                    "Orte:",
-                    labels,
-                    key=f"location_select_{search_query}",
-                    label_visibility="collapsed"
-                )
-                
-                # Gewählten Datensatz finden
-                selected = next((r for label, r in options if label == selected_label), None)
-                
-                if selected:
-                    latitude = selected["latitude"]
-                    longitude = selected["longitude"]
-                    location_name = selected["name"]
-                    postcode = selected.get("postcode", "")
-                    admin1 = selected.get("admin1", "")
-                    
-                    # Schöne Anzeige des ausgewählten Ortes
-                    display_parts = [location_name]
-                    if admin1:
-                        display_parts.append(admin1)
-                    if postcode:
-                        display_parts.append(postcode)
-                    display_name = ", ".join(display_parts)
-                    
-                    st.success(f"✅ Ort ausgewählt: **{display_name}**")
-                    st.session_state.selected_location = (location_name, latitude, longitude)
-                    
-                    # Prüfe Cache: nur neu laden wenn andere Koordinaten
-                    if st.session_state.cached_location_coords != (latitude, longitude):
-                        try:
-                            with st.spinner("📡 Lade Wetterdaten..."):
-                                current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
-                                st.session_state.weather_data = {
-                                    'current': current_data,
-                                    'hourly_df': hourly_df,
-                                    'daily_df': daily_df
-                                }
-                                st.session_state.cached_location_coords = (latitude, longitude)
-                                # Setze selected_day_offset auf heutigen Tag
-                                today = pd.Timestamp.now().normalize()
-                                today_idx = 0
-                                for idx, row in daily_df.iterrows():
-                                    if pd.to_datetime(row['date']).normalize() == today:
-                                        today_idx = idx
-                                        break
-                                st.session_state.selected_day_offset = today_idx
-                        except Exception as e:
-                            st.error(f"Fehler beim Laden der Wetterdaten: {e}")
-                    else:
-                        st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
-        # Karte anzeigen
-        st.markdown("---")
-        with st.container():
-            with st.spinner("🗺️ Lade Wetterkarte..."):
-                display_weather_map(show_loading=False, map_height=600)
+
+                # Vorschläge im State speichern → werden oben direkt unter dem Input angezeigt
+                st.session_state.location_suggestions = options
+                st.rerun()
+
+    # --- Auswahl aus Vorschlagsliste auswerten ---
+    options = st.session_state.get("location_suggestions", [])
+    if options:
+        labels = [opt[0] for opt in options]
+        selected_label = st.session_state.get("location_select")
+        if selected_label and selected_label in labels:
+            selected = next((r for label, r in options if label == selected_label), None)
+
+            if selected:
+                latitude = selected["latitude"]
+                longitude = selected["longitude"]
+                location_name = selected["name"]
+                postcode = selected.get("postcode", "")
+                admin1 = selected.get("admin1", "")
+
+                display_parts = [location_name]
+                if admin1:
+                    display_parts.append(admin1)
+                if postcode:
+                    display_parts.append(postcode)
+                display_name = ", ".join(display_parts)
+
+                st.success(f"✅ Ort ausgewählt: **{display_name}**")
+                st.session_state.selected_location = (location_name, latitude, longitude)
+
+                # Prüfe Cache: nur neu laden wenn andere Koordinaten
+                if st.session_state.cached_location_coords != (latitude, longitude):
+                    try:
+                        with st.spinner("📡 Lade Wetterdaten..."):
+                            current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
+                            st.session_state.weather_data = {
+                                'current': current_data,
+                                'hourly_df': hourly_df,
+                                'daily_df': daily_df
+                            }
+                            st.session_state.cached_location_coords = (latitude, longitude)
+                            # Setze selected_day_offset auf heutigen Tag
+                            today = pd.Timestamp.now().normalize()
+                            today_idx = 0
+                            for idx, row in daily_df.iterrows():
+                                if pd.to_datetime(row['date']).normalize() == today:
+                                    today_idx = idx
+                                    break
+                            st.session_state.selected_day_offset = today_idx
+                    except Exception as e:
+                        st.error(f"Fehler beim Laden der Wetterdaten: {e}")
+                else:
+                    st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
+
+    # Karte anzeigen
+    st.markdown("---")
+    with st.container():
+        with st.spinner("🗺️ Lade Wetterkarte..."):
+            display_weather_map(show_loading=False, map_height=600)
         
         # Legende
         st.markdown("---")
