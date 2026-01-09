@@ -101,6 +101,8 @@ if 'map_data_cache' not in st.session_state:
     st.session_state.map_data_cache = None
 if 'location_suggestions' not in st.session_state:
     st.session_state.location_suggestions = []
+if 'map_loaded' not in st.session_state:
+    st.session_state.map_loaded = False
 
 # ===== INITIALIZATION AT START =====
 if st.session_state.weather_data is None:
@@ -243,11 +245,17 @@ if st.session_state.weather_data is not None:
                             st.error(f"Fehler beim Laden der Wetterdaten: {e}")
                     else:
                         st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
-
-        # Karte anzeigen
+        # Karte anzeigen (nur beim ersten Mal laden, dann cachen)
         st.markdown("---")
         with st.container():
-            with st.spinner("🗺️ Lade Wetterkarte..."):
+            # Prüfe ob Karte bereits geladen wurde
+            map_loaded = st.session_state.get("map_loaded", False)
+            if not map_loaded:
+                with st.spinner("🗺️ Lade Wetterkarte..."):
+                    display_weather_map(show_loading=False, map_height=600)
+                    st.session_state.map_loaded = True
+            else:
+                # Karte wurde bereits geladen, nur anzeigen (ohne Spinner/Reload)
                 display_weather_map(show_loading=False, map_height=600)
         
         # Legende
