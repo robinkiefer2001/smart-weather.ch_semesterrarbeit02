@@ -107,8 +107,13 @@ st.markdown("""
     .day-selected {
         border: 2px solid #3b82f6;
         background: #eff6ff !important;
-
     }
+    /* Button-Alignment für Suchzeile */
+    div.stButton > button:first-child {
+        height: 2.8rem;
+        margin-top: 0.25rem;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -246,6 +251,7 @@ if st.session_state.weather_data is not None:
     with tab_map:
         st.subheader("Interaktive Wetterkarte der Schweiz")
 
+        # Suchfeld + Button auf einer Linie
         col_search, col_button = st.columns([3, 1])
 
         with col_search:
@@ -255,26 +261,29 @@ if st.session_state.weather_data is not None:
                 key="location_search",
             )
 
-            suggestions = st.session_state.get("location_suggestions", [])
-            if len(suggestions) > 1:
-                labels = [opt[0] for opt in suggestions]
-                selected_label = st.selectbox(
-                    "",
-                    labels,
-                    key="location_select",
-                    label_visibility="collapsed",
-                )
-            elif len(suggestions) == 1:
-                st.caption("1 Treffer gefunden – wird automatisch verwendet.")
-
         with col_button:
+            st.write("")  # Spacer für Alignment
             search_button = st.button("Suchen", use_container_width=True)
 
+        # Search auslösen
         if search_button and search_query:
             update_location_suggestions(search_query)
             st.rerun()
 
-        # Auswahl nach jedem Rerun prüfen
+        # Dropdown NUR bei mehreren Treffern anzeigen (direkt unter Suchfeld)
+        suggestions = st.session_state.get("location_suggestions", [])
+        if len(suggestions) > 1:
+            labels = [opt[0] for opt in suggestions]
+            selected_label = st.selectbox(
+                label="",
+                options=labels,
+                key="location_select",
+                label_visibility="collapsed",
+            )
+        elif len(suggestions) == 1:
+            st.caption("✓ 1 Treffer gefunden – wird automatisch verwendet.")
+
+        # Auswahl verarbeiten
         handle_location_selection()
 
         # Karte anzeigen (nur beim ersten Mal laden, dann cachen)
