@@ -88,6 +88,11 @@ def handle_location_selection():
 
     st.success(f"✅ Ort ausgewählt: **{display_name}**")
     st.session_state.selected_location = (location_name, latitude, longitude)
+    
+    # Zurücksetzen der Tagesauswahl bei neuem Ort
+    st.session_state.selected_day_date = None
+    st.session_state.selected_day_offset = 0
+    st.session_state.calendar_week_offset = 0
 
     # Cache-Check
     if st.session_state.cached_location_coords != (latitude, longitude):
