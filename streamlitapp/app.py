@@ -234,23 +234,23 @@ if st.session_state.weather_data is not None:
                         with st.spinner("📡 Lade Wetterdaten..."):
                             current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
                             st.session_state.weather_data = {
-                                    'current': current_data,
-                                    'hourly_df': hourly_df,
-                                    'daily_df': daily_df
-                                }
-                                st.session_state.cached_location_coords = (latitude, longitude)
-                                # Setze selected_day_offset auf heutigen Tag
-                                today = pd.Timestamp.now().normalize()
-                                today_idx = 0
-                                for idx, row in daily_df.iterrows():
-                                    if pd.to_datetime(row['date']).normalize() == today:
-                                        today_idx = idx
-                                        break
-                                st.session_state.selected_day_offset = today_idx
-                        except Exception as e:
-                            st.error(f"Fehler beim Laden der Wetterdaten: {e}")
-                    else:
-                        st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
+                                'current': current_data,
+                                'hourly_df': hourly_df,
+                                'daily_df': daily_df
+                            }
+                            st.session_state.cached_location_coords = (latitude, longitude)
+                            # Setze selected_day_offset auf heutigen Tag
+                            today = pd.Timestamp.now().normalize()
+                            today_idx = 0
+                            for idx, row in daily_df.iterrows():
+                                if pd.to_datetime(row['date']).normalize() == today:
+                                    today_idx = idx
+                                    break
+                            st.session_state.selected_day_offset = today_idx
+                    except Exception as e:
+                        st.error(f"Fehler beim Laden der Wetterdaten: {e}")
+                else:
+                    st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
         # Karte anzeigen (nur beim ersten Mal laden, dann cachen)
         st.markdown("---")
         with st.container():
