@@ -156,10 +156,10 @@ if st.session_state.weather_data is not None:
                 key="location_search",
             )
 
-            # Vorschlagsliste direkt UNTER dem Input rendern
+            # Vorschlagsliste direkt UNTER dem Input rendern (nur wenn > 1 Treffer)
             suggestions = st.session_state.get("location_suggestions", [])
             selected_label = None
-            if suggestions:
+            if len(suggestions) > 1:
                 labels = [opt[0] for opt in suggestions]
                 selected_label = st.selectbox(
                     "",
@@ -201,33 +201,39 @@ if st.session_state.weather_data is not None:
         options = st.session_state.get("location_suggestions", [])
         if options:
             labels = [opt[0] for opt in options]
-            selected_label = st.session_state.get("location_select")
-            if selected_label and selected_label in labels:
-                selected = next((r for label, r in options if label == selected_label), None)
+            
+            # Wenn nur 1 Treffer: automatisch auswählen
+            if len(options) == 1:
+                selected = options[0][1]
+                selected_label = options[0][0]
+            else:
+                # Wenn > 1 Treffer: nehme die Auswahl aus Selectbox
+                selected_label = st.session_state.get("location_select")
+                selected = next((r for label, r in options if label == selected_label), None) if selected_label else None
+            
+            if selected and selected_label:
+                latitude = selected["latitude"]
+                longitude = selected["longitude"]
+                location_name = selected["name"]
+                postcode = selected.get("postcode", "")
+                admin1 = selected.get("admin1", "")
 
-                if selected:
-                    latitude = selected["latitude"]
-                    longitude = selected["longitude"]
-                    location_name = selected["name"]
-                    postcode = selected.get("postcode", "")
-                    admin1 = selected.get("admin1", "")
+                display_parts = [location_name]
+                if admin1:
+                    display_parts.append(admin1)
+                if postcode:
+                    display_parts.append(postcode)
+                display_name = ", ".join(display_parts)
 
-                    display_parts = [location_name]
-                    if admin1:
-                        display_parts.append(admin1)
-                    if postcode:
-                        display_parts.append(postcode)
-                    display_name = ", ".join(display_parts)
+                st.success(f"✅ Ort ausgewählt: **{display_name}**")
+                st.session_state.selected_location = (location_name, latitude, longitude)
 
-                    st.success(f"✅ Ort ausgewählt: **{display_name}**")
-                    st.session_state.selected_location = (location_name, latitude, longitude)
-
-                    # Prüfe Cache: nur neu laden wenn andere Koordinaten
-                    if st.session_state.cached_location_coords != (latitude, longitude):
-                        try:
-                            with st.spinner("📡 Lade Wetterdaten..."):
-                                current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
-                                st.session_state.weather_data = {
+                # Prüfe Cache: nur neu laden wenn andere Koordinaten
+                if st.session_state.cached_location_coords != (latitude, longitude):
+                    try:
+                        with st.spinner("📡 Lade Wetterdaten..."):
+                            current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
+                            st.session_state.weather_data = {
                                     'current': current_data,
                                     'hourly_df': hourly_df,
                                     'daily_df': daily_df
