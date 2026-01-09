@@ -421,10 +421,23 @@ if tab_detail is not None:
             hourly_df = st.session_state.weather_data.get('hourly_df')
             
             if daily_df is not None and hourly_df is not None and not daily_df.empty:
-                # Ausgewählten Tag holen
-                selected_idx = min(st.session_state.selected_day_offset, len(daily_df) - 1)
-                selected_row = daily_df.iloc[selected_idx]
-                selected_date = selected_row['date']
+                # Bestimme welchen Tag anzeigen: entweder selected_day_date oder selected_day_offset
+                if st.session_state.selected_day_date:
+                    # Nutze das ausgewählte Datum aus dem Kalender-Tab
+                    selected_date_obj = pd.to_datetime(st.session_state.selected_day_date).date()
+                    matching_rows = daily_df[pd.to_datetime(daily_df['date']).dt.date == selected_date_obj]
+                    if not matching_rows.empty:
+                        selected_row = matching_rows.iloc[0]
+                        selected_date = pd.to_datetime(selected_row['date'])
+                    else:
+                        # Fallback auf ersten Tag
+                        selected_row = daily_df.iloc[0]
+                        selected_date = pd.to_datetime(selected_row['date'])
+                else:
+                    # Fallback: nutze selected_day_offset (heute)
+                    selected_idx = min(st.session_state.selected_day_offset, len(daily_df) - 1)
+                    selected_row = daily_df.iloc[selected_idx]
+                    selected_date = pd.to_datetime(selected_row['date'])
                 
                 st.markdown(f"### {format_date_german(selected_date, 'long_full')}")
                 
