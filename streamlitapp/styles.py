@@ -58,11 +58,30 @@ def load_app_styles():
                 background: #111827 !important;
                 color: #e5e7eb !important;
                 border-color: #374151 !important;
+                border: 1px solid #374151 !important;
             }
             
-            .week-day-card small,
+            .week-day-card small {
+                color: #e5e7eb !important;
+            }
+            
             .week-day-card div {
                 color: #e5e7eb !important;
+            }
+            
+            .week-day-card strong {
+                color: #f3f4f6 !important;
+            }
+            
+            .day-card {
+                background: #1f2937 !important;
+                color: #e5e7eb !important;
+                border-color: #374151 !important;
+            }
+            
+            .day-selected {
+                border: 2px solid #ef4444 !important;
+                background: #1f2937 !important;
             }
         }
         
