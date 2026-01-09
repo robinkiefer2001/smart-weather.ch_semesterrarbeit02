@@ -63,29 +63,29 @@ def load_app_styles():
         @media (prefers-color-scheme: dark) {
             .week-day-card {
                 background: #111827 !important;
-                color: #ffffff !important;
+                color: #000000 !important;
                 border-color: #374151 !important;
             }
             
             .week-day-card * {
-                color: #ffffff !important;
+                color: #000000 !important;
             }
             
             .week-day-card small {
-                color: #ffffff !important;
+                color: #000000 !important;
             }
             
             .week-day-card div {
-                color: #ffffff !important;
+                color: #000000 !important;
             }
             
             .week-day-card strong {
-                color: #ffffff !important;
+                color: #000000 !important;
             }
             
             .day-card {
                 background: #1f2937 !important;
-                color: #ffffff !important;
+                color: #000000 !important;
                 border-color: #374151 !important;
             }
             
@@ -99,29 +99,29 @@ def load_app_styles():
         /* Wenn Streamlit data-theme="dark" setzt */
         body[data-theme="dark"] .week-day-card {
             background: #111827 !important;
-            color: #ffffff !important;
+            color: #000000 !important;
             border-color: #374151 !important;
         }
         
         body[data-theme="dark"] .week-day-card * {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         body[data-theme="dark"] .week-day-card small {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         body[data-theme="dark"] .week-day-card div {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         body[data-theme="dark"] .week-day-card strong {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         body[data-theme="dark"] .day-card {
             background: #1f2937 !important;
-            color: #ffffff !important;
+            color: #000000 !important;
             border-color: #374151 !important;
         }
         
@@ -134,29 +134,29 @@ def load_app_styles():
         /* Wenn Streamlit die Klasse theme-dark setzt */
         .theme-dark .week-day-card {
             background: #111827 !important;
-            color: #ffffff !important;
+            color: #000000 !important;
             border-color: #374151 !important;
         }
         
         .theme-dark .week-day-card * {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         .theme-dark .week-day-card small {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         .theme-dark .week-day-card div {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         .theme-dark .week-day-card strong {
-            color: #ffffff !important;
+            color: #000000 !important;
         }
         
         .theme-dark .day-card {
             background: #1f2937 !important;
-            color: #ffffff !important;
+            color: #000000 !important;
             border-color: #374151 !important;
         }
         
