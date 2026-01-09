@@ -280,7 +280,7 @@ def display_map_legend():
             """)
 
 
-def display_day_card(date_obj, row, today, format_date_german_func, weather_icon_func, day_index=None):
+def display_day_card(date_obj, row, today, format_date_german_func, weather_icon_func, day_index=None, selected_date=None):
     """
     Zeigt eine einzelne Tages-Karte an mit Click-Funktionalität.
     
@@ -291,6 +291,7 @@ def display_day_card(date_obj, row, today, format_date_german_func, weather_icon
         format_date_german_func: Funktion zum Formatieren von Daten auf Deutsch
         weather_icon_func: Funktion zur Rückgabe von Wetter-Emoji
         day_index: Index des Tages für Click-Handling
+        selected_date: Datum des ausgewählten Tages (String oder date Objekt)
     
     Returns:
         HTML-String für die Karte
@@ -317,10 +318,27 @@ def display_day_card(date_obj, row, today, format_date_german_func, weather_icon
     else:
         bg_color = "#f5f5f5"
 
-    # Markiere heutigen Tag
-    is_today = date_obj == today
-    if is_today:
-        border = "3px solid #dc2626"
+    # Bestimme ob dieser Tag ausgewählt oder heute ist
+    # Priorität: selected_date > today
+    is_selected = False
+    if selected_date:
+        # Konvertiere selected_date zu date Objekt falls String
+        if isinstance(selected_date, str):
+            selected_date_obj = pd.to_datetime(selected_date).date()
+        else:
+            selected_date_obj = selected_date
+        is_selected = date_obj == selected_date_obj
+    
+    is_today = date_obj == today and not is_selected
+    
+    # Markiere ausgewählten oder heutigen Tag
+    if is_selected:
+        border = "3px solid #dc2626"  # Rot für ausgewählt
+        font_size = "36px"
+        padding = "16px"
+        font_weight_emoji = "bold"
+    elif is_today:
+        border = "3px solid #dc2626"  # Rot für heute
         font_size = "36px"
         padding = "16px"
         font_weight_emoji = "bold"

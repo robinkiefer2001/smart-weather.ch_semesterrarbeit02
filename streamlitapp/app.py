@@ -270,7 +270,15 @@ if tab_calendar is not None:
                     
                     with col:
                         # Nutze display_day_card Funktion aus ui_components
-                        card_html = display_day_card(current_date, row, today, format_date_german, weather_icon, day_offset)
+                        card_html = display_day_card(
+                            current_date, 
+                            row, 
+                            today, 
+                            format_date_german, 
+                            weather_icon, 
+                            day_offset,
+                            selected_date=st.session_state.selected_day_date
+                        )
                         st.markdown(card_html, unsafe_allow_html=True)
                         
                         # Registriere Click-Handler für diesen Tag
