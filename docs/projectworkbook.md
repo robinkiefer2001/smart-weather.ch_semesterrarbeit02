@@ -2287,5 +2287,197 @@ Resultat: Code ist wartbar, testbar und erweiterbar. Keine Monolith-Struktur.
 - Effiziente DataFrame-Operationen: groupby().mean() statt Schleifen
 - Column Filtering: Nur notwendige Spalten laden
 
+---
+
+#### Darkmode-Support für Wochenkarten implementiert
+
+Implementierung (styles.py Zeilen 59-160):
+
+**Drei Schichten Darkmode-Unterstützung:**
+- System-Darkmode: `@media (prefers-color-scheme: dark)` für Handy/Desktop
+- Streamlit Variante A: `body[data-theme="dark"]`
+- Streamlit Variante B: `.theme-dark`
+- Streamlit Variante C: `[data-testid="stAppViewContainer"][data-theme="dark"]`
+
+**Abdeckung:**
+- System-Darkmode auf mobilen Geräten
+- Streamlit Dark-Theme auf Desktop
+- Mehrere Fallback-Varianten für verschiedene Streamlit-Versionen
+- Text auf schwarz (#000000) für Kontrastierbarkeit gegen dunklen Hintergrund (#111827)
+- Wochenkarten-Hintergrund: #111827 (sehr dunkel)
+- Border-Farbe: #374151 (dezent dunkel)
+
+Resultat: Wochenkarten sind im Darkmode vollständig lesbar und sehen konsistent aus.
 
 ---
+
+#### Interaktive Tagesauswahl implementiert
+
+Implementierung (app.py Zeilen 273-282, ui_components.py Zeilen 283-379):
+
+**Features:**
+- "Wählen"-Button unter jeder Tages-Karte im Kalender-Tab
+- Rote Rand (#dc2626) springt zum ausgewählten Tag
+- Ausgewählter Tag wird vergrößert (36px Emoji vs. 28px)
+- Tageswechsel triggert `st.rerun()` für sofortige Aktualisierung
+- Session State speichert `selected_day_date` als ISO-String
+- `display_day_card()` aktualisiert: neuer Parameter `selected_date=None`
+
+**Integration mit Tagesdetail-Tab:**
+- Tab 3 "Tagesdetail" nutzt `selected_day_date` statt `selected_day_offset`
+- Stundendaten filtern nach ausgewähltem Datum mit `pd.to_datetime()`
+- Charts zeigen Daten für den ausgewählten Tag
+- Fallback auf heutigen Tag wenn nichts ausgewählt
+
+Resultat: Benutzer können gezielt einzelne Tage auswählen und sehen sofort die Details.
+
+---
+
+#### Tagesauswahl reset bei Ortswechsel
+
+Implementierung (app.py, Funktion `handle_location_selection()`, Zeilen 89-94):
+
+**Verhalten bei Ortswechsel:**
+- `st.session_state.selected_day_date = None` - Tagesauswahl löschen
+- `st.session_state.selected_day_offset = 0` - Zurück auf heute
+- `st.session_state.calendar_week_offset = 0` - Kalender zurück auf aktuelle Woche
+
+**Ergebnis:**
+- Neuer Ort wird ausgewählt → alle Tagesauswahlen werden gelöscht
+- Rote Rand springt zurück auf heutigen Tag
+- Kalender zeigt aktuelle Woche
+- Tagesdetail-Tab zeigt heute statt letztem Tag vom alten Ort
+- Sauberer State-Übergang, keine Verwirrung zwischen Orten
+
+---
+
+#### Code-Struktur: utils.py für Datum-Utilities
+
+Neue Datei (utils.py, 101 Zeilen):
+
+**Inhalt:**
+- Deutsche Lokalisierungs-Konstanten: DEUTSCH_TAGE, DEUTSCH_TAGE_KURZ, DEUTSCH_MONATE
+- `format_date_german(date_obj, format_type='long')`: Formatiert Daten auf Deutsch
+- `find_today_index(daily_df)`: Findet Index des heutigen Tages
+- `get_week_start(offset_weeks=0)`: Berechnet Wochen-Startdatum
+- `slice_week(daily_df, week_start)`: Filtert DataFrame für eine Woche
+
+**Auslagerung aus app.py:**
+- app.py reduziert von 877 auf 715 Zeilen
+- Wiederverwendbare Funktionen zentral verfügbar
+- Konsistente Datum-Verarbeitung
+
+Resultat: app.py ist übersichtlicher, Hilfs-Funktionen sind wartbar und modular.
+
+---
+
+#### Code-Struktur: styles.py vollständig ausgebaut
+
+Erweiterte Datei (styles.py, 190+ Zeilen):
+
+**Komponenten:**
+- `.metric-card`: Metriken-Box mit Gradient
+- `.day-card`: Tages-Karten (deprecated, aber inkludiert)
+- `.week-day-card`: Wochenkarten mit Darkmode-Support
+- Darkmode: System-Medienquery + 3 Streamlit-Varianten
+
+**Zentralisierung:**
+- Alle Farben, Abstände, Übergänge in einer Datei
+- Darkmode vollständig abgedeckt
+- Einfach neue Komponenten-Styles hinzufügen
+- `load_app_styles()` wird einmalig in app.py aufgerufen
+
+Resultat: CSS ist zentral verwaltet, einfach zu warten, Darkmode zuverlässig.
+
+---
+
+#### UI-Refactoring: Professionelle Gestaltung und Komponentenauslagerung
+
+Implementierung (ui_components.py Zeilen 1-379, app.py überall):
+
+**Problem:**
+- UI-Code über gesamtes app.py verteilt
+- Emoji-schwere Beschriftungen wirkten unprofessionell
+- Wiederholter Code für ähnliche UI-Elemente
+- Schwer zu aktualisieren und zu testen
+
+**Lösung - UI-Komponenten-Modularisierung:**
+
+1. Display-Funktionen (13 Funktionen in ui_components.py):
+   - display_current_metrics() - Aktuelle Werte in 3 Spalten
+   - display_hourly_overview() - Stündliche Tabelle mit Icons
+   - display_detailed_table() - Erweiterte Daten-Tabelle
+   - display_temperature_chart() - Temperatur-Altair-Chart
+   - display_precipitation_chart() - Niederschlag-Daten
+   - display_wind_chart() - Wind-Geschwindigkeits-Chart
+   - display_cloud_chart() - Bewölkungs-Chart
+   - display_snow_chart() - Schnee-Vorhersage
+   - display_location_search_section() - Suchfeld mit Buttons
+   - display_location_suggestions() - Suggestion-Liste als Buttons
+   - display_map_legend() - Expandable Karten-Legende
+   - display_day_card() - Einzelne Wochenkarte mit Darkmode
+   - display_location_selected_message() - Erfolgs-Bestätigung
+
+2. Professionelle Emoji-Verwaltung:
+   - Emojis nur bei Icons und Wetter-Codes
+   - Keine Emojis in Titeln/Beschreibungen/Buttons
+   - Einheitliche Icons mit WMO-Codes (weather_icon Funktion)
+   - Konsistente visuelle Sprache
+
+3. Komponenten-Pattern:
+   - Jede Komponente: Daten rein → Verarbeitung → UI raus
+   - Docstrings für Parameter und Rückgabewerte
+   - Type Hints für besseres Debugging
+   - HTML mit unsafe_allow_html=True wo nötig
+
+4. Integration in app.py:
+   - app.py ruft Komponenten auf statt Code zu duplizieren
+   - Daten-Vorbereitung in data_handlers.py
+   - Nur Orchestrierung in app.py
+   - Saubere Schnittstellen zwischen Modulen
+
+**Resultat:** Professionelles Erscheinungsbild, wartbarer Code, wiederverwendbare Komponenten.
+
+---
+
+#### Standortsuche mit Mehrfach-Ergebnissen und Button-Auswahl
+
+Implementierung (app.py Zeilen 45-61, ui_components.py Zeilen 201-255):
+
+**Problem:**
+- Alte Methode: `st.selectbox()` zeigte nur erste Treffer
+- Widget-Value-Conflict: Streamlit erlaubt keine Änderung nach Render
+- Schwer zu erkennen welches Ergebnis gemeint ist
+
+**Lösung - Drei-Komponenten-System:**
+
+1. **Suchfeld mit Autocomplete-Callback:**
+   - `st.text_input()` mit `on_change=update_location_suggestions`
+   - Triggers automatisch bei jeder Eingabe
+   - Fuzzy-Suche via Open-Meteo Nominatim API
+
+2. **Button-basierte Suggestion-Liste:**
+   - `display_location_suggestions()` zeigt Buttons für jeden Treffer
+   - Button-Label: `{Name}, {Kanton}, {PLZ}` für Eindeutigkeit
+   - One-Click zur Auswahl und sofortigem Daten-Load
+   - Smart: Zeigt nur wenn mehrere Treffer existieren
+
+3. **Session-State Pending-Pattern:**
+   - `location_search_pending`: Speichert neue Suche zwischen Renders
+   - Verhindert Widget-Value-Konflikt in Streamlit
+   - Text wird vor Widget-Render aktualisiert
+
+**Implementierungs-Details:**
+- Open-Meteo API mit `countrycodes: "ch"` für Switzerland-only
+- Fuzzy-Match mit Nominatim oder ILIKE-Datenbank
+- Mehrere Ergebnisse sortiert nach Relevanz
+- Admin1 (Kanton) und Postcode als Unterscheidung
+
+**Integration:**
+- Button-Click → `st.session_state.location_suggestions = [(label, data)]`
+- `st.rerun()` triggert `handle_location_selection()`
+- Wetterdaten werden automatisch geladen
+- Erfolgs-Meldung: `✅ Ort ausgewählt: {Name}, {Kanton}, {PLZ}`
+
+**Resultat:** 
+Benutzer finden leicht Orte, können zwischen ähnlichen Namen unterscheiden, keine Crashes durch Widget-Conflicts.
