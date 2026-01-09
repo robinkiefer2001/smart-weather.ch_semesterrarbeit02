@@ -280,9 +280,9 @@ def display_map_legend():
             """)
 
 
-def display_day_card(date_obj, row, today, format_date_german_func, weather_icon_func):
+def display_day_card(date_obj, row, today, format_date_german_func, weather_icon_func, day_index=None):
     """
-    Zeigt eine einzelne Tages-Karte an.
+    Zeigt eine einzelne Tages-Karte an mit Click-Funktionalität.
     
     Args:
         date_obj: datetime.date Objekt
@@ -290,6 +290,7 @@ def display_day_card(date_obj, row, today, format_date_german_func, weather_icon
         today: datetime.date für Heute-Markierung
         format_date_german_func: Funktion zum Formatieren von Daten auf Deutsch
         weather_icon_func: Funktion zur Rückgabe von Wetter-Emoji
+        day_index: Index des Tages für Click-Handling
     
     Returns:
         HTML-String für die Karte
@@ -332,9 +333,12 @@ def display_day_card(date_obj, row, today, format_date_german_func, weather_icon
     temp_max_str = str(temp_max) if isinstance(temp_max, str) else f'{temp_max:.2f}'
     temp_min_str = str(temp_min) if isinstance(temp_min, str) else f'{temp_min:.2f}'
     precip_str = f'{precip:.2f}'
+    
+    # Eindeutige ID für JavaScript-Click-Handler
+    card_id = f"day-card-{date_obj.isoformat()}"
 
     return f"""
-    <div class="week-day-card" style="
+    <div id="{card_id}" class="week-day-card clickable-day-card" style="
         background: {bg_color};
         border: {border};
         padding: {padding};
@@ -342,7 +346,7 @@ def display_day_card(date_obj, row, today, format_date_german_func, weather_icon
         text-align: center;
         cursor: pointer;
         transition: all 0.3s ease;
-    ">
+    " onclick="window.selectDay('{date_obj.isoformat()}')">
         <small style="font-weight: bold;">{date_str}</small><br>
         <div style="font-size: {font_size}; margin: 8px 0; font-weight: {font_weight_emoji};">{emoji}</div>
         <small><strong>↑ {temp_max_str}°</strong></small><br>

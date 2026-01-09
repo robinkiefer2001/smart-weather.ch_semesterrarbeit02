@@ -113,6 +113,8 @@ if 'selected_location' not in st.session_state:
     st.session_state.selected_location = None
 if 'selected_day_offset' not in st.session_state:
     st.session_state.selected_day_offset = 0
+if 'selected_day_date' not in st.session_state:
+    st.session_state.selected_day_date = None  # Speichert das ausgewählte Datum als String
 if 'calendar_week_offset' not in st.session_state:
     st.session_state.calendar_week_offset = 0  # Wochennavigation
 if 'cached_location_coords' not in st.session_state:
@@ -268,8 +270,13 @@ if tab_calendar is not None:
                     
                     with col:
                         # Nutze display_day_card Funktion aus ui_components
-                        card_html = display_day_card(current_date, row, today, format_date_german, weather_icon)
+                        card_html = display_day_card(current_date, row, today, format_date_german, weather_icon, day_offset)
                         st.markdown(card_html, unsafe_allow_html=True)
+                        
+                        # Registriere Click-Handler für diesen Tag
+                        if st.button("Wählen", key=f"select_day_{current_date.isoformat()}", use_container_width=True):
+                            st.session_state.selected_day_date = current_date.isoformat()
+                            st.rerun()
                 
                 st.markdown("---")
                 
