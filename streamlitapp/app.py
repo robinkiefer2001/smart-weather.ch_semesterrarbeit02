@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
 from api_client import fetch_weather_data
+from api_client import geocode_multiple
 from map_handler import display_weather_map, fetch_city_weather_data
 from database import search_location
 
@@ -156,40 +157,74 @@ if st.session_state.weather_data is not None:
         search_button = st.button("🔄 Suchen", use_container_width=True)
     
     if search_button and search_query:
-        with st.spinner("📡 Suche Ort..."):
-            search_results = search_location(search_query)
-            if search_results:
-                # search_results ist ein Tuple (latitude, longitude)
-                latitude, longitude = search_results
-                st.success(f"✅ Ort '{search_query}' gefunden!")
-                st.session_state.selected_location = (search_query, latitude, longitude)
-                
-                # Prüfe Cache: nur neu laden wenn andere Koordinaten
-                if st.session_state.cached_location_coords != (latitude, longitude):
-                    try:
-                        with st.spinner("📡 Lade Wetterdaten..."):
-                            current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
-                            st.session_state.weather_data = {
-                                'current': current_data,
-                                'hourly_df': hourly_df,
-                                'daily_df': daily_df
-                            }
-                            st.session_state.cached_location_coords = (latitude, longitude)
-                            # Setze selected_day_offset auf heutigen Tag
-                            today = pd.Timestamp.now().normalize()
-                            today_idx = 0
-                            for idx, row in daily_df.iterrows():
-                                if pd.to_datetime(row['date']).normalize() == today:
-                                    today_idx = idx
-                                    break
-                            st.session_state.selected_day_offset = today_idx
-                    except Exception as e:
-                        st.error(f"Fehler: {e}")
-                else:
-                    st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
-            else:
+        with st.spinner("📡 Suche Orte..."):
+            search_results = geocode_multiple(search_query, max_results=5)
+            
+            if not search_results:
                 st.warning(f"❌ Keine Ergebnisse für '{search_query}' gefunden.")
-    
+            else:
+                # Label-Strings für Dropdown bauen
+                options = []
+                for result in search_results:
+                    name = result.get("name", "")
+                    country = result.get("country", "")
+                    admin1 = result.get("admin1", "")  # Kanton/Region
+                    postcode = result.get("postcode", "")
+                    
+                    # Label zusammensetzen, z.B.: "Cham (ZG), Schweiz – PLZ 6330"
+                    label_parts = [name]
+                    if admin1:
+                        label_parts.append(f"({admin1})")
+                    if country:
+                        label_parts.append(country)
+                    if postcode:
+                        label_parts.append(f"– {postcode}")
+                    
+                    label = " ".join(label_parts)
+                    options.append((label, result))
+                
+                # Selectbox für Ortsauswahl
+                labels = [o[0] for o in options]
+                selected_label = st.selectbox(
+                    "🏙️ Bitte wählen Sie einen Ort aus:",
+                    labels,
+                    key=f"location_select_{search_query}"
+                )
+                
+                # Gewählten Datensatz finden
+                selected = next((r for label, r in options if label == selected_label), None)
+                
+                if selected:
+                    latitude = selected["latitude"]
+                    longitude = selected["longitude"]
+                    location_name = selected["name"]
+                    
+                    st.success(f"✅ Ort '{selected_label}' ausgewählt!")
+                    st.session_state.selected_location = (location_name, latitude, longitude)
+                    
+                    # Prüfe Cache: nur neu laden wenn andere Koordinaten
+                    if st.session_state.cached_location_coords != (latitude, longitude):
+                        try:
+                            with st.spinner("📡 Lade Wetterdaten..."):
+                                current_data, hourly_df, daily_df = fetch_weather_data(latitude, longitude)
+                                st.session_state.weather_data = {
+                                    'current': current_data,
+                                    'hourly_df': hourly_df,
+                                    'daily_df': daily_df
+                                }
+                                st.session_state.cached_location_coords = (latitude, longitude)
+                                # Setze selected_day_offset auf heutigen Tag
+                                today = pd.Timestamp.now().normalize()
+                                today_idx = 0
+                                for idx, row in daily_df.iterrows():
+                                    if pd.to_datetime(row['date']).normalize() == today:
+                                        today_idx = idx
+                                        break
+                                st.session_state.selected_day_offset = today_idx
+                        except Exception as e:
+                            st.error(f"Fehler beim Laden der Wetterdaten: {e}")
+                    else:
+                        st.info("✅ Daten aus Cache geladen (keine neuen Anfragen)")
         # Karte anzeigen
         st.markdown("---")
         with st.container():

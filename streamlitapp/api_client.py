@@ -2,6 +2,9 @@ import openmeteo_requests
 import pandas as pd
 from typing import Dict, Tuple
 
+# User-Agent für API-Requests
+USER_AGENT = "smart-ch.ch/1.0 (kontakt@deine-domain.ch)"
+
 
 def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.DataFrame, pd.DataFrame]:
     """
@@ -166,3 +169,76 @@ def fetch_weather_data(latitude: float, longitude: float) -> Tuple[Dict, pd.Data
     daily_df["cloud_cover"] = daily_df["date"].dt.date.map(daily_cloud_cover).fillna(0)
 
     return current_data, hourly_df, daily_df
+
+
+# Get Geo Location via Nominatim
+def get_geo_location(location: str) -> Tuple[float, float]:
+    """
+    Holt die geografische Lage (Breitengrad, Längengrad) für einen gegebenen Ort.
+    
+    Args:
+        location: Name des Ortes
+        
+    Returns:
+        Tuple mit (latitude, longitude)
+    """
+    nominatim = openmeteo_requests.NominatimClient()
+
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": location,
+        "format": "json",
+        "limit": 1,
+    }
+
+    responses = nominatim.geocoding_api(url, params=params)
+    response = responses[0]
+
+    latitude = float(response[0]["lat"])
+    longitude = float(response[0]["lon"])
+
+    return latitude, longitude
+
+
+def geocode_multiple(location: str, max_results: int = 5) -> list:
+    """
+    Holt mehrere geografische Ortsvorschläge für einen gegebenen Ort.
+    
+    Args:
+        location: Name des Ortes (Suchtext)
+        max_results: Maximale Anzahl der Ergebnisse (Standard: 5)
+        
+    Returns:
+        Liste von Dictionaries mit Ortsinformationen (name, country, admin1, postcode, latitude, longitude)
+    """
+    nominatim = openmeteo_requests.NominatimClient(
+        user_agent=USER_AGENT
+    )
+
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": location,
+        "format": "json",
+        "limit": max_results,
+        "addressdetails": 1,
+    }
+
+    try:
+        responses = nominatim.geocoding_api(url, params=params)
+        results = []
+        
+        for response in responses:
+            result_dict = {
+                "name": response.get("name", ""),
+                "latitude": float(response.get("lat", 0)),
+                "longitude": float(response.get("lon", 0)),
+                "country": response.get("address", {}).get("country", ""),
+                "postcode": response.get("address", {}).get("postcode", ""),
+                "admin1": response.get("address", {}).get("state", ""),  # Kanton/Region/Provinz
+            }
+            results.append(result_dict)
+        
+        return results
+    except Exception as e:
+        print(f"Fehler bei Geocoding: {e}")
+        return []
