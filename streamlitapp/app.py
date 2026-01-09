@@ -210,6 +210,8 @@ if 'location_suggestions' not in st.session_state:
     st.session_state.location_suggestions = []
 if 'location_chosen' not in st.session_state:
     st.session_state.location_chosen = False
+if 'location_search_pending' not in st.session_state:
+    st.session_state.location_search_pending = None
 if 'map_loaded' not in st.session_state:
     st.session_state.map_loaded = False
 
@@ -252,6 +254,13 @@ if st.session_state.weather_data is not None:
         # Suchfeld + Button auf einer Linie
         col_search, col_button = st.columns([3, 1])
 
+        # Pending-Wert verarbeiten (von Button-Klick aus)
+        if st.session_state.location_search_pending is not None:
+            pending_value = st.session_state.location_search_pending
+            st.session_state.location_search = pending_value
+            st.session_state.location_search_pending = None
+            st.rerun()
+
         with col_search:
             search_query = st.text_input(
                 label="",
@@ -275,8 +284,8 @@ if st.session_state.weather_data is not None:
             st.write("**Verfügbare Orte:**")
             for label, result in suggestions:
                 if st.button(label, use_container_width=True, key=f"sugg_{label}"):
-                    # Auswahl speichern
-                    st.session_state.location_search = label
+                    # Pending-Wert setzen (nicht direkt schreiben!)
+                    st.session_state.location_search_pending = label
                     st.session_state.location_chosen = True
                     # Nur den gewählten Treffer in suggestions halten für handle_location_selection
                     st.session_state.location_suggestions = [(label, result)]
@@ -289,7 +298,8 @@ if st.session_state.weather_data is not None:
             # Auto-Auswahl bei einem Treffer
             st.caption("✓ 1 Treffer gefunden – wird automatisch verwendet.")
             label, result = suggestions[0]
-            st.session_state.location_search = label
+            # Pending-Wert setzen (nicht direkt schreiben!)
+            st.session_state.location_search_pending = label
             st.session_state.location_chosen = True
             st.session_state.location_suggestions = [(label, result)]
             handle_location_selection()
