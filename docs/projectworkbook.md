@@ -74,6 +74,46 @@ So lässt sich der Projektverlauf jederzeit transparent nachvollziehen und effiz
 
 ---
 
+## Inhaltsverzeichnis
+
+1. [Sprint 0 – Projektinitialisierung & Setup](#sprint-0--projektinitialisierung--setup)
+   - [Ziel des Sprints](#ziel-des-sprints)
+   - [Epics und User Stories](#1-epics-und-user-stories)
+   - [Aufgaben (Tasks)](#3-aufgaben-tasks)
+   - [Deliverables (Ergebnisse)](#4-deliverables-ergebnisse)
+   - [Review](#6-review)
+   - [Retrospektive](#7-retrospektive)
+   - [Worklog](#9-worklog)
+
+2. [Sprint 1 – Server & Infrastruktur](#sprint-1--server--infrastruktur)
+   - [Ziel des Sprints](#ziel-des-sprints-1)
+   - [Epics und User Stories](#1-epics-und-user-stories-1)
+   - [Aufgaben (Tasks)](#2-aufgaben-tasks-1)
+   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-1)
+   - [Review](#5-review)
+   - [Retrospektive](#6-retrospektive-1)
+   - [Worklog](#7-worklog-1)
+
+3. [Sprint 2 – Automatisierung & Integration](#sprint-2--automatisierung--integration)
+   - [Ziel des Sprints](#ziel-des-sprints-2)
+   - [Epics und User Stories](#1-epics-und-user-stories-2)
+   - [Aufgaben (Tasks)](#2-aufgaben-tasks-2)
+   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-2)
+   - [Review](#4-review)
+   - [Retrospektive](#5-retrospektive)
+   - [Worklog](#6-worklog)
+
+4. [Sprint 3 – Code-Refactoring & UI-Verbesserungen](#sprint-3--code-refactoring--ui-verbesserungen)
+   - [Ziel des Sprints](#ziel-des-sprints-3)
+   - [Epics und User Stories](#1-epic-und-user-stories)
+   - [Aufgaben (Tasks)](#2-aufgaben-tasks-3)
+   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-3)
+   - [Review](#4-review-1)
+   - [Retrospektive](#5-retrospektive-1)
+   - [Worklog](#6-worklog-1)
+
+---
+
 # Sprint 0 – Projektinitialisierung & Setup
 
 ## Ziel des Sprints
@@ -2094,6 +2134,396 @@ def test_fetch_weather_data(mock_get):
 - Datenstrukturen bleiben gleich
 - API-Integration unverändert
 
+---
+
+### Erweiterung der Datenquellen und Fehlertoleranz
+
+Im Zuge weiterer Entwicklung wurden die API-Datenquellen erweitert und umfassende Fehlertoleranz in alle Charts implementiert.
+
+#### API-Datenquellen in api_client.py erweitert
+
+Problem: Open-Meteo Daily API war unvollständig. Wind- und Schnee-Metriken fehlten in daily_df.
+
+Lösung (api_client.py Zeilen 100-169):
+
+```python
+daily_df = pd.DataFrame({
+    "date": daily_time,
+    "weather_code": daily.Variables(0).ValuesAsNumpy(),
+    "temperature_2m_max": daily.Variables(1).ValuesAsNumpy(),
+    "temperature_2m_min": daily.Variables(2).ValuesAsNumpy(),
+    "apparent_temperature_max": daily.Variables(3).ValuesAsNumpy(),
+    "apparent_temperature_min": daily.Variables(4).ValuesAsNumpy(),
+    # weitere Standard-Spalten
+    # NEU HINZUGEFÜGT:
+    "wind_speed_10m_max": daily.Variables(17).ValuesAsNumpy(),
+    "wind_gusts_10m_max": daily.Variables(18).ValuesAsNumpy(),
+    "snowfall_sum": daily.Variables(13).ValuesAsNumpy(),
+})
+
+# Cloud-Cover aus Stundendaten aggregieren
+hourly_df["date"] = hourly_df["time"].dt.date
+daily_cloud_cover = hourly_df.groupby("date")["cloud_cover"].mean().round(2)
+daily_df["cloud_cover"] = daily_df["date"].dt.date.map(daily_cloud_cover).fillna(0)
+```
+
+Resultat: daily_df wächst von 7 auf 21 Spalten mit allen notwendigen Metriken.
+
+---
+
+#### Chart-Legenden mit Altair melt()-Pattern
+
+Problem: Multi-Linien-Charts (Temperatur, Wind) zeigten keine Legenden und waren nicht unterscheidbar.
+
+Lösung (app.py Zeilen 380-420):
+
+Das melt()-Pattern transformiert Daten von breit zu lang für bessere Legende-Unterstützung:
+
+```python
+# Beispiel: Temperatur-Chart mit 4 Linien
+temp_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 
+             'apparent_temperature_max', 'apparent_temperature_min']
+temp_week_long = week_data[temp_cols].melt(
+    id_vars=['date_str'], 
+    var_name='Metrik', 
+    value_name='Temperatur'
+)
+
+# Color Scale definieren
+color_scale = alt.Scale(
+    domain=['temperature_2m_max', 'temperature_2m_min', 
+            'apparent_temperature_max', 'apparent_temperature_min'],
+    range=['#dc2626', '#3b82f6', '#f97316', '#06b6d4']
+)
+
+# Stroke Dash für Unterscheidung
+stroke_dash_scale = alt.Scale(
+    domain=['temperature_2m_max', 'temperature_2m_min', 
+            'apparent_temperature_max', 'apparent_temperature_min'],
+    range=[[], [], [5, 5], [5, 5]]
+)
+
+# Altair Chart mit Legende
+chart = alt.Chart(temp_week_long).mark_line(point=True, size=2).encode(
+    x=alt.X('date_str', sort=None),
+    y=alt.Y('Temperatur', scale=alt.Scale(zero=False), title='Temperatur (°C)'),
+    color=alt.Color('Metrik', scale=color_scale, legend=alt.Legend(title='Legende')),
+    strokeDash=alt.StrokeDash('Metrik', scale=stroke_dash_scale, legend=None)
+).properties(height=400).interactive()
+
+st.altair_chart(chart, use_container_width=True)
+```
+
+Resultat: Alle Charts zeigen nun Legenden mit Farb- und Strichcodierung. Benutzer können Legenden-Items klicken zum An/Ausschalten.
+
+---
+
+#### Fehlertoleranz für alle 10 Charts
+
+Problem: KeyError Exceptions wenn Spalten nicht vorhanden. App crashed.
+
+5 kritische Fehler behoben:
+
+1. precipitation_probability_max - Existiert nur in hourly_df, nicht daily_df
+   Fix: Nicht in daily Charts verwendet
+
+2. wind_speed_10m_max - API Index 17, war nicht geladen
+   Fix: daily.Variables(17).ValuesAsNumpy() in api_client.py hinzugefügt
+
+3. wind_gusts_10m_max - API Index 18, war nicht geladen
+   Fix: daily.Variables(18).ValuesAsNumpy() in api_client.py hinzugefügt
+
+4. snowfall_sum - API Index 13, war nicht geladen
+   Fix: daily.Variables(13).ValuesAsNumpy() in api_client.py hinzugefügt
+
+5. cloud_cover - Nur in hourly_df, nicht in daily_df
+   Fix: Mit groupby("date")["cloud_cover"].mean() aggregiert und daily_df hinzugefügt
+
+Implementierung (app.py Zeilen 365-680):
+
+Alle Charts nutzen ein konsistentes Validierungs-Pattern:
+
+```python
+# Vor jedem Chart-Rendering
+required_cols = ['date_str', 'temperature_2m_max', 'temperature_2m_min', 
+                 'apparent_temperature_max', 'apparent_temperature_min']
+if all(col in week_data.columns for col in required_cols):
+    # Rendere Chart mit Altair
+    st.altair_chart(chart, use_container_width=True)
+else:
+    # Graceful Fallback
+    st.info("Temperaturdaten nicht verfügbar")
+```
+
+Resultat: 0 Crashes durch fehlende Spalten. Alle 10 Charts (5 Woche + 5 x 14-Tage) sind robust.
+
+---
+
+#### Kalender und Wochennavigation
+
+Implementierung (app.py Zeilen 210-370):
+
+- 7-Tage Kalender: Montag bis Sonntag mit Tages-Karten
+- Heutiger Tag Highlight: 3px Grenze, 36px Emoji (vs. 28px normal)
+- Temperatur-basierte Hintergrundfarben:
+  - Blau (#eff6ff): < 0 Grad
+  - Weiss (#f9fafb): 0-5 Grad
+  - Gelb (#fffbeb): 5-10 Grad
+  - Orange (#fef9e7): 10-15 Grad
+  - Peach (#fef3c7): > 15 Grad
+- Wochennavigation: Vorherige Woche / Nächste Woche
+  - Offset range: -2 bis +2 Wochen
+  - Session State persistent über Reruns
+- Wetter-Icons und Niederschlag: WMO-basierte Emojis + mm-Summe
+
+Resultat: Intuitive Navigation und visuelle Orientierung für Benutzer.
+
+---
+
+#### Deutsche Lokalisierung durchgehend
+
+Funktion (app.py Zeilen 26-40):
+
+```python
+DEUTSCH_TAGE = {
+    0: 'Montag', 1: 'Dienstag', 2: 'Mittwoch', 3: 'Donnerstag',
+    4: 'Freitag', 5: 'Samstag', 6: 'Sonntag'
+}
+
+def format_date_german(date_obj, format_type='long'):
+    """
+    Formatiere Datum auf Deutsch.
+    format_type: 'long' (Montag, 05.01.2026)
+    format_type: 'short' (Mo\\n05.01)
+    format_type: 'long_full' (Montag, 5. Januar 2026)
+    """
+```
+
+- Alle Wochentags- und Monatsnamen deutsch
+- Keine Abhängigkeit vom System-Locale
+- Konsistente Formatierung überall
+
+---
+
+#### Modulare Code-Architektur stabilisiert
+
+Datei-Struktur in streamlitapp/:
+- api_client.py (169 Zeilen): Reine API-Integration
+- data_handlers.py (594 Zeilen): Business-Logik, 100 WMO Codes, Statistiken
+- ui_components.py (199 Zeilen): UI-Komponenten (current_metrics, charts, tables)
+- app.py (784 Zeilen): Orchestrierung, Kalender-Logik, Session State
+
+Separation of Concerns:
+- API Datenebene (api_client.py)
+- Daten Logik (data_handlers.py)
+- Logik UI (ui_components.py)
+- UI Navigation (app.py)
+
+Resultat: Code ist wartbar, testbar und erweiterbar. Keine Monolith-Struktur.
+
+---
+
+#### Performance und Caching optimiert
+
+- Session State Caching: API-Responses werden nicht mehrfach geladen
+- Lazy Loading: Charts nur rendern wenn Tab aktiv
+- Effiziente DataFrame-Operationen: groupby().mean() statt Schleifen
+- Column Filtering: Nur notwendige Spalten laden
+
+---
+
+#### Darkmode-Support für Wochenkarten implementiert
+
+Implementierung (styles.py Zeilen 59-160):
+
+**Drei Schichten Darkmode-Unterstützung:**
+- System-Darkmode: `@media (prefers-color-scheme: dark)` für Handy/Desktop
+- Streamlit Variante A: `body[data-theme="dark"]`
+- Streamlit Variante B: `.theme-dark`
+- Streamlit Variante C: `[data-testid="stAppViewContainer"][data-theme="dark"]`
+
+**Abdeckung:**
+- System-Darkmode auf mobilen Geräten
+- Streamlit Dark-Theme auf Desktop
+- Mehrere Fallback-Varianten für verschiedene Streamlit-Versionen
+- Text auf schwarz (#000000) für Kontrastierbarkeit gegen dunklen Hintergrund (#111827)
+- Wochenkarten-Hintergrund: #111827 (sehr dunkel)
+- Border-Farbe: #374151 (dezent dunkel)
+
+Resultat: Wochenkarten sind im Darkmode vollständig lesbar und sehen konsistent aus.
+
+---
+
+#### Interaktive Tagesauswahl implementiert
+
+Implementierung (app.py Zeilen 273-282, ui_components.py Zeilen 283-379):
+
+**Features:**
+- "Wählen"-Button unter jeder Tages-Karte im Kalender-Tab
+- Rote Rand (#dc2626) springt zum ausgewählten Tag
+- Ausgewählter Tag wird vergrößert (36px Emoji vs. 28px)
+- Tageswechsel triggert `st.rerun()` für sofortige Aktualisierung
+- Session State speichert `selected_day_date` als ISO-String
+- `display_day_card()` aktualisiert: neuer Parameter `selected_date=None`
+
+**Integration mit Tagesdetail-Tab:**
+- Tab 3 "Tagesdetail" nutzt `selected_day_date` statt `selected_day_offset`
+- Stundendaten filtern nach ausgewähltem Datum mit `pd.to_datetime()`
+- Charts zeigen Daten für den ausgewählten Tag
+- Fallback auf heutigen Tag wenn nichts ausgewählt
+
+Resultat: Benutzer können gezielt einzelne Tage auswählen und sehen sofort die Details.
+
+---
+
+#### Tagesauswahl reset bei Ortswechsel
+
+Implementierung (app.py, Funktion `handle_location_selection()`, Zeilen 89-94):
+
+**Verhalten bei Ortswechsel:**
+- `st.session_state.selected_day_date = None` - Tagesauswahl löschen
+- `st.session_state.selected_day_offset = 0` - Zurück auf heute
+- `st.session_state.calendar_week_offset = 0` - Kalender zurück auf aktuelle Woche
+
+**Ergebnis:**
+- Neuer Ort wird ausgewählt → alle Tagesauswahlen werden gelöscht
+- Rote Rand springt zurück auf heutigen Tag
+- Kalender zeigt aktuelle Woche
+- Tagesdetail-Tab zeigt heute statt letztem Tag vom alten Ort
+- Sauberer State-Übergang, keine Verwirrung zwischen Orten
+
+---
+
+#### Code-Struktur: utils.py für Datum-Utilities
+
+Neue Datei (utils.py, 101 Zeilen):
+
+**Inhalt:**
+- Deutsche Lokalisierungs-Konstanten: DEUTSCH_TAGE, DEUTSCH_TAGE_KURZ, DEUTSCH_MONATE
+- `format_date_german(date_obj, format_type='long')`: Formatiert Daten auf Deutsch
+- `find_today_index(daily_df)`: Findet Index des heutigen Tages
+- `get_week_start(offset_weeks=0)`: Berechnet Wochen-Startdatum
+- `slice_week(daily_df, week_start)`: Filtert DataFrame für eine Woche
+
+**Auslagerung aus app.py:**
+- app.py reduziert von 877 auf 715 Zeilen
+- Wiederverwendbare Funktionen zentral verfügbar
+- Konsistente Datum-Verarbeitung
+
+Resultat: app.py ist übersichtlicher, Hilfs-Funktionen sind wartbar und modular.
+
+---
+
+#### Code-Struktur: styles.py vollständig ausgebaut
+
+Erweiterte Datei (styles.py, 190+ Zeilen):
+
+**Komponenten:**
+- `.metric-card`: Metriken-Box mit Gradient
+- `.day-card`: Tages-Karten (deprecated, aber inkludiert)
+- `.week-day-card`: Wochenkarten mit Darkmode-Support
+- Darkmode: System-Medienquery + 3 Streamlit-Varianten
+
+**Zentralisierung:**
+- Alle Farben, Abstände, Übergänge in einer Datei
+- Darkmode vollständig abgedeckt
+- Einfach neue Komponenten-Styles hinzufügen
+- `load_app_styles()` wird einmalig in app.py aufgerufen
+
+Resultat: CSS ist zentral verwaltet, einfach zu warten, Darkmode zuverlässig.
+
+---
+
+#### UI-Refactoring: Professionelle Gestaltung und Komponentenauslagerung
+
+Implementierung (ui_components.py Zeilen 1-379, app.py überall):
+
+**Problem:**
+- UI-Code über gesamtes app.py verteilt
+- Emoji-schwere Beschriftungen wirkten unprofessionell
+- Wiederholter Code für ähnliche UI-Elemente
+- Schwer zu aktualisieren und zu testen
+
+**Lösung - UI-Komponenten-Modularisierung:**
+
+1. Display-Funktionen (13 Funktionen in ui_components.py):
+   - display_current_metrics() - Aktuelle Werte in 3 Spalten
+   - display_hourly_overview() - Stündliche Tabelle mit Icons
+   - display_detailed_table() - Erweiterte Daten-Tabelle
+   - display_temperature_chart() - Temperatur-Altair-Chart
+   - display_precipitation_chart() - Niederschlag-Daten
+   - display_wind_chart() - Wind-Geschwindigkeits-Chart
+   - display_cloud_chart() - Bewölkungs-Chart
+   - display_snow_chart() - Schnee-Vorhersage
+   - display_location_search_section() - Suchfeld mit Buttons
+   - display_location_suggestions() - Suggestion-Liste als Buttons
+   - display_map_legend() - Expandable Karten-Legende
+   - display_day_card() - Einzelne Wochenkarte mit Darkmode
+   - display_location_selected_message() - Erfolgs-Bestätigung
+
+2. Professionelle Emoji-Verwaltung:
+   - Emojis nur bei Icons und Wetter-Codes
+   - Keine Emojis in Titeln/Beschreibungen/Buttons
+   - Einheitliche Icons mit WMO-Codes (weather_icon Funktion)
+   - Konsistente visuelle Sprache
+
+3. Komponenten-Pattern:
+   - Jede Komponente: Daten rein → Verarbeitung → UI raus
+   - Docstrings für Parameter und Rückgabewerte
+   - Type Hints für besseres Debugging
+   - HTML mit unsafe_allow_html=True wo nötig
+
+4. Integration in app.py:
+   - app.py ruft Komponenten auf statt Code zu duplizieren
+   - Daten-Vorbereitung in data_handlers.py
+   - Nur Orchestrierung in app.py
+   - Saubere Schnittstellen zwischen Modulen
+
+**Resultat:** Professionelles Erscheinungsbild, wartbarer Code, wiederverwendbare Komponenten.
+
+---
+
+#### Standortsuche mit Mehrfach-Ergebnissen und Button-Auswahl
+
+Implementierung (app.py Zeilen 45-61, ui_components.py Zeilen 201-255):
+
+**Problem:**
+- Alte Methode: `st.selectbox()` zeigte nur erste Treffer
+- Widget-Value-Conflict: Streamlit erlaubt keine Änderung nach Render
+- Schwer zu erkennen welches Ergebnis gemeint ist
+
+**Lösung - Drei-Komponenten-System:**
+
+1. **Suchfeld mit Autocomplete-Callback:**
+   - `st.text_input()` mit `on_change=update_location_suggestions`
+   - Triggers automatisch bei jeder Eingabe
+   - Fuzzy-Suche via Open-Meteo Nominatim API
+
+2. **Button-basierte Suggestion-Liste:**
+   - `display_location_suggestions()` zeigt Buttons für jeden Treffer
+   - Button-Label: `{Name}, {Kanton}, {PLZ}` für Eindeutigkeit
+   - One-Click zur Auswahl und sofortigem Daten-Load
+   - Smart: Zeigt nur wenn mehrere Treffer existieren
+
+3. **Session-State Pending-Pattern:**
+   - `location_search_pending`: Speichert neue Suche zwischen Renders
+   - Verhindert Widget-Value-Konflikt in Streamlit
+   - Text wird vor Widget-Render aktualisiert
+
+**Implementierungs-Details:**
+- Open-Meteo API mit `countrycodes: "ch"` für Switzerland-only
+- Fuzzy-Match mit Nominatim oder ILIKE-Datenbank
+- Mehrere Ergebnisse sortiert nach Relevanz
+- Admin1 (Kanton) und Postcode als Unterscheidung
+
+**Integration:**
+- Button-Click → `st.session_state.location_suggestions = [(label, data)]`
+- `st.rerun()` triggert `handle_location_selection()`
+- Wetterdaten werden automatisch geladen
+- Erfolgs-Meldung: `✅ Ort ausgewählt: {Name}, {Kanton}, {PLZ}`
+
+**Resultat:** 
+Benutzer finden leicht Orte, können zwischen ähnlichen Namen unterscheiden, keine Crashes durch Widget-Conflicts.
 # 7. Projektabschluss und persönliche Erkenntnisse
 Im Rahmen des Projekts konnte ein deutlich tieferes Verständnis für Streamlit und die zugrunde liegende Python-Logik aufgebaut werden. Die Aufteilung des Codes in mehrere Module und Dateien hat gezeigt, wie wichtig eine saubere Strukturierung für Wartbarkeit und Erweiterbarkeit ist.
 

@@ -8,36 +8,134 @@ import datetime
 def weather_icon(weather_code: int) -> str:
     """
     Konvertiert einen Weather Code in ein Emoji-Icon.
+    WMO Weather Interpretation Codes (www.wmo.int/www/WMOguide/Guide-wtc78Eng-2012.pdf)
     
     Args:
-        weather_code: WMO Weather Code
+        weather_code: WMO Weather Code (0-99)
         
     Returns:
         Emoji-Icon als String
     """
     weather_icons = {
-        0: "☀️",    # Klar
-        1: "🌤️",   # Teilweise bewölkt
-        2: "⛅",    # Bewölkt
-        3: "☁️",    # Bedeckt
-        45: "🌫️",   # Nebel
-        48: "🌫️",   # Gefrierender Nebel
-        51: "🌦️",   # Leichter Nieselregen
-        53: "🌧️",   # Mäßiger Nieselregen
-        55: "🌧️",   # Starker Nieselregen
-        61: "🌧️",   # Leichter Regen
-        63: "🌧️",   # Mäßiger Regen
-        65: "🌧️",   # Starker Regen
-        71: "❄️",    # Leichter Schneefall
-        73: "❄️",    # Mäßiger Schneefall
-        75: "❄️",    # Starker Schneefall
-        80: "🌦️",   # Leichte Regenschauer
-        81: "🌧️",   # Mäßige Regenschauer
-        82: "🌧️",   # Starke Regenschauer
-        95: "⛈️",   # Gewitter
-        99: "⛈️",   # Schweres Gewitter mit Hagel
+        # Klare/Bewölkte Codes (0-19)
+        0: "☀️",      # Klar / Wolkenlos
+        1: "🌤️",     # Überwiegend klar
+        2: "⛅",      # Teilweise bewölkt / Variable Bewölkung
+        3: "☁️",      # Bedeckt
+        4: "💨",      # Sicht durch Rauch vermindert
+        5: "🌫️",     # Trockener Dunst
+        6: "🏭",      # Verbreiteter Schwebstaub
+        7: "🌪️",     # Staub vom Wind
+        8: "🌪️",     # Staub- oder Sandwirbel
+        9: "🌪️",     # Staub- oder Sandsturm
+        10: "🌫️",    # Feuchter Dunst
+        11: "🌫️",    # Bodennebel (Schwaden)
+        12: "🌫️",    # Durchgehender Bodennebel
+        13: "⚡",     # Wetterleuchten
+        14: "💧",     # Niederschlag (Boden nicht erreichbar)
+        15: "🌧️",    # Niederschlag in Ferne
+        16: "🌧️",    # Niederschlag in Nähe
+        17: "⛈️",    # Gewitter ohne Niederschlag
+        18: "💨",     # Markante Böen
+        19: "🌪️",    # Tromben/Windhose
+        
+        # Ereignisse der letzten Stunde (20-29)
+        20: "💧",     # Nach Sprühregen
+        21: "🌦️",    # Nach Regen
+        22: "❄️",     # Nach Schneefall
+        23: "🌧️",    # Nach Schneeregen
+        24: "🌧️",    # Nach gefrierendem Regen
+        25: "🌧️",    # Nach Regenschauer
+        26: "❄️",     # Nach Schneeschauer
+        27: "🌧️",    # Nach Graupel-/Hagelschauer
+        28: "🌫️",    # Nach Nebel
+        29: "⛈️",    # Nach Gewitter
+        
+        # Sandsturm, Schneefegen (30-39)
+        30: "🌪️",    # Sandsturm (abnehmend)
+        31: "🌪️",    # Sandsturm (gleichbleibend)
+        32: "🌪️",    # Sandsturm (zunehmend)
+        33: "🌪️",    # Schwerer Sandsturm (abnehmend)
+        34: "🌪️",    # Schwerer Sandsturm (gleichbleibend)
+        35: "🌪️",    # Schwerer Sandsturm (zunehmend)
+        36: "❄️",     # Leichtes Schneefegen
+        37: "❄️",     # Starkes Schneefegen
+        38: "❄️",     # Leichtes Schneetreiben
+        39: "❄️",     # Starkes Schneetreiben
+        
+        # Nebel oder Eisnebel (40-49)
+        40: "🌫️",    # Nebel in Ferne
+        41: "🌫️",    # Nebel in Schwaden
+        42: "🌫️",    # Nebel (dünner werdend, Himmel sichtbar)
+        43: "🌫️",    # Nebel (dünner werdend, Himmel verdeckt)
+        44: "🌫️",    # Nebel (gleichbleibend, Himmel sichtbar)
+        45: "🌫️",    # Nebel (gleichbleibend, Himmel verdeckt)
+        46: "🌫️",    # Nebel (dichter werdend, Himmel sichtbar)
+        47: "🌫️",    # Nebel (dichter werdend, Himmel verdeckt)
+        48: "🌫️",    # Nebel mit Reif
+        49: "🌫️",    # Nebel mit Reif (Himmel verdeckt)
+        
+        # Sprühregen (50-59)
+        50: "🌦️",    # Leichter Sprühregen (unterbrochen)
+        51: "🌦️",    # Leichter Sprühregen
+        52: "🌦️",    # Mässiger Sprühregen (unterbrochen)
+        53: "🌦️",    # Mässiger Sprühregen
+        54: "🌦️",    # Starker Sprühregen (unterbrochen)
+        55: "🌦️",    # Starker Sprühregen
+        56: "🌧️",    # Leichter gefrierender Sprühregen
+        57: "🌧️",    # Starker gefrierender Sprühregen
+        58: "🌧️",    # Leichter Sprühregen mit Regen
+        59: "🌧️",    # Starker Sprühregen mit Regen
+        
+        # Regen (60-69)
+        60: "🌦️",    # Leichter Regen (unterbrochen)
+        61: "🌧️",    # Leichter Regen
+        62: "🌧️",    # Mässiger Regen (unterbrochen)
+        63: "🌧️",    # Mässiger Regen
+        64: "🌧️",    # Starker Regen (unterbrochen)
+        65: "🌧️",    # Starker Regen
+        66: "🌧️",    # Leichter gefrierender Regen
+        67: "🌧️",    # Starker gefrierender Regen
+        68: "🌧️",    # Leichter Schneeregen
+        69: "🌧️",    # Starker Schneeregen
+        
+        # Schnee (70-79)
+        70: "❄️",     # Leichter Schneefall (unterbrochen)
+        71: "❄️",     # Leichter Schneefall
+        72: "❄️",     # Mässiger Schneefall (unterbrochen)
+        73: "❄️",     # Mässiger Schneefall
+        74: "❄️",     # Starker Schneefall (unterbrochen)
+        75: "❄️",     # Starker Schneefall
+        76: "❄️",     # Eisnadeln
+        77: "❄️",     # Schneegriesel
+        78: "❄️",     # Schneekristalle
+        79: "❄️",     # Eiskörner
+        
+        # Schauer (80-90)
+        80: "🌧️",    # Leichter Regenschauer
+        81: "🌧️",    # Regenschauer
+        82: "🌧️",    # Starker Regenschauer
+        83: "🌧️",    # Leichter Schneeregenschauer
+        84: "🌧️",    # Starker Schneeregenschauer
+        85: "❄️",     # Leichter Schneeschauer
+        86: "❄️",     # Schneeschauer
+        87: "🌧️",    # Leichter Graupelschauer
+        88: "🌧️",    # Graupelschauer
+        89: "🌧️",    # Leichter Hagelschauer
+        90: "🌧️",    # Hagelschauer
+        
+        # Gewitter (91-99)
+        91: "⛈️",    # Gewitter mit leichtem Regen
+        92: "⛈️",    # Gewitter mit starkem Regen
+        93: "⛈️",    # Gewitter mit leichtem Schneefall
+        94: "⛈️",    # Gewitter mit starkem Schneefall
+        95: "⛈️",    # Gewitter mit Regen
+        96: "⛈️",    # Gewitter mit Graupel/Hagel
+        97: "⛈️",    # Starkes Gewitter
+        98: "⛈️",    # Gewitter mit Sandsturm
+        99: "⛈️",    # Starkes Gewitter mit Hagel
     }
-    return weather_icons.get(weather_code, "❓")
+    return weather_icons.get(weather_code, "🌤️")  # Fallback zu schönem Wetter
 
 
 def weather_description(weather_code: int) -> str:
@@ -116,8 +214,8 @@ def weather_description(weather_code: int) -> str:
         # Sprühregen
         50: "Leichter Sprühregen (unterbrochen)",
         51: "Leichter Sprühregen",
-        52: "Mäßiger Sprühregen (unterbrochen)",
-        53: "Mäßiger Sprühregen",
+        52: "Mässiger Sprühregen (unterbrochen)",
+        53: "Mässiger Sprühregen",
         54: "Starker Sprühregen (unterbrochen)",
         55: "Starker Sprühregen",
         56: "Leichter gefrierender Sprühregen",
@@ -128,8 +226,8 @@ def weather_description(weather_code: int) -> str:
         # Regen
         60: "Leichter Regen (unterbrochen)",
         61: "Leichter Regen",
-        62: "Mäßiger Regen (unterbrochen)",
-        63: "Mäßiger Regen",
+        62: "Mässiger Regen (unterbrochen)",
+        63: "Mässiger Regen",
         64: "Starker Regen (unterbrochen)",
         65: "Starker Regen",
         66: "Leichter gefrierender Regen",
@@ -140,8 +238,8 @@ def weather_description(weather_code: int) -> str:
         # Schnee
         70: "Leichter Schneefall (unterbrochen)",
         71: "Leichter Schneefall",
-        72: "Mäßiger Schneefall (unterbrochen)",
-        73: "Mäßiger Schneefall",
+        72: "Mässiger Schneefall (unterbrochen)",
+        73: "Mässiger Schneefall",
         74: "Starker Schneefall (unterbrochen)",
         75: "Starker Schneefall",
         76: "Eisnadeln",
@@ -205,10 +303,10 @@ def prepare_hourly_overview(hourly_df: pd.DataFrame, target_date: datetime.date 
         DataFrame mit zusätzlichen Spalten für Anzeige
     """
     # Filtere Daten für das Zieldatum
-    df = filter_today_data(hourly_df, target_date)
+    df = filter_today_data(hourly_df, target_date).copy()
     
-    # Formatiere Uhrzeit als HH:MM String
-    df["time"] = df["time"].dt.strftime("%H:%M")
+    # Formatiere Uhrzeit als HH:MM String (für Übersicht) - speichere in neuer Spalte
+    df["time_formatted"] = df["time"].dt.strftime("%H:%M")
     
     # Erstelle Wetter-Icons und Beschreibungen
     df["icon"] = df["weather_code"].apply(weather_icon)
@@ -216,10 +314,10 @@ def prepare_hourly_overview(hourly_df: pd.DataFrame, target_date: datetime.date 
     df["short"] = df["icon"] + " " + df["description"]
     
     # Runde numerische Werte konsistent
-    df["temperature_2m"] = df["temperature_2m"].round(1)
-    df["precipitation"] = df["precipitation"].round(1)
+    df["temperature_2m"] = df["temperature_2m"].round(2)
+    df["precipitation"] = df["precipitation"].round(2)
     df["cloud_cover"] = df["cloud_cover"].round(0).astype(int)
-    df["wind_speed_10m"] = df["wind_speed_10m"].round(1)
+    df["wind_speed_10m"] = df["wind_speed_10m"].round(2)
     
     return df
 
@@ -256,17 +354,17 @@ def prepare_table_display(hourly_df: pd.DataFrame, target_date: datetime.date = 
     table_df["🕐 Uhrzeit"] = table_df["🕐 Uhrzeit"].dt.strftime("%H:%M")
     
     # Runde Temperaturwerte auf 1 Dezimalstelle
-    table_df["🌡️ Temp. (°C)"] = table_df["🌡️ Temp. (°C)"].round(1)
-    table_df["🥵 Gefühlt (°C)"] = table_df["🥵 Gefühlt (°C)"].round(1)
+    table_df["🌡️ Temp. (°C)"] = table_df["🌡️ Temp. (°C)"].round(2)
+    table_df["🥵 Gefühlt (°C)"] = table_df["🥵 Gefühlt (°C)"].round(2)
     
     # Runde Prozent-Werte auf ganze Zahlen
     table_df["💧 Feuchte (%)"] = table_df["💧 Feuchte (%)"].round(0).astype(int)
     table_df["☁️ Bewölkung (%)"] = table_df["☁️ Bewölkung (%)"].round(0).astype(int)
     
     # Runde Niederschlag und Wind auf 1 Dezimalstelle
-    table_df["🌧️ Niederschlag (mm)"] = table_df["🌧️ Niederschlag (mm)"].round(1)
-    table_df["🌬️ Wind (km/h)"] = table_df["🌬️ Wind (km/h)"].round(1)
-    table_df["💨 Böen (km/h)"] = table_df["💨 Böen (km/h)"].round(1)
+    table_df["🌧️ Niederschlag (mm)"] = table_df["🌧️ Niederschlag (mm)"].round(2)
+    table_df["🌬️ Wind (km/h)"] = table_df["🌬️ Wind (km/h)"].round(2)
+    table_df["💨 Böen (km/h)"] = table_df["💨 Böen (km/h)"].round(2)
     
     return table_df
 
@@ -291,8 +389,8 @@ def prepare_temperature_chart(hourly_df: pd.DataFrame, target_date: datetime.dat
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Absolute Temperatur (°C)"] = chart_df["temperature_2m"].round(1)
-    chart_df["Temperaturveränderung (°C)"] = chart_df["temp_change"].round(1)
+    chart_df["Absolute Temperatur (°C)"] = chart_df["temperature_2m"].round(2)
+    chart_df["Temperaturveränderung (°C)"] = chart_df["temp_change"].round(2)
     
     return chart_df
 
@@ -339,8 +437,8 @@ def prepare_precipitation_chart(hourly_df: pd.DataFrame, target_date: datetime.d
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Regen (mm)"] = chart_df["rain"].round(1)
-    chart_df["Schauer (mm)"] = chart_df["showers"].round(1)
+    chart_df["Regen (mm)"] = chart_df["rain"].round(2)
+    chart_df["Schauer (mm)"] = chart_df["showers"].round(2)
     
     return chart_df
 
@@ -384,8 +482,8 @@ def prepare_wind_chart(hourly_df: pd.DataFrame, target_date: datetime.date = Non
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Wind (km/h)"] = chart_df["wind_speed_10m"].round(1)
-    chart_df["Böen (km/h)"] = chart_df["wind_gusts_10m"].round(1)
+    chart_df["Wind (km/h)"] = chart_df["wind_speed_10m"].round(2)
+    chart_df["Böen (km/h)"] = chart_df["wind_gusts_10m"].round(2)
     
     return chart_df
 
@@ -470,7 +568,7 @@ def prepare_snow_chart(hourly_df: pd.DataFrame, target_date: datetime.date = Non
     # Erstelle Chart-DataFrame mit formatierten Werten
     chart_df = df.copy()
     chart_df["Uhrzeit"] = chart_df["time"].dt.strftime("%H:%M")
-    chart_df["Schneefall (cm)"] = chart_df["snowfall"].round(1)
+    chart_df["Schneefall (cm)"] = chart_df["snowfall"].round(2)
     
     return chart_df
 
