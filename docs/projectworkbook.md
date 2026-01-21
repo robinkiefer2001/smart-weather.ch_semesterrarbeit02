@@ -5,6 +5,47 @@
 
 ---
 
+# Inhaltsverzeichnis
+
+- [Legende zur agilen Struktur](#legende-zur-agilen-struktur)
+- [Rollen im Projekt](#rollen-im-projekt)
+- [Einführung](#einführung)
+- [Sprint 0 – Projektinitialisierung & Setup](#sprint-0--projektinitialisierung--setup)
+  - [Ziel des Sprints](#ziel-des-sprints)
+  - [1. Epics und User Stories](#1-epics-und-user-stories)
+  - [3. Aufgaben (Tasks)](#3-aufgaben-tasks)
+  - [4. Deliverables (Ergebnisse)](#4-deliverables-ergebnisse)
+  - [6. Review](#6-review)
+  - [7. Retrospektive](#7-retrospektive)
+  - [9. Worklog](#9-worklog)
+- [Sprint 1 – Server & Infrastruktur](#sprint-1--server--infrastruktur)
+  - [Ziel des Sprints](#ziel-des-sprints-1)
+  - [1. Epics und User Stories](#1-epics-und-user-stories-1)
+  - [2. Aufgaben (Tasks)](#2-aufgaben-tasks)
+  - [3. Deliverables (Ergebnisse)](#3-deliverables-ergebnisse)
+  - [4. Review](#4-review)
+  - [5. Retrospektive](#5-retrospektive)
+  - [6. Worklog](#6-worklog)
+- [Sprint 2 – Automatisierung & Integration](#sprint-2--automatisierung--integration)
+  - [Ziel des Sprints](#ziel-des-sprints-2)
+  - [1. Epic und User Stories](#1-epic-und-user-stories)
+  - [3. Aufgaben (Tasks)](#3-aufgaben-tasks-1)
+  - [4. Deliverables (Ergebnisse)](#4-deliverables-ergebnisse-1)
+  - [6. Review](#6-review-1)
+  - [7. Retrospektive](#7-retrospektive-1)
+  - [9. Worklog](#9-worklog-1)
+- [Sprint 3 – Code-Refactoring & UI-Verbesserungen](#sprint-3--code-refactoring--ui-verbesserungen)
+  - [Ziel des Sprints](#ziel-des-sprints-3)
+  - [1. Epic und User Stories](#1-epic-und-user-stories-1)
+  - [2. Aufgaben (Tasks)](#2-aufgaben-tasks-1)
+  - [3. Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-1)
+  - [4. Review](#4-review-1)
+  - [5. Retrospektive](#5-retrospektive-1)
+  - [6. Worklog](#6-worklog-1)
+- [Projektabschluss und persönliche Erkenntnisse](#7-projektabschluss-und-persönliche-erkenntnisse)
+
+---
+
 ## Legende zur agilen Struktur
 
 - **Epic/Sprint:** Meilenstein im Entwicklungsprozess, der thematisch und zeitlich abgegrenzt ist.
@@ -56,11 +97,11 @@ Eine lauffähige Entwicklungsumgebung und Basis-Projektstruktur bereitstellen, u
 
 | ID   | Beschreibung              | Zugeordnet zu Story | Verantwortlich | Status |
 | ---- | ------------------------- | ------------------- | -------------- | ------ |
-| T-01 | Dokumentation erstellen   | SCRUM-33            | Robin          | To Do  |
-| T-02 | GitLab Repo erstellen     | SCRUM-20            | Robin          | To Do  |
-| T-03 | Hetzner Account erstellen | SCRUM-21            | Robin          | To Do  |
-| T-04 | Kreditkarte hinterlegen   | SCRUM-21            | Robin          | To Do  |
-| T-05 | Jira Workspace erstellen  | SCRUM-22            | Robin          | To Do  |
+| T-01 | Dokumentation erstellen   | SCRUM-33            | Robin          | Done  |
+| T-02 | GitLab Repo erstellen     | SCRUM-20            | Robin          | Done  |
+| T-03 | Hetzner Account erstellen | SCRUM-21            | Robin          | Done  |
+| T-04 | Kreditkarte hinterlegen   | SCRUM-21            | Robin          | Done  |
+| T-05 | Jira Workspace erstellen  | SCRUM-22            | Robin          | Done  |
 
 
 ---
@@ -121,26 +162,26 @@ Die gesamte Server- und Infrastruktur-Basis aufsetzen, inklusive Domain, HTTPS, 
 
 | ID        | Beschreibung                                               | Zugeordnet zu Story  | Verantwortlich | Status  |
 |-----------|-----------------------------------------------------------|----------------------|---------------|---------|
-| SCRUM-48  | DNS konfigurieren, damit die Website erreichbar ist        | SCRUM-4              | —             | To Do   |
-| SCRUM-50  | SSL Zertifikat mit TXT Record bestätigen                   | SCRUM-4              | —             | To Do   |
-| SCRUM-49  | DNS Konfiguration vornehmen                               | SCRUM-4              | —             | To Do   |
-| SCRUM-5   | Domain und HTTPS-Zertifikate einrichten                   | SCRUM-4              | —             | To Do   |
-| SCRUM-36  | SSL Zertifikat kaufen                                     | SCRUM-4              | —             | To Do   |
-| SCRUM-35  | Domain kaufen                                             | SCRUM-4              | —             | To Do   |
-| SCRUM-3   | Streamlit auf Ubuntu Server installieren                  | SCRUM-4              | —             | To Do   |
-| SCRUM-40  | app.py erstellen und testen                              | SCRUM-4              | —             | To Do   |
-| SCRUM-39  | virtual Env für Streamlit erstellen                      | SCRUM-4              | —             | To Do   |
-| SCRUM-38  | Python auf Ubuntu Server installieren                    | SCRUM-4              | —             | To Do   |
-| SCRUM-37  | Streamlit auf Ubuntu Server installieren                 | SCRUM-4              | —             | To Do   |
-| SCRUM-1   | Ubuntu-Server auf Hetzner aufsetzen                      | SCRUM-4              | —             | To Do   |
-| SCRUM-51  | Auto Update konfigurieren                                | SCRUM-4              | —             | To Do   |
-| SCRUM-43  | Firewall Rules auf Hetzner erstellen                     | SCRUM-4              | —             | To Do   |
-| SCRUM-42  | Loadbalancer auf Hetzner erstellen                       | SCRUM-4              | —             | To Do   |
-| SCRUM-41  | Zugriff testen                                           | SCRUM-4              | —             | To Do   |
-| SCRUM-2   | Datenbank-Instanz (PostgreSQL) installieren              | SCRUM-4              | —             | To Do   |
-| SCRUM-47  | Zugriff von außen sicherstellen                          | SCRUM-4              | —             | To Do   |
-| SCRUM-45  | SQL-Instanz und DB konfigurieren                         | SCRUM-4              | —             | To Do   |
-| SCRUM-44  | Postgres auf Ubuntu Server installieren                  | SCRUM-4              | —             | To Do   |
+| SCRUM-48  | DNS konfigurieren, damit die Website erreichbar ist        | SCRUM-4              | —             | Done   |
+| SCRUM-50  | SSL Zertifikat mit TXT Record bestätigen                   | SCRUM-4              | —             | Done   |
+| SCRUM-49  | DNS Konfiguration vornehmen                               | SCRUM-4              | —             | Done   |
+| SCRUM-5   | Domain und HTTPS-Zertifikate einrichten                   | SCRUM-4              | —             | Done   |
+| SCRUM-36  | SSL Zertifikat kaufen                                     | SCRUM-4              | —             | Done   |
+| SCRUM-35  | Domain kaufen                                             | SCRUM-4              | —             | Done   |
+| SCRUM-3   | Streamlit auf Ubuntu Server installieren                  | SCRUM-4              | —             | Done   |
+| SCRUM-40  | app.py erstellen und testen                              | SCRUM-4              | —             | Done   |
+| SCRUM-39  | virtual Env für Streamlit erstellen                      | SCRUM-4              | —             | Done   |
+| SCRUM-38  | Python auf Ubuntu Server installieren                    | SCRUM-4              | —             | Done   |
+| SCRUM-37  | Streamlit auf Ubuntu Server installieren                 | SCRUM-4              | —             | Done   |
+| SCRUM-1   | Ubuntu-Server auf Hetzner aufsetzen                      | SCRUM-4              | —             | Done   |
+| SCRUM-51  | Auto Update konfigurieren                                | SCRUM-4              | —             | Done   |
+| SCRUM-43  | Firewall Rules auf Hetzner erstellen                     | SCRUM-4              | —             | Done   |
+| SCRUM-42  | Loadbalancer auf Hetzner erstellen                       | SCRUM-4              | —             | Done   |
+| SCRUM-41  | Zugriff testen                                           | SCRUM-4              | —             | Done   |
+| SCRUM-2   | Datenbank-Instanz (PostgreSQL) installieren              | SCRUM-4              | —             | Done   |
+| SCRUM-47  | Zugriff von außen sicherstellen                          | SCRUM-4              | —             | Done   |
+| SCRUM-45  | SQL-Instanz und DB konfigurieren                         | SCRUM-4              | —             | Done   |
+| SCRUM-44  | Postgres auf Ubuntu Server installieren                  | SCRUM-4              | —             | Done   |
 
 ---
 
@@ -388,21 +429,21 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 
 | Task-ID   | Beschreibung                                            | Zugeordnet zu Story | Verantwortlich | Status  |
 |-----------|--------------------------------------------------------|---------------------|---------------|---------|
-| SCRUM-60  | Logging & Restart testen                               | SCRUM-52            | Robin         | To Do   |
-| SCRUM-59  | Deployment testen                                      | SCRUM-52            | Robin         | To Do   |
-| SCRUM-58  | Systemd-Service für Streamlit schreiben                | SCRUM-52            | Robin         | To Do   |
-| SCRUM-61  | Git auf Server installieren                            | SCRUM-53            | Robin         | To Do   |
-| SCRUM-62  | Repo klonen                                            | SCRUM-53            | Robin         | To Do   |
-| SCRUM-63  | app.py aus Repo bereitstellen und testen               | SCRUM-53            | Robin         | To Do   |
-| SCRUM-64  | API-Endpunkt implementieren                            | SCRUM-54            | Robin         | To Do   |
-| SCRUM-65  | CI/CD-Pipeline anlegen (z.B. GitLab/GitHub Actions)    | SCRUM-54            | Robin         | To Do   |
-| SCRUM-66  | Datenbankanbindung und Test                            | SCRUM-54            | Robin         | To Do   |
-| SCRUM-67  | Testdaten-API bereitstellen/abrufen                    | SCRUM-55            | Robin         | To Do   |
-| SCRUM-68  | Datenmodell zur Anzeige definieren                     | SCRUM-55            | Robin         | To Do   |
-| SCRUM-69  | Anzeige in Streamlit umsetzen                          | SCRUM-55            | Robin         | To Do   |
-| SCRUM-70  | Zeitgesteuerten Job/Thread für 5-Minuten-Update anlegen| SCRUM-56            | Robin         | To Do   |
-| SCRUM-71  | Update-Logik implementieren                            | SCRUM-56            | Robin         | To Do   |
-| SCRUM-72  | Funktionalität testen                                  | SCRUM-56            | Robin         | To Do   |
+| SCRUM-60  | Logging & Restart testen                               | SCRUM-52            | Robin         | Done   |
+| SCRUM-59  | Deployment testen                                      | SCRUM-52            | Robin         | Done   |
+| SCRUM-58  | Systemd-Service für Streamlit schreiben                | SCRUM-52            | Robin         | Done   |
+| SCRUM-61  | Git auf Server installieren                            | SCRUM-53            | Robin         | Done   |
+| SCRUM-62  | Repo klonen                                            | SCRUM-53            | Robin         | Done   |
+| SCRUM-63  | app.py aus Repo bereitstellen und testen               | SCRUM-53            | Robin         | Done   |
+| SCRUM-64  | API-Endpunkt implementieren                            | SCRUM-54            | Robin         | Done   |
+| SCRUM-65  | CI/CD-Pipeline anlegen (z.B. GitLab/GitHub Actions)    | SCRUM-54            | Robin         | Done   |
+| SCRUM-66  | Datenbankanbindung und Test                            | SCRUM-54            | Robin         | Done   |
+| SCRUM-67  | Testdaten-API bereitstellen/abrufen                    | SCRUM-55            | Robin         | Done   |
+| SCRUM-68  | Datenmodell zur Anzeige definieren                     | SCRUM-55            | Robin         | Done   |
+| SCRUM-69  | Anzeige in Streamlit umsetzen                          | SCRUM-55            | Robin         | Done   |
+| SCRUM-70  | Zeitgesteuerten Job/Thread für 5-Minuten-Update anlegen| SCRUM-56            | Robin         | Done   |
+| SCRUM-71  | Update-Logik implementieren                            | SCRUM-56            | Robin         | Done   |
+| SCRUM-72  | Funktionalität testen                                  | SCRUM-56            | Robin         | Done   |
 
 ---
 
@@ -410,11 +451,11 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 
 | Nr. | Deliverable                        | Bezug Story | Beschreibung                                                          | Nachweis / Artefakt                                   |
 |-----|------------------------------------|-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
-| 1   | Streamlit-Dienst produktiv         | SCRUM-52    | Streamlit läuft als Systemdienst und ist dauerhaft erreichbar         | Screenshot Service-Status, Log-Datei                  |
-| 2   | Git-Integration                    | SCRUM-53    | Repo geklont, app.py läuft aus dem Repository                        | Screenshot Terminal, Verzeichnis, Log                 |
-| 3   | Datenbank-Schema und Geodaten      | SCRUM-54    | Datenbank-Tabellen erstellt, Schweizer Ortsdaten importiert           | Screenshot Datenbank-Schema, Geo-Location Tabelle     |
-| 4   | Wetterdaten-Visualisierung         | SCRUM-55    | Interaktive Streamlit-App mit umfangreichen Wetterdaten und Charts    | Screenshot Streamlit-App, Diagramme                   |
-| 5   | Direkte API-Integration            | SCRUM-56    | Wetterdaten werden bei Standortsuche direkt von API geladen           | Screenshot Suchfunktion mit Echtzeitdaten             |
+| 1   | Streamlit-Dienst produktiv         | SCRUM-52    | Streamlit läuft als Systemdienst und ist dauerhaft erreichbar         | ![alt text](image-9.png)                  |
+| 2   | Git-Integration                    | SCRUM-53    | Repo geklont, app.py läuft aus dem Repository                        | Siehe Website                 |
+| 3   | Datenbank-Schema und Geodaten      | SCRUM-54    | Datenbank-Tabellen erstellt, Schweizer Ortsdaten importiert           | Siehe Website     |
+| 4   | Wetterdaten-Visualisierung         | SCRUM-55    | Interaktive Streamlit-App mit umfangreichen Wetterdaten und Charts    | ![alt text](image-10.png)                   |
+| 5   | Direkte API-Integration            | SCRUM-56    | Wetterdaten werden bei Standortsuche direkt von API geladen           | Siehe Website             |
 
 ---
 
@@ -1684,25 +1725,25 @@ Die Applikation durch Code-Refactoring wartbarer machen, das UI-Design finalisie
 
 | Task-ID | Beschreibung | Zugeordnet zu Story | Verantwortlich | Status |
 |---------|-------------|---------------------|----------------|--------|
-| SCRUM-78 | Modul ui_components.py erstellen (Metriken, Charts, Tabellen) | SCRUM-74 | Robin | To Do |
-| SCRUM-79 | Modul data_handlers.py erstellen (Pandas-Operationen, Filterung) | SCRUM-74 | Robin | To Do |
-| SCRUM-80 | Modul api_client.py erstellen (Open-Meteo API-Kommunikation) | SCRUM-74 | Robin | To Do |
-| SCRUM-81 | Modul database.py erstellen (PostgreSQL Queries) | SCRUM-74 | Robin | To Do |
-| SCRUM-82 | app.py refactoren und Module importieren | SCRUM-74 | Robin | To Do |
-| SCRUM-83 | Funktionalitätstests nach Refactoring durchführen | SCRUM-74 | Robin | To Do |
-| SCRUM-84 | Leaflet-Bibliothek in Streamlit integrieren | SCRUM-75 | Robin | To Do |
-| SCRUM-85 | Schweizer Kartenbounds definieren und testen | SCRUM-75 | Robin | To Do |
-| SCRUM-86 | Wetterdaten-Layer für Karte implementieren (z.B. Temperatur-Overlay) | SCRUM-75 | Robin | To Do |
-| SCRUM-87 | Karten-Interaktion mit Standortsuche verbinden | SCRUM-75 | Robin | To Do |
-| SCRUM-88 | Farb- und Design-Schema definieren (Primär-/Sekundärfarben) | SCRUM-76 | Robin | To Do |
-| SCRUM-89 | CSS/Styling für konsistente Komponenten erstellen | SCRUM-76 | Robin | To Do |
-| SCRUM-90 | Layout-Abstände und Proportionen optimieren | SCRUM-76 | Robin | To Do |
-| SCRUM-91 | Mobile-Responsiveness testen und anpassen | SCRUM-76 | Robin | To Do |
-| SCRUM-92 | Datenbank geo_location um Spalte postal_code erweitern | SCRUM-77 | Robin | To Do |
-| SCRUM-93 | Postleitzahlen-Daten importieren (z.B. via API oder CSV) | SCRUM-77 | Robin | To Do |
-| SCRUM-94 | Suchlogik erweitern für Kanton-/PLZ-Filter | SCRUM-77 | Robin | To Do |
-| SCRUM-95 | UI-Dropdown für mehrere Suchergebnisse implementieren | SCRUM-77 | Robin | To Do |
-| SCRUM-96 | Suche testen mit doppelten Ortsnamen (z.B. Neuheim ZG vs. Neuheim AG) | SCRUM-77 | Robin | To Do |
+| SCRUM-78 | Modul ui_components.py erstellen (Metriken, Charts, Tabellen) | SCRUM-74 | Robin | Done |
+| SCRUM-79 | Modul data_handlers.py erstellen (Pandas-Operationen, Filterung) | SCRUM-74 | Robin | Done |
+| SCRUM-80 | Modul api_client.py erstellen (Open-Meteo API-Kommunikation) | SCRUM-74 | Robin | Done |
+| SCRUM-81 | Modul database.py erstellen (PostgreSQL Queries) | SCRUM-74 | Robin | Done |
+| SCRUM-82 | app.py refactoren und Module importieren | SCRUM-74 | Robin | Done |
+| SCRUM-83 | Funktionalitätstests nach Refactoring durchführen | SCRUM-74 | Robin | Done |
+| SCRUM-84 | Leaflet-Bibliothek in Streamlit integrieren | SCRUM-75 | Robin | Done |
+| SCRUM-85 | Schweizer Kartenbounds definieren und testen | SCRUM-75 | Robin | Done |
+| SCRUM-86 | Wetterdaten-Layer für Karte implementieren (z.B. Temperatur-Overlay) | SCRUM-75 | Robin | Done |
+| SCRUM-87 | Karten-Interaktion mit Standortsuche verbinden | SCRUM-75 | Robin | Done |
+| SCRUM-88 | Farb- und Design-Schema definieren (Primär-/Sekundärfarben) | SCRUM-76 | Robin | Done |
+| SCRUM-89 | CSS/Styling für konsistente Komponenten erstellen | SCRUM-76 | Robin | Done |
+| SCRUM-90 | Layout-Abstände und Proportionen optimieren | SCRUM-76 | Robin | Done |
+| SCRUM-91 | Mobile-Responsiveness testen und anpassen | SCRUM-76 | Robin | Done |
+| SCRUM-92 | Datenbank geo_location um Spalte postal_code erweitern | SCRUM-77 | Robin | Done |
+| SCRUM-93 | Postleitzahlen-Daten importieren (z.B. via API oder CSV) | SCRUM-77 | Robin | Done |
+| SCRUM-94 | Suchlogik erweitern für Kanton-/PLZ-Filter | SCRUM-77 | Robin | Done |
+| SCRUM-95 | UI-Dropdown für mehrere Suchergebnisse implementieren | SCRUM-77 | Robin | Done |
+| SCRUM-96 | Suche testen mit doppelten Ortsnamen (z.B. Neuheim ZG vs. Neuheim AG) | SCRUM-77 | Robin | Done |
 
 ---
 
@@ -1710,15 +1751,15 @@ Die Applikation durch Code-Refactoring wartbarer machen, das UI-Design finalisie
 
 | Nr. | Deliverable | Bezug Story | Beschreibung | Nachweis / Artefakt |
 |-----|-------------|-------------|--------------|---------------------|
-| 1 | Modulare Code-Struktur | SCRUM-74 | app.py aufgeteilt in 4 Module, Code ist wartbar und wiederverwendbar | Screenshot Verzeichnisstruktur, Code-Auszüge |
-| 2 | Interaktive Wetterkarte | SCRUM-75 | Leaflet-Karte mit Schweizer Wetterdaten in Streamlit-App | Screenshot Karte mit Overlay |
-| 3 | Finalisiertes UI-Design | SCRUM-76 | Konsistentes Design mit definiertem Farb-/Layout-Schema | Screenshot verschiedene App-Bereiche |
-| 4 | Erweiterte Standortsuche | SCRUM-77 | Suche unterscheidet nach Kanton/PLZ, zeigt eindeutige Ergebnisse | Screenshot Suchergebnisse mit Dropdown |
+| 1 | Modulare Code-Struktur | SCRUM-74 | app.py aufgeteilt in 4 Module, Code ist wartbar und wiederverwendbar | Siehe Repo |
+| 2 | Interaktive Wetterkarte | SCRUM-75 | Leaflet-Karte mit Schweizer Wetterdaten in Streamlit-App | ![alt text](image-11.png) |
+| 3 | Finalisiertes UI-Design | SCRUM-76 | Konsistentes Design mit definiertem Farb-/Layout-Schema | ![alt text](image-12.png) |
+| 4 | Erweiterte Standortsuche | SCRUM-77 | Suche unterscheidet nach Kanton/PLZ, zeigt eindeutige Ergebnisse | ![alt text](image-13.png) |
 
 ---
 
 ## 4. Review
-
+Die Ziele des Sprints wurden in den Kernbereichen Code-Qualität und UX erreicht: Die monolithische app.py wurde in klar getrennte Module aufgeteilt, wodurch Wartbarkeit, Testbarkeit und Erweiterbarkeit deutlich verbessert wurden. Zusätzlich konnte die interaktive Schweizer Wetterkarte integriert und an die bestehende Standortsuche angebunden werden, was die Benutzererfahrung spürbar aufwertet. Das bestehende Deployment wurde so angepasst, dass alle neuen Module automatisch mit ausgerollt werden und die Anwendung weiterhin stabil im produktiven Betrieb läuft.
 
 ---
 
@@ -1726,10 +1767,12 @@ Die Applikation durch Code-Refactoring wartbarer machen, das UI-Design finalisie
 
 | Frage | Antwort |
 |-------|---------|
-| Was lief gut? | |
-| Was war schwierig? | |
-| Was kann verbessert werden? | |
-| Was nehmen wir mit in den nächsten Sprint? | |
+| Was lief gut? | - Die Wetterkarte konnte erfolgreich fertiggestellt und in die Anwendung integriert werden. <br> - Die API-Anbindung für die Orte wurde implementiert, sodass Standorte nun sauber über die Schnittstelle aufgelöst und verarbeitet werden können.
+​ |
+| Was war schwierig? | - Die Wochenübersichts-Kacheln im Darkmode sichtbar zu machen war deutlich aufwendiger als geplant, insbesondere was das Zusammenspiel von Farben, Kontrast und Lesbarkeit betrifft. <br> -Diese Anpassungen konnten im Rahmen dieses Sprints nicht vollständig abgeschlossen werden, wodurch dieser Teil des UI-Feinschliffs offen blieb.
+​ |
+| Was kann verbessert werden? | - Das Caching der Wetterdaten hat weiterhin großes Optimierungspotenzial, etwa um API-Calls zu reduzieren und die Performance der Anwendung zu steigern. <br> - Zusätzlich hätten weitere Charts und Visualisierungen geholfen, insbesondere für die Wochenübersicht; hier ist der Umfang aufgrund der verfügbaren Zeit geringer ausgefallen als ursprünglich geplant. |
+| Was nehmen wir mit in den nächsten Sprint? | - Es wird keinen weiteren Sprint geben, da die verfügbare Projektzeit ausgelaufen ist; offene Punkte wie Darkmode-Optimierung, Caching-Verbesserungen und zusätzliche Charts werden als dokumentierte Verbesserungsmöglichkeiten festgehalten. <br> - Die modulare Architektur, die klare Trennung von Logik und UI sowie die etablierte Deployment-Pipeline bilden jedoch eine solide Grundlage, auf der das Projekt zu einem späteren Zeitpunkt problemlos weitergeführt oder erweitert werden kann. |
 
 ---
 
@@ -2051,3 +2094,11 @@ def test_fetch_weather_data(mock_get):
 - Datenstrukturen bleiben gleich
 - API-Integration unverändert
 
+# 7. Projektabschluss und persönliche Erkenntnisse
+Im Rahmen des Projekts konnte ein deutlich tieferes Verständnis für Streamlit und die zugrunde liegende Python-Logik aufgebaut werden. Die Aufteilung des Codes in mehrere Module und Dateien hat gezeigt, wie wichtig eine saubere Strukturierung für Wartbarkeit und Erweiterbarkeit ist.
+
+Ein zentraler Lernpunkt war die Architekturentscheidung rund um die Datenbeschaffung: Anstatt Wetterdaten über CI/CD-Pipelines periodisch in der Datenbank zu persistieren, hat sich der Ansatz bewährt, API-Anfragen direkt bei der Benutzerinteraktion auszuführen. Dies reduziert Komplexität, vermeidet Synchronisationsprobleme und stellt sicher, dass stets aktuelle Daten angezeigt werden.
+
+Gleichzeitig wurde deutlich, dass Streamlit für produktive Webauftritte nur bedingt geeignet ist. Insbesondere im Bereich UI/UX stößt das Framework an seine Grenzen, da die feingranulare Kontrolle über HTML und CSS eingeschränkt ist und aufwendigere Layout- oder Designanforderungen nur mit Zusatzaufwand umsetzbar sind. Diese Erkenntnis ist wichtig für die zukünftige Technologieauswahl bei ähnlichen Projekten.
+
+Trotz der ambitionierten Ziele und einiger Punkte, die aus Zeitgründen nicht vollständig umgesetzt werden konnten, ist das Ergebnis insgesamt zufriedenstellend. Die Wetterapplikation wurde erfolgreich online gestellt, bietet eine funktionale Infrastruktur mit Datenbank, API-Anbindung und interaktiver Oberfläche und erfüllt damit den Kernzweck des Projekts.
