@@ -13,35 +13,35 @@
 - [Sprint 0 – Projektinitialisierung & Setup](#sprint-0--projektinitialisierung--setup)
   - [Ziel des Sprints](#ziel-des-sprints)
   - [1. Epics und User Stories](#1-epics-und-user-stories)
-  - [3. Aufgaben (Tasks)](#3-aufgaben-tasks)
-  - [4. Deliverables (Ergebnisse)](#4-deliverables-ergebnisse)
-  - [6. Review](#6-review)
-  - [7. Retrospektive](#7-retrospektive)
-  - [9. Worklog](#9-worklog)
-- [Sprint 1 – Server & Infrastruktur](#sprint-1--server--infrastruktur)
-  - [Ziel des Sprints](#ziel-des-sprints-1)
-  - [1. Epics und User Stories](#1-epics-und-user-stories-1)
   - [2. Aufgaben (Tasks)](#2-aufgaben-tasks)
   - [3. Deliverables (Ergebnisse)](#3-deliverables-ergebnisse)
   - [4. Review](#4-review)
   - [5. Retrospektive](#5-retrospektive)
   - [6. Worklog](#6-worklog)
-- [Sprint 2 – Automatisierung & Integration](#sprint-2--automatisierung--integration)
-  - [Ziel des Sprints](#ziel-des-sprints-2)
-  - [1. Epic und User Stories](#1-epic-und-user-stories)
-  - [3. Aufgaben (Tasks)](#3-aufgaben-tasks-1)
-  - [4. Deliverables (Ergebnisse)](#4-deliverables-ergebnisse-1)
-  - [6. Review](#6-review-1)
-  - [7. Retrospektive](#7-retrospektive-1)
-  - [9. Worklog](#9-worklog-1)
-- [Sprint 3 – Code-Refactoring & UI-Verbesserungen](#sprint-3--code-refactoring--ui-verbesserungen)
-  - [Ziel des Sprints](#ziel-des-sprints-3)
-  - [1. Epic und User Stories](#1-epic-und-user-stories-1)
+- [Sprint 1 – Server & Infrastruktur](#sprint-1--server--infrastruktur)
+  - [Ziel des Sprints](#ziel-des-sprints-1)
+  - [1. Epics und User Stories](#1-epics-und-user-stories-1)
   - [2. Aufgaben (Tasks)](#2-aufgaben-tasks-1)
   - [3. Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-1)
   - [4. Review](#4-review-1)
   - [5. Retrospektive](#5-retrospektive-1)
   - [6. Worklog](#6-worklog-1)
+- [Sprint 2 – Automatisierung & Integration](#sprint-2--automatisierung--integration)
+  - [Ziel des Sprints](#ziel-des-sprints-2)
+  - [1. Epics und User Stories](#1-epics-und-user-stories-2)
+  - [2. Aufgaben (Tasks)](#2-aufgaben-tasks-2)
+  - [3. Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-2)
+  - [4. Review](#4-review-2)
+  - [5. Retrospektive](#5-retrospektive-2)
+  - [6. Worklog](#6-worklog-2)
+- [Sprint 3 – Code-Refactoring & UI-Verbesserungen](#sprint-3--code-refactoring--ui-verbesserungen)
+  - [Ziel des Sprints](#ziel-des-sprints-3)
+  - [1. Epics und User Stories](#1-epics-und-user-stories-3)
+  - [2. Aufgaben (Tasks)](#2-aufgaben-tasks-3)
+  - [3. Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-3)
+  - [4. Review](#4-review-3)
+  - [5. Retrospektive](#5-retrospektive-3)
+  - [6. Worklog](#6-worklog-3)
 - [Projektabschluss und persönliche Erkenntnisse](#7-projektabschluss-und-persönliche-erkenntnisse)
 
 ---
@@ -74,46 +74,6 @@ So lässt sich der Projektverlauf jederzeit transparent nachvollziehen und effiz
 
 ---
 
-## Inhaltsverzeichnis
-
-1. [Sprint 0 – Projektinitialisierung & Setup](#sprint-0--projektinitialisierung--setup)
-   - [Ziel des Sprints](#ziel-des-sprints)
-   - [Epics und User Stories](#1-epics-und-user-stories)
-   - [Aufgaben (Tasks)](#3-aufgaben-tasks)
-   - [Deliverables (Ergebnisse)](#4-deliverables-ergebnisse)
-   - [Review](#6-review)
-   - [Retrospektive](#7-retrospektive)
-   - [Worklog](#9-worklog)
-
-2. [Sprint 1 – Server & Infrastruktur](#sprint-1--server--infrastruktur)
-   - [Ziel des Sprints](#ziel-des-sprints-1)
-   - [Epics und User Stories](#1-epics-und-user-stories-1)
-   - [Aufgaben (Tasks)](#2-aufgaben-tasks-1)
-   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-1)
-   - [Review](#5-review)
-   - [Retrospektive](#6-retrospektive-1)
-   - [Worklog](#7-worklog-1)
-
-3. [Sprint 2 – Automatisierung & Integration](#sprint-2--automatisierung--integration)
-   - [Ziel des Sprints](#ziel-des-sprints-2)
-   - [Epics und User Stories](#1-epics-und-user-stories-2)
-   - [Aufgaben (Tasks)](#2-aufgaben-tasks-2)
-   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-2)
-   - [Review](#4-review)
-   - [Retrospektive](#5-retrospektive)
-   - [Worklog](#6-worklog)
-
-4. [Sprint 3 – Code-Refactoring & UI-Verbesserungen](#sprint-3--code-refactoring--ui-verbesserungen)
-   - [Ziel des Sprints](#ziel-des-sprints-3)
-   - [Epics und User Stories](#1-epic-und-user-stories)
-   - [Aufgaben (Tasks)](#2-aufgaben-tasks-3)
-   - [Deliverables (Ergebnisse)](#3-deliverables-ergebnisse-3)
-   - [Review](#4-review-1)
-   - [Retrospektive](#5-retrospektive-1)
-   - [Worklog](#6-worklog-1)
-
----
-
 # Sprint 0 – Projektinitialisierung & Setup
 
 ## Ziel des Sprints
@@ -133,7 +93,7 @@ Eine lauffähige Entwicklungsumgebung und Basis-Projektstruktur bereitstellen, u
 
 ---
 
-## 3. Aufgaben (Tasks)
+## 2. Aufgaben (Tasks)
 
 | ID   | Beschreibung              | Zugeordnet zu Story | Verantwortlich | Status |
 | ---- | ------------------------- | ------------------- | -------------- | ------ |
@@ -146,7 +106,7 @@ Eine lauffähige Entwicklungsumgebung und Basis-Projektstruktur bereitstellen, u
 
 ---
 
-## 4. Deliverables (Ergebnisse)
+## 3. Deliverables (Ergebnisse)
 
 | Nr. | Deliverable                 | Bezug Story | Beschreibung                                                                                        | Nachweis / Artefakt                                                              |
 | --- | --------------------------- | ----------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -158,13 +118,13 @@ Eine lauffähige Entwicklungsumgebung und Basis-Projektstruktur bereitstellen, u
 
 ---
 
-## 6. Review
+## 4. Review
 
 Das Aufsetzen der Projektumgebung ist abgeschlossen. Somit kann ich im nächsten Sprint mit der Umsetzung beginnen.
 
 ---
 
-## 7. Retrospektive
+## 5. Retrospektive
 
 | Frage                                      | Antwort |
 | ------------------------------------------ | ------- |
@@ -175,7 +135,7 @@ Das Aufsetzen der Projektumgebung ist abgeschlossen. Somit kann ich im nächsten
 
 ---
 
-## 9. Worklog
+## 6. Worklog
 
 
 # Sprint 1 – Server & Infrastruktur
@@ -451,7 +411,7 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 
 ---
 
-## 1. Epic und User Stories
+## 1. Epics und User Stories
 
 | Epic (Key)                                 | Story-ID | Rolle         | Ziel                                                                                                                     | Nutzen                                              | Akzeptanzkriterien                                                            |
 |--------------------------------------------|----------|---------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
@@ -465,7 +425,7 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 
 ---
 
-## 3. Aufgaben (Tasks)
+## 2. Aufgaben (Tasks)
 
 | Task-ID   | Beschreibung                                            | Zugeordnet zu Story | Verantwortlich | Status  |
 |-----------|--------------------------------------------------------|---------------------|---------------|---------|
@@ -487,7 +447,7 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 
 ---
 
-## 4. Deliverables (Ergebnisse)
+## 3. Deliverables (Ergebnisse)
 
 | Nr. | Deliverable                        | Bezug Story | Beschreibung                                                          | Nachweis / Artefakt                                   |
 |-----|------------------------------------|-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
@@ -499,7 +459,7 @@ Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als da
 
 ---
 
-## 6. Review
+## 4. Review
 
 Die Automatisierung und Integration der Wetterdaten ist erfolgreich abgeschlossen. Streamlit läuft als stabiler systemd-Dienst mit automatischer Git-Integration. Das ursprünglich geplante CI/CD-Pipeline-Konzept für zeitgesteuerte Datenaktualisierung wurde zugunsten einer direkten API-Anbindung beim Suchvorgang verworfen – dies reduziert Komplexität und stellt sicher, dass immer aktuelle Daten angezeigt werden.
 
@@ -509,7 +469,7 @@ Verbesserungspotenzial wurde in der Code-Struktur identifiziert: Die app.py ist 
 
 ---
 
-## 7. Retrospektive
+## 5. Retrospektive
 
 | Frage                                    | Antwort                                                                           |
 |-------------------------------------------|-----------------------------------------------------------------------------------|
@@ -520,7 +480,7 @@ Verbesserungspotenzial wurde in der Code-Struktur identifiziert: Die app.py ist 
 
 ---
 
-## 9. Worklog
+## 6. Worklog
 
 ### Wichtige Änderungen in app.py seit Sprint 1
 
@@ -1748,7 +1708,7 @@ Die Applikation durch Code-Refactoring wartbarer machen, das UI-Design finalisie
 
 ---
 
-## 1. Epic und User Stories
+## 1. Epics und User Stories
 
 | Epic (Key) | Story-ID | Rolle | Ziel | Nutzen | Story Points | Akzeptanzkriterien |
 |------------|----------|-------|------|--------|--------------|-------------------|
