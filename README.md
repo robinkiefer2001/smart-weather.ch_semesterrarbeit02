@@ -51,7 +51,7 @@ streamlit run streamlitapp/app.py
 
 ### Live-Version
 
-Die produktive Anwendung ist erreichbar unter: **https://smart-weather-ch.ch**
+Die produktive Anwendung ist erreichbar unter: **https://smart-ch.ch**
 
 ---
 
