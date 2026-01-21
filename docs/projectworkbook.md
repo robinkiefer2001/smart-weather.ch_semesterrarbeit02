@@ -153,7 +153,7 @@ Die gesamte Server- und Infrastruktur-Basis aufsetzen, inklusive Domain, HTTPS, 
 | SCRUM-4    | SCRUM-48 | Administrator | DNS konfigurieren, damit die Website erreichbar ist                      | Applikation ist unter eigener Domain erreichbar | DNS zeigt auf richtigen Server, Website erreichbar |
 | SCRUM-4    | SCRUM-5  | Administrator | Domain und HTTPS-Zertifikat einrichten                                   | Sichere, eigene Zugriffs-URL                    | Domain erreichbar, HTTPS aktiv                     |
 | SCRUM-4    | SCRUM-3  | Administrator | Streamlit auf Ubuntu Server installieren                                 | App-Grundlage steht auf Server                  | Streamlit läuft auf Produktiv-Server               |
-| SCRUM-4    | SCRUM-1  | Administrator | Ubuntu-Server auf Hetzner aufsetzen, Umgebung für App bereitstellen      | Server für Deployment verfügbar                 | Server läuft, von außen erreichbar                 |
+| SCRUM-4    | SCRUM-1  | Administrator | Ubuntu-Server auf Hetzner aufsetzen, Umgebung für App bereitstellen      | Server für Deployment verfügbar                 | Server läuft, von aussen erreichbar                 |
 | SCRUM-4    | SCRUM-2  | Administrator | Datenbank-Instanz (PostgreSQL) installieren, um Wetterdaten zu speichern | Persistente Datenspeicherung                    | PostgreSQL läuft, Tabellen erzeugt, Login getestet |                            |
 
 ---
@@ -179,7 +179,7 @@ Die gesamte Server- und Infrastruktur-Basis aufsetzen, inklusive Domain, HTTPS, 
 | SCRUM-42  | Loadbalancer auf Hetzner erstellen                       | SCRUM-4              | —             | Done   |
 | SCRUM-41  | Zugriff testen                                           | SCRUM-4              | —             | Done   |
 | SCRUM-2   | Datenbank-Instanz (PostgreSQL) installieren              | SCRUM-4              | —             | Done   |
-| SCRUM-47  | Zugriff von außen sicherstellen                          | SCRUM-4              | —             | Done   |
+| SCRUM-47  | Zugriff von aussen sicherstellen                          | SCRUM-4              | —             | Done   |
 | SCRUM-45  | SQL-Instanz und DB konfigurieren                         | SCRUM-4              | —             | Done   |
 | SCRUM-44  | Postgres auf Ubuntu Server installieren                  | SCRUM-4              | —             | Done   |
 
@@ -189,7 +189,7 @@ Die gesamte Server- und Infrastruktur-Basis aufsetzen, inklusive Domain, HTTPS, 
 
 | Nr. | Deliverable                              | Bezug Story | Beschreibung                                                              | Nachweis / Artefakt                                                 |
 |-----|------------------------------------------|-------------|--------------------------------------------------------------------------|---------------------------------------------------------------------|
-| 1   | Server ist auf Hetzner aufgesetzt        | SCRUM-1     | Ubuntu Server läuft und ist von außen erreichbar                          | ![alt text](image-4.png)                        |
+| 1   | Server ist auf Hetzner aufgesetzt        | SCRUM-1     | Ubuntu Server läuft und ist von aussen erreichbar                          | ![alt text](image-4.png)                        |
 | 2   | Domain & SSL eingerichtet                | SCRUM-5     | Domain gekauft, DNS gesetzt, HTTPS aktiv                                  | ![alt text](image-6.png)                   |
 | 3   | Streamlit-App deployt                    | SCRUM-3     | app.py und virtualenv eingerichtet, App läuft im Browser                  | ![alt text](image-5.png)                                        |
 | 4   | Firewall- und Sicherheitsregeln aktiv    | SCRUM-43    | Alle nötigen Firewallrules und Zugriffsbeschränkungen gesetzt             | Firewall-Übersicht, Testprotokoll                                   |
@@ -407,7 +407,7 @@ Alle für die Serverbasis erforderlichen Systeme wurden aufgesetzt. Die Applikat
 
 ## Ziel des Sprints
 
-Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als dauerhaften Dienst betreiben, Wetterdaten per CI/CD-Pipeline bereitstellen, Git-Integration und regelmäßige Datenaktualisierung sowie Visualisierung produktiv umsetzen.
+Die Backend- und Datenprozesse von SmartWeather automatisieren: Streamlit als dauerhaften Dienst betreiben, Wetterdaten per CI/CD-Pipeline bereitstellen, Git-Integration und regelmässige Datenaktualisierung sowie Visualisierung produktiv umsetzen.
 
 ---
 
@@ -505,7 +505,7 @@ if "weather_data" not in st.session_state:
 **weatherDescription(current_weather_code):**
 - Umfassende Beschreibungen für alle WMO-Codes (0-99)
 - Detaillierte Wetterlagen auf Deutsch
-- Unterstützt Unterscheidung zwischen Intensitäten (leicht/mäßig/stark)
+- Unterstützt Unterscheidung zwischen Intensitäten (leicht/mässig/stark)
 
 ---
 
@@ -633,7 +633,7 @@ hoyrly_df["short"] = hoyrly_df["icon"] + " " + hoyrly_df["description"]
 1. **Temperaturverlauf:**
    - Absolute Temperatur
    - Temperaturveränderung (Delta pro Stunde mit diff())
-   - Metriken: Max, Min, größter Anstieg/Rückgang
+   - Metriken: Max, Min, grösster Anstieg/Rückgang
 
 2. **Niederschlag:**
    - Regen vs. Schauer getrennt dargestellt
@@ -727,7 +727,7 @@ sudo apt install git
 
 ### Automatischer Start per systemd
 
-Das ist korrekt und gehört zur optimalen Konfiguration dazu. Hier ist der abschließende, vollständige Markdown-Abschnitt für deinen Worklog, inklusive dediziertem Service-Account:
+Das ist korrekt und gehört zur optimalen Konfiguration dazu. Hier ist der abschliessende, vollständige Markdown-Abschnitt für deinen Worklog, inklusive dediziertem Service-Account:
 
 ***
 
@@ -1771,7 +1771,7 @@ Die Ziele des Sprints wurden in den Kernbereichen Code-Qualität und UX erreicht
 ​ |
 | Was war schwierig? | - Die Wochenübersichts-Kacheln im Darkmode sichtbar zu machen war deutlich aufwendiger als geplant, insbesondere was das Zusammenspiel von Farben, Kontrast und Lesbarkeit betrifft. <br> -Diese Anpassungen konnten im Rahmen dieses Sprints nicht vollständig abgeschlossen werden, wodurch dieser Teil des UI-Feinschliffs offen blieb.
 ​ |
-| Was kann verbessert werden? | - Das Caching der Wetterdaten hat weiterhin großes Optimierungspotenzial, etwa um API-Calls zu reduzieren und die Performance der Anwendung zu steigern. <br> - Zusätzlich hätten weitere Charts und Visualisierungen geholfen, insbesondere für die Wochenübersicht; hier ist der Umfang aufgrund der verfügbaren Zeit geringer ausgefallen als ursprünglich geplant. |
+| Was kann verbessert werden? | - Das Caching der Wetterdaten hat weiterhin grosses Optimierungspotenzial, etwa um API-Calls zu reduzieren und die Performance der Anwendung zu steigern. <br> - Zusätzlich hätten weitere Charts und Visualisierungen geholfen, insbesondere für die Wochenübersicht; hier ist der Umfang aufgrund der verfügbaren Zeit geringer ausgefallen als ursprünglich geplant. |
 | Was nehmen wir mit in den nächsten Sprint? | - Es wird keinen weiteren Sprint geben, da die verfügbare Projektzeit ausgelaufen ist; offene Punkte wie Darkmode-Optimierung, Caching-Verbesserungen und zusätzliche Charts werden als dokumentierte Verbesserungsmöglichkeiten festgehalten. <br> - Die modulare Architektur, die klare Trennung von Logik und UI sowie die etablierte Deployment-Pipeline bilden jedoch eine solide Grundlage, auf der das Projekt zu einem späteren Zeitpunkt problemlos weitergeführt oder erweitert werden kann. |
 
 ---
@@ -2321,7 +2321,7 @@ Implementierung (app.py Zeilen 273-282, ui_components.py Zeilen 283-379):
 **Features:**
 - "Wählen"-Button unter jeder Tages-Karte im Kalender-Tab
 - Rote Rand (#dc2626) springt zum ausgewählten Tag
-- Ausgewählter Tag wird vergrößert (36px Emoji vs. 28px)
+- Ausgewählter Tag wird vergrössert (36px Emoji vs. 28px)
 - Tageswechsel triggert `st.rerun()` für sofortige Aktualisierung
 - Session State speichert `selected_day_date` als ISO-String
 - `display_day_card()` aktualisiert: neuer Parameter `selected_date=None`
@@ -2489,6 +2489,6 @@ Im Rahmen des Projekts konnte ein deutlich tieferes Verständnis für Streamlit 
 
 Ein zentraler Lernpunkt war die Architekturentscheidung rund um die Datenbeschaffung: Anstatt Wetterdaten über CI/CD-Pipelines periodisch in der Datenbank zu persistieren, hat sich der Ansatz bewährt, API-Anfragen direkt bei der Benutzerinteraktion auszuführen. Dies reduziert Komplexität, vermeidet Synchronisationsprobleme und stellt sicher, dass stets aktuelle Daten angezeigt werden.
 
-Gleichzeitig wurde deutlich, dass Streamlit für produktive Webauftritte nur bedingt geeignet ist. Insbesondere im Bereich UI/UX stößt das Framework an seine Grenzen, da die feingranulare Kontrolle über HTML und CSS eingeschränkt ist und aufwendigere Layout- oder Designanforderungen nur mit Zusatzaufwand umsetzbar sind. Diese Erkenntnis ist wichtig für die zukünftige Technologieauswahl bei ähnlichen Projekten.
+Gleichzeitig wurde deutlich, dass Streamlit für produktive Webauftritte nur bedingt geeignet ist. Insbesondere im Bereich UI/UX stösst das Framework an seine Grenzen, da die feingranulare Kontrolle über HTML und CSS eingeschränkt ist und aufwendigere Layout- oder Designanforderungen nur mit Zusatzaufwand umsetzbar sind. Diese Erkenntnis ist wichtig für die zukünftige Technologieauswahl bei ähnlichen Projekten.
 
 Trotz der ambitionierten Ziele und einiger Punkte, die aus Zeitgründen nicht vollständig umgesetzt werden konnten, ist das Ergebnis insgesamt zufriedenstellend. Die Wetterapplikation wurde erfolgreich online gestellt, bietet eine funktionale Infrastruktur mit Datenbank, API-Anbindung und interaktiver Oberfläche und erfüllt damit den Kernzweck des Projekts.

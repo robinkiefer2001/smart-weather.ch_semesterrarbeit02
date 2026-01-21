@@ -131,13 +131,13 @@ SmartWeather.ch ist eine moderne Wetter-Applikation, die als Semesterarbeit entw
 ### NFR-01: Performance
 
 - **Anforderung:** API-Response-Zeit < 3 Sekunden
-- **Maßnahmen:** Direkte API-Abfrage ohne Zwischenspeicherung
+- **Massnahmen:** Direkte API-Abfrage ohne Zwischenspeicherung
 - **Messung:** Durchschnittliche Ladezeit bei Standortsuche
 
 ### NFR-02: Verfügbarkeit
 
 - **Anforderung:** 99% Uptime
-- **Maßnahmen:** 
+- **Massnahmen:** 
   - systemd-Service mit automatischem Restart
   - Hetzner Cloud Infrastruktur
   - Monitoring durch systemd-Logs
@@ -145,7 +145,7 @@ SmartWeather.ch ist eine moderne Wetter-Applikation, die als Semesterarbeit entw
 ### NFR-03: Sicherheit
 
 - **Anforderung:** HTTPS-verschlüsselte Kommunikation
-- **Maßnahmen:**
+- **Massnahmen:**
   - SSL-Zertifikat aktiv
   - Loadbalancer mit HTTPS-Terminierung
   - Firewall-Regeln (UFW)
@@ -154,7 +154,7 @@ SmartWeather.ch ist eine moderne Wetter-Applikation, die als Semesterarbeit entw
 ### NFR-04: Wartbarkeit
 
 - **Anforderung:** Code ist dokumentiert und strukturiert
-- **Maßnahmen:**
+- **Massnahmen:**
   - Git-Versionierung
   - Automatisches Deployment via Git-Pull
   - Inline-Kommentare für komplexe Logik
@@ -163,7 +163,7 @@ SmartWeather.ch ist eine moderne Wetter-Applikation, die als Semesterarbeit entw
 ### NFR-05: Usability
 
 - **Anforderung:** Intuitive Bedienung ohne Schulung
-- **Maßnahmen:**
+- **Massnahmen:**
   - Klare UI-Struktur mit Spalten-Layout
   - Icons zur visuellen Orientierung
   - Fehlermeldungen bei ungültigen Eingaben
